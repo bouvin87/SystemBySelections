@@ -1,0 +1,98 @@
+Skapa en modern webbapplikation för produktionsloggning med följande specifikationer:
+
+Översikt
+En React + Express + TypeScript applikation där operatörer kan fylla i anpassningsbara checklistor/formulär för olika arbetsmoment. Administratörer kan skapa och hantera dessa formulär dynamiskt.
+
+Teknisk stack
+Frontend: React med TypeScript, TanStack Query, React Hook Form, Zod, Tailwind CSS, Shadcn/ui komponenter
+Backend: Express.js med TypeScript
+Databas: PostgreSQL med Drizzle ORM
+Validering: Zod schemas för type-safe validering
+Databasmodell
+Huvudtabeller:
+work_tasks - Arbetsmoment (t.ex. "Rullformning", "Efterarbete")
+
+id, name, hasStations (boolean)
+work_stations - Arbetsstationer (t.ex. "Maskin 1", "Maskin 2")
+
+id, name, workTaskId (foreign key)
+shifts - Skift
+
+id, name, startTime, endTime, isActive, order
+categories - Kategorier för att gruppera frågor
+
+id, name, key, description, order, isActive
+questions - Dynamiska frågor
+
+id, text, type (checkbox, radio, text, rating, mood, number), categoryId, options (JSON), workTaskId, showInDashboard, dashboardDisplayType, order, isRequired
+checklists - Mallar för formulär
+
+id, name, description, includeWorkTasks, isActive, order
+checklist_work_tasks - Kopplingstabell för vilka arbetsmoment som tillhör en checklista
+
+checklist_questions - Kopplingstabell för vilka frågor som tillhör en checklista
+
+checklist_responses - Ifyllda svar
+
+id, checklistId, operatorName, workTaskId, workStationId, shiftId, responses (JSON), isCompleted, createdAt
+admin_settings - Systeminställningar
+
+id, key, value
+Funktionalitet
+Användarvy:
+Dashboard med översikt av:
+
+Senaste ifyllda formulär
+Dynamiska statistikkort baserade på frågor markerade för dashboard
+Filteringsmöjligheter
+Formulärmodal med stegvis genomgång:
+
+Steg 1: Välj checklista/formulärmall
+Steg 2: Identifiering (operatör, arbetsmoment, station, skift)
+Steg 3+: Kategoriserade frågor (dynamiskt antal steg baserat på kategorier)
+Progressbar och navigation mellan steg
+Validering av obligatoriska frågor
+Frågetyper som stöds:
+
+Checkbox (ja/nej)
+Radio buttons
+Text/textarea
+Rating (1-5 stjärnor)
+Mood (emoji-val 1-5)
+Number input
+Adminvy (lösenordsskyddad):
+Checklisthantering:
+
+Skapa/redigera checklistmallar
+Lägg till/ta bort arbetsmoment för varje checklista
+Lägg till/ta bort frågor för varje checklista
+Ordna frågor inom kategorier
+Frågehantering:
+
+Skapa/redigera frågor med olika typer
+Kategorisera frågor
+Markera frågor för dashboard-visning
+Ställa in dashboard-visningstyp (kort, diagram, progress, nummer)
+Grunddata:
+
+Hantera arbetsmoment och stationer
+Hantera skift
+Hantera kategorier
+UI/UX-krav:
+Responsiv design (mobil-först)
+Stegvis formulärgenomgång med progress indicator
+Intuitivt gränssnitt för frågetyper (stjärnor för rating, emojis för mood)
+Toast-notifikationer för feedback
+Dropdown-meny för navigation på mobila enheter
+Filtreringsmöjligheter i dashboarden
+API-endpoints:
+RESTful API med endpoints för CRUD-operationer på alla entiteter, plus specialiserade endpoints för dashboard-statistik och checklistkonfiguration.
+
+Särskilda funktioner:
+Dynamisk formulärgenerering baserat på checklistkonfiguration
+Flexibel frågekategorisering
+Dashboard med anpassningsbara statistikkort
+Mobilvänlig design med stegvis navigation
+Validering av obligatoriska frågor
+JSON-lagring av formulärsvar för flexibilitet
+Skapa denna applikation med fokus på användarvänlighet, flexibilitet och enkel administration av formulär och frågor.
