@@ -82,6 +82,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/shifts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertShiftSchema.partial().parse(req.body);
+      const shift = await storage.updateShift(id, validatedData);
+      res.json(shift);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid shift data" });
+    }
+  });
+
+  app.delete("/api/shifts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteShift(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete shift" });
+    }
+  });
+
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
