@@ -541,8 +541,8 @@ export default function ChecklistEditor() {
                   </div>
                   
                   {/* Dashboard Card Configuration - Only for applicable types */}
-                  {(editingQuestion?.type === "nummer" || editingQuestion?.type === "ja_nej" || 
-                    editingQuestion?.type === "stjärnor" || editingQuestion?.type === "humör") && (
+                  {(selectedQuestionType === "nummer" || selectedQuestionType === "ja_nej" || 
+                    selectedQuestionType === "stjärnor" || selectedQuestionType === "humör") && (
                     <div className="border-t pt-4">
                       <h4 className="text-sm font-medium mb-3">Dashboard-kort</h4>
                       <div className="flex items-center space-x-2 mb-3">

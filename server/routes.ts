@@ -481,6 +481,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dashboard Questions
+  app.get("/api/dashboard/questions", async (req, res) => {
+    try {
+      const checklistId = parseInt(req.query.checklistId as string);
+      if (!checklistId) {
+        return res.status(400).json({ message: "checklistId is required" });
+      }
+      const questions = await storage.getDashboardQuestions(checklistId);
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard questions" });
+    }
+  });
+
   // Admin Settings
   app.get("/api/admin/settings", async (req, res) => {
     try {

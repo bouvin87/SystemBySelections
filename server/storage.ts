@@ -88,6 +88,9 @@ export interface IStorage {
     search?: string;
   }): Promise<any>;
 
+  // Dashboard Questions
+  getDashboardQuestions(checklistId: number): Promise<Question[]>;
+
   // Admin Settings
   getAdminSettings(): Promise<AdminSetting[]>;
   getAdminSetting(key: string): Promise<AdminSetting | undefined>;
@@ -403,15 +406,39 @@ export class DatabaseStorage implements IStorage {
       recentQuery = recentQuery.where(whereCondition);
     }
 
-    const totalResponses = await totalQuery;
+    const totalResponses = await totalQuery.execute();
     const recentResponses = await recentQuery
       .orderBy(desc(checklistResponses.createdAt))
-      .limit(10);
+      .limit(10)
+      .execute();
 
     return {
       totalResponses: totalResponses[0]?.count || 0,
       recentResponses
     };
+  }
+
+  // Dashboard Questions
+  async getDashboardQuestions(checklistId: number): Promise<Question[]> {
+    return await db.select({
+      id: questions.id,
+      categoryId: questions.categoryId,
+      text: questions.text,
+      type: questions.type,
+      options: questions.options,
+      validation: questions.validation,
+      showInDashboard: questions.showInDashboard,
+      dashboardDisplayType: questions.dashboardDisplayType,
+      order: questions.order,
+      isRequired: questions.isRequired,
+    })
+      .from(questions)
+      .innerJoin(categories, eq(questions.categoryId, categories.id))
+      .where(and(
+        eq(categories.checklistId, checklistId),
+        eq(questions.showInDashboard, true)
+      ))
+      .orderBy(questions.order);
   }
 
   // Admin Settings
