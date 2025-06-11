@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -16,43 +16,42 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, Save, ArrowLeft, ChevronDown, ChevronRight } from "lucide-react";
+import { Link, useParams } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type {
-  Checklist,
   Category,
   InsertCategory,
   Question,
   InsertQuestion,
+  Checklist,
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
 
 function QuestionTypeLabel({ type }: { type: string }) {
-  const labels: Record<string, string> = {
-    checkbox: "Kryssruta",
-    radio: "Alternativ",
+  const typeLabels: Record<string, string> = {
     text: "Text",
-    rating: "Betyg",
-    mood: "Humör",
     number: "Nummer",
+    select: "Val",
+    multiselect: "Flera val",
+    boolean: "Ja/Nej",
+    date: "Datum",
+    time: "Tid",
+    file: "Fil",
   };
-  return <Badge variant="outline">{labels[type] || type}</Badge>;
+  return <span>{typeLabels[type] || type}</span>;
 }
 
 export default function ChecklistEditor() {
-  const params = useParams();
-  const checklistId = parseInt(params.id!);
-  const [activeTab, setActiveTab] = useState("categories");
+  const { id } = useParams<{ id: string }>();
+  const checklistId = parseInt(id!);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
   // Queries
@@ -99,7 +98,9 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
       }
       setDialogOpen(false);
+      setQuestionDialogOpen(false);
       setEditingItem(null);
+      setEditingQuestion(null);
       toast({ title: "Sparat!", description: "Objektet har skapats." });
     },
     onError: () => {
@@ -122,7 +123,9 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
       }
       setDialogOpen(false);
+      setQuestionDialogOpen(false);
       setEditingItem(null);
+      setEditingQuestion(null);
       toast({ title: "Uppdaterat!", description: "Objektet har uppdaterats." });
     },
     onError: () => {
@@ -160,9 +163,23 @@ export default function ChecklistEditor() {
     setDialogOpen(true);
   };
 
+  const openQuestionDialog = (question?: any, categoryId?: number) => {
+    setEditingQuestion(question);
+    setSelectedCategory(categoryId || null);
+    setQuestionDialogOpen(true);
+  };
+
   const handleSubmit = (endpoint: string, data: any) => {
     if (editingItem) {
       updateMutation.mutate({ endpoint, id: editingItem.id, data });
+    } else {
+      createMutation.mutate({ endpoint, data });
+    }
+  };
+
+  const handleQuestionSubmit = (endpoint: string, data: any) => {
+    if (editingQuestion) {
+      updateMutation.mutate({ endpoint, id: editingQuestion.id, data });
     } else {
       createMutation.mutate({ endpoint, data });
     }
@@ -172,6 +189,20 @@ export default function ChecklistEditor() {
     if (confirm("Är du säker på att du vill ta bort detta objekt?")) {
       deleteMutation.mutate({ endpoint, id });
     }
+  };
+
+  const toggleCategory = (categoryId: number) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const getCategoryQuestions = (categoryId: number) => {
+    return questions.filter(q => q.categoryId === categoryId);
   };
 
   if (!checklist) {
@@ -199,320 +230,314 @@ export default function ChecklistEditor() {
             )}
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="categories">Kategorier</TabsTrigger>
-                <TabsTrigger value="questions">Frågor</TabsTrigger>
-              </TabsList>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium">Kategorier och frågor</h3>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => openDialog()}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Ny kategori
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingItem ? "Redigera kategori" : "Ny kategori"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const data: InsertCategory = {
+                        name: formData.get("name") as string,
+                        checklistId: checklistId,
+                        key: formData.get("key") as string,
+                        description: formData.get("description") as string || undefined,
+                        order: parseInt(formData.get("order") as string) || 0,
+                        isActive: formData.get("isActive") === "on",
+                      };
+                      handleSubmit("/api/categories", data);
+                    }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <Label htmlFor="name">Namn</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        defaultValue={editingItem?.name || ""}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="key">Nyckel</Label>
+                      <Input
+                        id="key"
+                        name="key"
+                        placeholder="t.ex. kvalitet, sakerhet"
+                        defaultValue={editingItem?.key || ""}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Beskrivning</Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        defaultValue={editingItem?.description || ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="order">Ordning</Label>
+                      <Input
+                        id="order"
+                        name="order"
+                        type="number"
+                        defaultValue={editingItem?.order || 0}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="isActive"
+                        name="isActive"
+                        defaultChecked={editingItem?.isActive ?? true}
+                      />
+                      <Label htmlFor="isActive">Aktiv</Label>
+                    </div>
+                    <Button type="submit" className="w-full">
+                      <Save className="mr-2 h-4 w-4" />
+                      Spara
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
 
-              {/* Categories Tab */}
-              <TabsContent value="categories">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Kategorier</h3>
-                  <Dialog open={dialogOpen && activeTab === "categories"} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openDialog()}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Ny kategori
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingItem ? "Redigera kategori" : "Ny kategori"}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const data: InsertCategory = {
-                            name: formData.get("name") as string,
-                            checklistId: checklistId,
-                            key: formData.get("key") as string,
-                            description: formData.get("description") as string || undefined,
-                            order: parseInt(formData.get("order") as string) || 0,
-                            isActive: formData.get("isActive") === "on",
-                          };
-                          handleSubmit("/api/categories", data);
-                        }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <Label htmlFor="name">Namn</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            defaultValue={editingItem?.name || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="key">Nyckel</Label>
-                          <Input
-                            id="key"
-                            name="key"
-                            placeholder="t.ex. kvalitet, sakerhet"
-                            defaultValue={editingItem?.key || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="description">Beskrivning</Label>
-                          <Textarea
-                            id="description"
-                            name="description"
-                            defaultValue={editingItem?.description || ""}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="order">Ordning</Label>
-                          <Input
-                            id="order"
-                            name="order"
-                            type="number"
-                            defaultValue={editingItem?.order || 0}
-                          />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="isActive"
-                            name="isActive"
-                            defaultChecked={editingItem?.isActive ?? true}
-                          />
-                          <Label htmlFor="isActive">Aktiv</Label>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Spara
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+            <div className="space-y-4">
+              {categories.map((category) => {
+                const categoryQuestions = getCategoryQuestions(category.id);
+                const isExpanded = expandedCategories.has(category.id);
 
-                <div className="space-y-4">
-                  {categories.map((category) => (
-                    <Card key={category.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">{category.name}</h4>
-                            <p className="text-xs text-gray-500">Nyckel: {category.key}</p>
-                            {category.description && (
-                              <p className="text-sm text-gray-600 mt-1">{category.description}</p>
-                            )}
-                            <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
-                              <Badge variant={category.isActive ? "default" : "secondary"}>
-                                {category.isActive ? "Aktiv" : "Inaktiv"}
-                              </Badge>
-                              <span>Ordning: {category.order}</span>
+                return (
+                  <Card key={category.id}>
+                    <CardContent className="p-0">
+                      <Collapsible>
+                        <CollapsibleTrigger asChild>
+                          <div
+                            className="p-4 cursor-pointer hover:bg-gray-50"
+                            onClick={() => toggleCategory(category.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-gray-900">{category.name}</h4>
+                                  <p className="text-xs text-gray-500">Nyckel: {category.key}</p>
+                                  {category.description && (
+                                    <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                                  )}
+                                  <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                                    <Badge variant={category.isActive ? "default" : "secondary"}>
+                                      {category.isActive ? "Aktiv" : "Inaktiv"}
+                                    </Badge>
+                                    <span>Ordning: {category.order}</span>
+                                    <span>{categoryQuestions.length} frågor</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDialog(category);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete("/api/categories", category.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDialog(category)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete("/api/categories", category.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-
-              {/* Questions Tab */}
-              <TabsContent value="questions">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Frågor</h3>
-                  <Dialog open={dialogOpen && activeTab === "questions"} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openDialog()} disabled={categories.length === 0}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Ny fråga
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingItem ? "Redigera fråga" : "Ny fråga"}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const data: InsertQuestion = {
-                            text: formData.get("text") as string,
-                            type: formData.get("type") as string,
-                            categoryId: parseInt(formData.get("categoryId") as string),
-                            showInDashboard: formData.get("showInDashboard") === "on",
-                            dashboardDisplayType: formData.get("dashboardDisplayType") as string || null,
-                            order: parseInt(formData.get("order") as string) || 0,
-                            isRequired: formData.get("isRequired") === "on",
-                            options: formData.get("options") ? JSON.parse(formData.get("options") as string) : null,
-                          };
-                          handleSubmit("/api/questions", data);
-                        }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <Label htmlFor="text">Frågetext</Label>
-                          <Textarea
-                            id="text"
-                            name="text"
-                            defaultValue={editingItem?.text || ""}
-                            required
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="type">Typ</Label>
-                            <Select name="type" defaultValue={editingItem?.type || ""}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Välj typ" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="checkbox">Kryssruta</SelectItem>
-                                <SelectItem value="radio">Alternativ</SelectItem>
-                                <SelectItem value="text">Text</SelectItem>
-                                <SelectItem value="rating">Betyg</SelectItem>
-                                <SelectItem value="mood">Humör</SelectItem>
-                                <SelectItem value="number">Nummer</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="categoryId">Kategori</Label>
-                            <Select name="categoryId" defaultValue={editingItem?.categoryId?.toString() || ""}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Välj kategori" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.map((category) => (
-                                  <SelectItem key={category.id} value={category.id.toString()}>
-                                    {category.name}
-                                  </SelectItem>
+                        </CollapsibleTrigger>
+                        
+                        {isExpanded && (
+                          <CollapsibleContent>
+                            <div className="border-t bg-gray-50 p-4">
+                              <div className="flex justify-between items-center mb-4">
+                                <h5 className="text-sm font-medium">Frågor för {category.name}</h5>
+                                <Button
+                                  size="sm"
+                                  onClick={() => openQuestionDialog(null, category.id)}
+                                >
+                                  <Plus className="mr-2 h-3 w-3" />
+                                  Ny fråga
+                                </Button>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                {categoryQuestions.map((question) => (
+                                  <Card key={question.id} className="bg-white">
+                                    <CardContent className="p-3">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium">{question.text}</p>
+                                          <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                                            <Badge variant="outline">
+                                              <QuestionTypeLabel type={question.type} />
+                                            </Badge>
+                                            {question.isRequired && (
+                                              <Badge variant="secondary">Obligatorisk</Badge>
+                                            )}
+                                            <span>Ordning: {question.order}</span>
+                                          </div>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => openQuestionDialog(question)}
+                                          >
+                                            <Edit className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDelete("/api/questions", question.id)}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
                                 ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="options">Alternativ (JSON format för radio buttons)</Label>
-                          <Textarea
-                            id="options"
-                            name="options"
-                            placeholder='["Alternativ 1", "Alternativ 2", "Alternativ 3"]'
-                            defaultValue={editingItem?.options ? JSON.stringify(editingItem.options) : ""}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="order">Ordning</Label>
-                            <Input
-                              id="order"
-                              name="order"
-                              type="number"
-                              defaultValue={editingItem?.order || 0}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="dashboardDisplayType">Dashboard-visning</Label>
-                            <Select name="dashboardDisplayType" defaultValue={editingItem?.dashboardDisplayType || ""}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Välj visningstyp" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="card">Kort</SelectItem>
-                                <SelectItem value="chart">Diagram</SelectItem>
-                                <SelectItem value="progress">Progress</SelectItem>
-                                <SelectItem value="number">Nummer</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="showInDashboard"
-                            name="showInDashboard"
-                            defaultChecked={editingItem?.showInDashboard ?? false}
-                          />
-                          <Label htmlFor="showInDashboard">Visa i dashboard</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="isRequired"
-                            name="isRequired"
-                            defaultChecked={editingItem?.isRequired ?? false}
-                          />
-                          <Label htmlFor="isRequired">Obligatorisk</Label>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Spara
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                {categories.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Du måste skapa kategorier först innan du kan lägga till frågor.</p>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  {questions.map((question) => (
-                    <Card key={question.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">{question.text}</h4>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Kategori: {categories.find(c => c.id === question.categoryId)?.name || 'Okänd'}
-                            </p>
-                            <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
-                              <QuestionTypeLabel type={question.type} />
-                              {question.isRequired && <Badge variant="destructive">Obligatorisk</Badge>}
-                              {question.showInDashboard && <Badge variant="outline">Dashboard</Badge>}
+                                
+                                {categoryQuestions.length === 0 && (
+                                  <p className="text-sm text-gray-500 text-center py-4">
+                                    Inga frågor ännu. Klicka "Ny fråga" för att lägga till en.
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDialog(question)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete("/api/questions", question.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+                          </CollapsibleContent>
+                        )}
+                      </Collapsible>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Question Dialog */}
+            <Dialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingQuestion ? "Redigera fråga" : "Ny fråga"}
+                  </DialogTitle>
+                </DialogHeader>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.currentTarget);
+                    const data: InsertQuestion = {
+                      text: formData.get("text") as string,
+                      type: formData.get("type") as string,
+                      categoryId: selectedCategory || editingQuestion?.categoryId,
+                      isRequired: formData.get("isRequired") === "on",
+                      order: parseInt(formData.get("order") as string) || 0,
+                      options: formData.get("options") ? JSON.parse(formData.get("options") as string) : undefined,
+                      validation: formData.get("validation") ? JSON.parse(formData.get("validation") as string) : undefined,
+                    };
+                    handleQuestionSubmit("/api/questions", data);
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <Label htmlFor="text">Frågetext</Label>
+                    <Textarea
+                      id="text"
+                      name="text"
+                      defaultValue={editingQuestion?.text || ""}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="type">Typ</Label>
+                    <Select name="type" defaultValue={editingQuestion?.type || "text"}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Välj typ" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="number">Nummer</SelectItem>
+                        <SelectItem value="select">Val</SelectItem>
+                        <SelectItem value="multiselect">Flera val</SelectItem>
+                        <SelectItem value="boolean">Ja/Nej</SelectItem>
+                        <SelectItem value="date">Datum</SelectItem>
+                        <SelectItem value="time">Tid</SelectItem>
+                        <SelectItem value="file">Fil</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="order">Ordning</Label>
+                    <Input
+                      id="order"
+                      name="order"
+                      type="number"
+                      defaultValue={editingQuestion?.order || 0}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isRequired"
+                      name="isRequired"
+                      defaultChecked={editingQuestion?.isRequired ?? false}
+                    />
+                    <Label htmlFor="isRequired">Obligatorisk</Label>
+                  </div>
+                  <div>
+                    <Label htmlFor="options">Alternativ (JSON format för select-typer)</Label>
+                    <Textarea
+                      id="options"
+                      name="options"
+                      placeholder='["Alternativ 1", "Alternativ 2"]'
+                      defaultValue={editingQuestion?.options ? JSON.stringify(editingQuestion.options) : ""}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="validation">Validering (JSON format)</Label>
+                    <Textarea
+                      id="validation"
+                      name="validation"
+                      placeholder='{"min": 0, "max": 100}'
+                      defaultValue={editingQuestion?.validation ? JSON.stringify(editingQuestion.validation) : ""}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    <Save className="mr-2 h-4 w-4" />
+                    Spara
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>
