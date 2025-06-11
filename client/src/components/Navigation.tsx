@@ -98,15 +98,15 @@ export default function Navigation() {
               </Link>
             ))}
             {menuChecklists.map((checklist) => (
-              <Link
+              <Button
                 key={`mobile-checklist-${checklist.id}`}
-                href={`/checklist/${checklist.id}/start`}
-                className="block px-3 py-2 rounded-md hover:bg-green-700 transition-colors bg-green-600 flex items-center"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => openModal(checklist.id)}
+                className="block px-3 py-2 rounded-md hover:bg-green-700 transition-colors bg-green-600 flex items-center text-white w-full justify-start"
+                variant="ghost"
               >
                 <CheckSquare className="mr-2 h-4 w-4" />
                 {checklist.name}
-              </Link>
+              </Button>
             ))}
           </div>
         </div>
