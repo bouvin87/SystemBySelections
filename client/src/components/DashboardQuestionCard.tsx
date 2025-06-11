@@ -167,13 +167,13 @@ export default function DashboardQuestionCard({
     if (chartData.length === 0) return null;
 
     return (
-      <Card className="col-span-2 h-80">
+      <Card className="col-span-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent className="h-64">
-          <div className="h-full">
+        <CardContent>
+          <div className="h-[150px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
@@ -263,12 +263,12 @@ export default function DashboardQuestionCard({
     };
 
     return (
-      <Card className="h-80">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent className="h-64 flex flex-col justify-center">
+        <CardContent>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -315,12 +315,12 @@ export default function DashboardQuestionCard({
     }
 
     return (
-      <Card className="h-80">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <Hash className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent className="h-64 flex flex-col justify-center">
+        <CardContent>
           <div className="text-center space-y-2">
             <div className="text-4xl font-bold">{count}</div>
             <p className="text-sm text-muted-foreground">{label} totalt</p>
