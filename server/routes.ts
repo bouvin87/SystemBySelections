@@ -113,6 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const categories = await storage.getCategories(checklistId);
       res.json(categories);
     } catch (error) {
+      console.error("Categories API error:", error);
       res.status(500).json({ message: "Failed to fetch categories" });
     }
   });
