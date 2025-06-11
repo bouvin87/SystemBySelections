@@ -60,21 +60,23 @@ export default function ChecklistEditor() {
     queryKey: ["/api/checklists", checklistId],
   });
 
-  const categoriesQuery = useQuery<Category[]>({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories", checklistId],
     queryFn: async () => {
-      return await apiRequest("GET", `/api/categories?checklistId=${checklistId}`) as unknown as Category[];
+      const result = await apiRequest("GET", `/api/categories?checklistId=${checklistId}`);
+      return await result.json();
     },
   });
 
-  const questionsQuery = useQuery<Question[]>({
+  const { data: questions = [] } = useQuery<Question[]>({
     queryKey: ["/api/questions", "for-checklist", checklistId],
     queryFn: async () => {
-      if (!categoriesQuery.data || categoriesQuery.data.length === 0) return [];
+      if (!categories || categories.length === 0) return [];
       const allQuestions: Question[] = [];
-      for (const category of categoriesQuery.data) {
+      for (const category of categories) {
         try {
-          const categoryQuestions = await apiRequest("GET", `/api/questions?categoryId=${category.id}`) as unknown as Question[];
+          const result = await apiRequest("GET", `/api/questions?categoryId=${category.id}`);
+          const categoryQuestions = await result.json();
           allQuestions.push(...categoryQuestions);
         } catch (error) {
           console.warn(`Failed to fetch questions for category ${category.id}:`, error);
@@ -82,11 +84,8 @@ export default function ChecklistEditor() {
       }
       return allQuestions;
     },
-    enabled: !!categoriesQuery.data && categoriesQuery.data.length > 0,
+    enabled: categories.length > 0,
   });
-
-  const categories = categoriesQuery.data || [];
-  const questions = questionsQuery.data || [];
 
   // Mutations
   const createMutation = useMutation({
