@@ -18,6 +18,7 @@ import { type Checklist, type WorkTask, type WorkStation, type Shift, type Quest
 interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
+  preselectedChecklistId?: number;
 }
 
 interface FormData {
@@ -31,17 +32,27 @@ interface FormData {
 
 const MOOD_EMOJIS = ["😞", "😐", "🙂", "😊", "😄"];
 
-export default function FormModal({ isOpen, onClose }: FormModalProps) {
+export default function FormModal({ isOpen, onClose, preselectedChecklistId }: FormModalProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
-    checklistId: null,
+    checklistId: preselectedChecklistId || null,
     operatorName: "",
     workTaskId: null,
     workStationId: null,
     shiftId: null,
     responses: {},
   });
+
+  // Update form data when preselected checklist changes
+  useEffect(() => {
+    if (preselectedChecklistId) {
+      setFormData(prev => ({
+        ...prev,
+        checklistId: preselectedChecklistId
+      }));
+    }
+  }, [preselectedChecklistId]);
 
   const { data: checklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists"],

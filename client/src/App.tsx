@@ -16,6 +16,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/checklist/:id" component={ChecklistEditor} />
+      <Route path="/checklist/:id/start" component={ChecklistStart} />
       <Route component={NotFound} />
     </Switch>
   );
