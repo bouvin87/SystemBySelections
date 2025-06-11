@@ -32,6 +32,7 @@ import Navigation from "@/components/Navigation";
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("checklists");
+  const [basicDataTab, setBasicDataTab] = useState("work-tasks");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const { toast } = useToast();
@@ -54,7 +55,7 @@ export default function Admin() {
 
   const { data: shifts = [] } = useQuery<Shift[]>({
     queryKey: ["/api/shifts"],
-    enabled: activeTab === "shifts",
+    enabled: activeTab === "basic-data",
   });
 
   // Mutations
@@ -142,9 +143,8 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="checklists">Checklistor</TabsTrigger>
-                <TabsTrigger value="shifts">Skift</TabsTrigger>
                 <TabsTrigger value="basic-data">Grunddata</TabsTrigger>
               </TabsList>
 
@@ -301,132 +301,20 @@ export default function Admin() {
                 </div>
               </TabsContent>
 
-              {/* Shifts Tab */}
-              <TabsContent value="shifts">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Hantera skift</h3>
-                  <Dialog open={dialogOpen && activeTab === "shifts"} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openDialog()}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nytt skift
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingItem ? "Redigera skift" : "Nytt skift"}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const data: InsertShift = {
-                            name: formData.get("name") as string,
-                            startTime: formData.get("startTime") as string,
-                            endTime: formData.get("endTime") as string,
-                            isActive: formData.get("isActive") === "on",
-                          };
-                          handleSubmit("/api/shifts", data);
-                        }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <Label htmlFor="name">Namn</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            defaultValue={editingItem?.name || ""}
-                            required
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="startTime">Starttid</Label>
-                            <Input
-                              id="startTime"
-                              name="startTime"
-                              type="time"
-                              defaultValue={editingItem?.startTime || ""}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="endTime">Sluttid</Label>
-                            <Input
-                              id="endTime"
-                              name="endTime"
-                              type="time"
-                              defaultValue={editingItem?.endTime || ""}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="isActive"
-                            name="isActive"
-                            defaultChecked={editingItem?.isActive ?? true}
-                          />
-                          <Label htmlFor="isActive">Aktiv</Label>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Spara
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                
-                <div className="space-y-4">
-                  {shifts.map((shift) => (
-                    <Card key={shift.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">{shift.name}</h4>
-                            <p className="text-sm text-gray-600">
-                              {shift.startTime} - {shift.endTime}
-                            </p>
-                            <div className="mt-2">
-                              <Badge variant={shift.isActive ? "default" : "secondary"}>
-                                {shift.isActive ? "Aktiv" : "Inaktiv"}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDialog(shift)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete("/api/shifts", shift.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-
               {/* Basic Data Tab */}
               <TabsContent value="basic-data">
-                <div className="space-y-8">
-                  {/* Work Tasks Section */}
-                  <div>
+                <Tabs value={basicDataTab} onValueChange={setBasicDataTab}>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="work-tasks">Arbetsmoment</TabsTrigger>
+                    <TabsTrigger value="work-stations">Arbetsstationer</TabsTrigger>
+                    <TabsTrigger value="shifts">Skift</TabsTrigger>
+                  </TabsList>
+
+                  {/* Work Tasks Tab */}
+                  <TabsContent value="work-tasks">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium">Arbetsmoment</h3>
-                      <Dialog open={dialogOpen && activeTab === "basic-data"} onOpenChange={setDialogOpen}>
+                      <h3 className="text-lg font-medium">Hantera arbetsmoment</h3>
+                      <Dialog open={dialogOpen && activeTab === "basic-data" && basicDataTab === "work-tasks"} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
                           <Button onClick={() => openDialog()}>
                             <Plus className="mr-2 h-4 w-4" />
@@ -509,11 +397,13 @@ export default function Admin() {
                         </Card>
                       ))}
                     </div>
-                  </div>
+                  </TabsContent>
 
-                  {/* Work Stations Section */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Arbetsstationer</h3>
+                  {/* Work Stations Tab */}
+                  <TabsContent value="work-stations">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">Hantera arbetsstationer</h3>
+                    </div>
                     <div className="space-y-4">
                       {workStations.map((station) => (
                         <Card key={station.id}>
@@ -539,8 +429,126 @@ export default function Admin() {
                         </Card>
                       ))}
                     </div>
-                  </div>
-                </div>
+                  </TabsContent>
+
+                  {/* Shifts Tab */}
+                  <TabsContent value="shifts">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">Hantera skift</h3>
+                      <Dialog open={dialogOpen && activeTab === "basic-data" && basicDataTab === "shifts"} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button onClick={() => openDialog()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nytt skift
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {editingItem ? "Redigera skift" : "Nytt skift"}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const formData = new FormData(e.currentTarget);
+                              const data: InsertShift = {
+                                name: formData.get("name") as string,
+                                startTime: formData.get("startTime") as string,
+                                endTime: formData.get("endTime") as string,
+                                isActive: formData.get("isActive") === "on",
+                              };
+                              handleSubmit("/api/shifts", data);
+                            }}
+                            className="space-y-4"
+                          >
+                            <div>
+                              <Label htmlFor="name">Namn</Label>
+                              <Input
+                                id="name"
+                                name="name"
+                                defaultValue={editingItem?.name || ""}
+                                required
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="startTime">Starttid</Label>
+                                <Input
+                                  id="startTime"
+                                  name="startTime"
+                                  type="time"
+                                  defaultValue={editingItem?.startTime || ""}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="endTime">Sluttid</Label>
+                                <Input
+                                  id="endTime"
+                                  name="endTime"
+                                  type="time"
+                                  defaultValue={editingItem?.endTime || ""}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                id="isActive"
+                                name="isActive"
+                                defaultChecked={editingItem?.isActive ?? true}
+                              />
+                              <Label htmlFor="isActive">Aktiv</Label>
+                            </div>
+                            <Button type="submit" className="w-full">
+                              <Save className="mr-2 h-4 w-4" />
+                              Spara
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {shifts.map((shift) => (
+                        <Card key={shift.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h4 className="text-sm font-medium text-gray-900">{shift.name}</h4>
+                                <p className="text-sm text-gray-600">
+                                  {shift.startTime} - {shift.endTime}
+                                </p>
+                                <div className="mt-2">
+                                  <Badge variant={shift.isActive ? "default" : "secondary"}>
+                                    {shift.isActive ? "Aktiv" : "Inaktiv"}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDialog(shift)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete("/api/shifts", shift.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
             </Tabs>
           </CardContent>
