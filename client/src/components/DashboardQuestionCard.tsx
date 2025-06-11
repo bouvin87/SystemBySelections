@@ -173,13 +173,13 @@ export default function DashboardQuestionCard({
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="h-[120px]">
+          <div className="h-[108px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis
                   dataKey="date"
-                  fontSize={11}
+                  fontSize={10}
                   stroke="#666"
                   tickFormatter={(date) =>
                     new Date(date).toLocaleDateString("sv-SE", {
@@ -188,7 +188,7 @@ export default function DashboardQuestionCard({
                     })
                   }
                 />
-                <YAxis fontSize={11} stroke="#666" />
+                <YAxis fontSize={10} stroke="#666" />
                 <Tooltip
                   labelFormatter={(date) =>
                     new Date(date).toLocaleDateString("sv-SE")
