@@ -68,7 +68,7 @@ export interface IStorage {
   deleteChecklistResponse(id: number): Promise<void>;
 
   // Dashboard Statistics
-  getDashboardStats(): Promise<any>;
+  getDashboardStats(checklistId?: number): Promise<any>;
 
   // Admin Settings
   getAdminSettings(): Promise<AdminSetting[]>;
@@ -260,13 +260,16 @@ export class DatabaseStorage implements IStorage {
   // Checklist Responses
   async getChecklistResponses(filters: { limit?: number; offset?: number; checklistId?: number } = {}): Promise<ChecklistResponse[]> {
     const { limit = 50, offset = 0, checklistId } = filters;
-    let query = db.select().from(checklistResponses);
     
     if (checklistId) {
-      query = query.where(eq(checklistResponses.checklistId, checklistId));
+      return await db.select().from(checklistResponses)
+        .where(eq(checklistResponses.checklistId, checklistId))
+        .orderBy(desc(checklistResponses.createdAt))
+        .limit(limit)
+        .offset(offset);
     }
     
-    return await query
+    return await db.select().from(checklistResponses)
       .orderBy(desc(checklistResponses.createdAt))
       .limit(limit)
       .offset(offset);
@@ -292,10 +295,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard Statistics
-  async getDashboardStats(): Promise<any> {
-    const totalResponses = await db.select({ count: sql<number>`count(*)` }).from(checklistResponses);
-    const completedResponses = await db.select({ count: sql<number>`count(*)` }).from(checklistResponses).where(eq(checklistResponses.isCompleted, true));
-    const recentResponses = await db.select().from(checklistResponses)
+  async getDashboardStats(checklistId?: number): Promise<any> {
+    let totalQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses);
+    let completedQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses).where(eq(checklistResponses.isCompleted, true));
+    let recentQuery = db.select().from(checklistResponses);
+
+    if (checklistId) {
+      totalQuery = totalQuery.where(eq(checklistResponses.checklistId, checklistId));
+      completedQuery = completedQuery.where(and(eq(checklistResponses.isCompleted, true), eq(checklistResponses.checklistId, checklistId)));
+      recentQuery = recentQuery.where(eq(checklistResponses.checklistId, checklistId));
+    }
+
+    const totalResponses = await totalQuery;
+    const completedResponses = await completedQuery;
+    const recentResponses = await recentQuery
       .orderBy(desc(checklistResponses.createdAt))
       .limit(10);
 

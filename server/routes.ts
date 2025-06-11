@@ -441,7 +441,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard Statistics
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
-      const stats = await storage.getDashboardStats();
+      const checklistId = req.query.checklistId ? parseInt(req.query.checklistId as string) : undefined;
+      const stats = await storage.getDashboardStats(checklistId);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
