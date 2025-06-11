@@ -655,8 +655,7 @@ export default function FormModal({
     
     if (currentStep === 3) {
       // Check that all required questions are answered
-      const allQuestions = currentQuestions.flat();
-      for (const question of allQuestions) {
+      for (const question of questions) {
         if (question.isRequired) {
           const response = formData.responses[question.id];
           if (!response || response === "" || response === null || response === undefined) {
