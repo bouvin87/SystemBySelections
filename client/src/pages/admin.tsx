@@ -403,6 +403,64 @@ export default function Admin() {
                   <TabsContent value="work-stations">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-medium">Hantera arbetsstationer</h3>
+                      <Dialog open={dialogOpen && activeTab === "basic-data" && basicDataTab === "work-stations"} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button onClick={() => openDialog()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Ny arbetsstation
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {editingItem ? "Redigera arbetsstation" : "Ny arbetsstation"}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const formData = new FormData(e.currentTarget);
+                              const data: InsertWorkStation = {
+                                name: formData.get("name") as string,
+                                workTaskId: parseInt(formData.get("workTaskId") as string),
+                              };
+                              handleSubmit("/api/work-stations", data);
+                            }}
+                            className="space-y-4"
+                          >
+                            <div>
+                              <Label htmlFor="name">Namn</Label>
+                              <Input
+                                id="name"
+                                name="name"
+                                defaultValue={editingItem?.name || ""}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="workTaskId">Arbetsmoment</Label>
+                              <select
+                                id="workTaskId"
+                                name="workTaskId"
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                                defaultValue={editingItem?.workTaskId || ""}
+                                required
+                              >
+                                <option value="">Välj arbetsmoment</option>
+                                {workTasks.map((task) => (
+                                  <option key={task.id} value={task.id}>
+                                    {task.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <Button type="submit" className="w-full">
+                              <Save className="mr-2 h-4 w-4" />
+                              Spara
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                     <div className="space-y-4">
                       {workStations.map((station) => (
@@ -416,6 +474,13 @@ export default function Admin() {
                                 </p>
                               </div>
                               <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDialog(station)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
