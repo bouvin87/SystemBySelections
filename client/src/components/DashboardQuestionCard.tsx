@@ -167,13 +167,13 @@ export default function DashboardQuestionCard({
     if (chartData.length === 0) return null;
 
     return (
-      <Card className="col-span-2">
+      <Card className="col-span-2 h-80">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent>
-          <div className="h-[200px]">
+        <CardContent className="h-64">
+          <div className="h-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -201,8 +201,11 @@ export default function DashboardQuestionCard({
                   type="monotone"
                   dataKey="värde"
                   stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  dot={{ fill: "hsl(var(--primary))" }}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -259,12 +262,12 @@ export default function DashboardQuestionCard({
     };
 
     return (
-      <Card>
+      <Card className="h-80">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-64 flex flex-col justify-center">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -311,19 +314,21 @@ export default function DashboardQuestionCard({
     }
 
     return (
-      <Card>
+      <Card className="h-80">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <Hash className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{count}</div>
-          <p className="text-xs text-muted-foreground">{label} totalt</p>
-          {question.type === "ja_nej" && (
-            <div className="mt-2 text-xs text-muted-foreground">
-              {relevantResponses.length - count} Nej-svar
-            </div>
-          )}
+        <CardContent className="h-64 flex flex-col justify-center">
+          <div className="text-center space-y-2">
+            <div className="text-4xl font-bold">{count}</div>
+            <p className="text-sm text-muted-foreground">{label} totalt</p>
+            {question.type === "ja_nej" && (
+              <div className="text-sm text-muted-foreground">
+                {relevantResponses.length - count} Nej-svar
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
