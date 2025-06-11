@@ -564,7 +564,7 @@ export default function FormModal({
               )}
 
               {question.type === "stjärnor" && (
-                <div className="flex space-x-1">
+                <div className="flex space-x-2">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const responseValue = formData.responses[question.id];
                     const currentRating = responseValue ? Number(responseValue) : 0;
@@ -582,7 +582,7 @@ export default function FormModal({
                             responses: { ...prev.responses, [question.id]: star },
                           }));
                         }}
-                        className={`text-2xl transition-colors hover:text-yellow-400 focus:outline-none ${
+                        className={`text-4xl transition-colors hover:text-yellow-400 focus:outline-none ${
                           isActive ? "text-yellow-500" : "text-gray-400"
                         }`}
                       >
@@ -652,6 +652,21 @@ export default function FormModal({
       
       return true;
     }
+    
+    if (currentStep === 3) {
+      // Check that all required questions are answered
+      const allQuestions = currentQuestions.flat();
+      for (const question of allQuestions) {
+        if (question.isRequired) {
+          const response = formData.responses[question.id];
+          if (!response || response === "" || response === null || response === undefined) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    
     return true;
   };
 
