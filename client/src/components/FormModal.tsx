@@ -326,12 +326,16 @@ export default function FormModal({
                 </Label>
                 <Select
                   value={formData.workTaskId?.toString() || ""}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    const taskId = parseInt(value);
+                    const selectedTask = workTasks.find(task => task.id === taskId);
                     setFormData((prev) => ({
                       ...prev,
-                      workTaskId: parseInt(value),
-                    }))
-                  }
+                      workTaskId: taskId,
+                      // Clear station selection if the new task doesn't have stations
+                      workStationId: selectedTask?.hasStations ? prev.workStationId : null,
+                    }));
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj arbetsmoment" />
@@ -363,7 +367,10 @@ export default function FormModal({
                       workStationId: parseInt(value),
                     }))
                   }
-                  disabled={!formData.workTaskId}
+                  disabled={
+                    !formData.workTaskId || 
+                    !workTasks.find(task => task.id === formData.workTaskId)?.hasStations
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj station" />
