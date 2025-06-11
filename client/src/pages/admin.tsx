@@ -67,6 +67,7 @@ export default function Admin() {
       // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
       queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists/active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
@@ -91,6 +92,7 @@ export default function Admin() {
       // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
       queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists/active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
@@ -115,6 +117,7 @@ export default function Admin() {
       // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
       queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists/active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });

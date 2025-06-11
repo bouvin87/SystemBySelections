@@ -49,6 +49,7 @@ export interface IStorage {
 
   // Checklists
   getChecklists(): Promise<Checklist[]>;
+  getActiveChecklists(): Promise<Checklist[]>;
   getChecklist(id: number): Promise<Checklist | undefined>;
   createChecklist(checklist: InsertChecklist): Promise<Checklist>;
   updateChecklist(id: number, checklist: Partial<InsertChecklist>): Promise<Checklist>;
@@ -206,6 +207,10 @@ export class DatabaseStorage implements IStorage {
 
   // Checklists
   async getChecklists(): Promise<Checklist[]> {
+    return await db.select().from(checklists).orderBy(checklists.order);
+  }
+
+  async getActiveChecklists(): Promise<Checklist[]> {
     return await db.select().from(checklists).where(eq(checklists.isActive, true)).orderBy(checklists.order);
   }
 

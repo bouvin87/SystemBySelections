@@ -11,11 +11,11 @@ export default function Navigation() {
 
   // Fetch checklistor that should be shown in menu
   const { data: menuChecklists = [] } = useQuery<Checklist[]>({
-    queryKey: ["/api/checklists", "menu"],
+    queryKey: ["/api/checklists/active", "menu"],
     queryFn: async () => {
-      const result = await fetch("/api/checklists");
-      const allChecklists = await result.json();
-      return allChecklists.filter((checklist: Checklist) => checklist.showInMenu && checklist.isActive);
+      const result = await fetch("/api/checklists/active");
+      const activeChecklists = await result.json();
+      return activeChecklists.filter((checklist: Checklist) => checklist.showInMenu);
     },
   });
 
