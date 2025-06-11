@@ -32,13 +32,13 @@ import Navigation from "@/components/Navigation";
 function QuestionTypeLabel({ type }: { type: string }) {
   const typeLabels: Record<string, string> = {
     text: "Text",
-    number: "Nummer",
-    select: "Val",
-    multiselect: "Flera val",
-    boolean: "Ja/Nej",
-    date: "Datum",
-    time: "Tid",
-    file: "Fil",
+    val: "Val",
+    nummer: "Nummer", 
+    ja_nej: "Ja/Nej",
+    datum: "Datum",
+    fil: "Fil",
+    stjärnor: "Stjärnor",
+    humör: "Humör",
   };
   return <span>{typeLabels[type] || type}</span>;
 }
@@ -486,13 +486,13 @@ export default function ChecklistEditor() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="number">Nummer</SelectItem>
-                        <SelectItem value="select">Val</SelectItem>
-                        <SelectItem value="multiselect">Flera val</SelectItem>
-                        <SelectItem value="boolean">Ja/Nej</SelectItem>
-                        <SelectItem value="date">Datum</SelectItem>
-                        <SelectItem value="time">Tid</SelectItem>
-                        <SelectItem value="file">Fil</SelectItem>
+                        <SelectItem value="val">Val</SelectItem>
+                        <SelectItem value="nummer">Nummer</SelectItem>
+                        <SelectItem value="ja_nej">Ja/Nej</SelectItem>
+                        <SelectItem value="datum">Datum</SelectItem>
+                        <SelectItem value="fil">Fil</SelectItem>
+                        <SelectItem value="stjärnor">Stjärnor (1-5)</SelectItem>
+                        <SelectItem value="humör">Humör (1-5)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -345,7 +345,56 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                 {question.isRequired && <span className="text-destructive ml-1">*</span>}
               </Label>
               
-              {question.type === "checkbox" && (
+              {question.type === "text" && (
+                <Textarea
+                  placeholder="Skriv dina kommentarer här..."
+                  value={formData.responses[question.id] || ""}
+                  onChange={(e) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      responses: { ...prev.responses, [question.id]: e.target.value }
+                    }));
+                  }}
+                  rows={3}
+                />
+              )}
+
+              {question.type === "val" && question.options && Array.isArray(question.options) && (
+                <RadioGroup
+                  value={formData.responses[question.id]?.toString() || ""}
+                  onValueChange={(value) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      responses: { ...prev.responses, [question.id]: value }
+                    }));
+                  }}
+                >
+                  {question.options.map((option: string, index: number) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`${question.id}-${index}`} />
+                      <Label htmlFor={`${question.id}-${index}`} className="text-sm text-gray-700">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
+
+              {question.type === "nummer" && (
+                <Input
+                  type="number"
+                  placeholder="Ange nummer..."
+                  value={formData.responses[question.id] || ""}
+                  onChange={(e) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      responses: { ...prev.responses, [question.id]: e.target.value }
+                    }));
+                  }}
+                />
+              )}
+
+              {question.type === "ja_nej" && (
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id={`question-${question.id}`}
@@ -362,31 +411,10 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                   </Label>
                 </div>
               )}
-              
-              {question.type === "radio" && question.options && (
-                <RadioGroup
-                  value={formData.responses[question.id]?.toString() || ""}
-                  onValueChange={(value) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      responses: { ...prev.responses, [question.id]: value }
-                    }));
-                  }}
-                >
-                  {(question.options as string[]).map((option, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`${question.id}-${index}`} />
-                      <Label htmlFor={`${question.id}-${index}`} className="text-sm text-gray-700">
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              )}
-              
-              {question.type === "text" && (
-                <Textarea
-                  placeholder="Skriv dina kommentarer här..."
+
+              {question.type === "datum" && (
+                <Input
+                  type="date"
                   value={formData.responses[question.id] || ""}
                   onChange={(e) => {
                     setFormData(prev => ({
@@ -394,28 +422,79 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                       responses: { ...prev.responses, [question.id]: e.target.value }
                     }));
                   }}
-                  rows={3}
                 />
               )}
-              
-              {question.type === "number" && (
+
+              {question.type === "fil" && (
                 <Input
-                  type="number"
-                  placeholder="0"
-                  min="0"
-                  value={formData.responses[question.id] || ""}
+                  type="file"
                   onChange={(e) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      responses: { ...prev.responses, [question.id]: parseInt(e.target.value) || 0 }
-                    }));
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFormData(prev => ({
+                        ...prev,
+                        responses: { ...prev.responses, [question.id]: file.name }
+                      }));
+                    }
                   }}
                 />
               )}
-              
-              {question.type === "rating" && renderStarRating(question.id, formData.responses[question.id])}
-              
-              {question.type === "mood" && renderMoodRating(question.id, formData.responses[question.id])}
+
+              {question.type === "stjärnor" && (
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          responses: { ...prev.responses, [question.id]: star }
+                        }));
+                      }}
+                      className={`text-2xl ${
+                        (formData.responses[question.id] || 0) >= star 
+                          ? "text-yellow-400" 
+                          : "text-gray-300"
+                      } hover:text-yellow-400`}
+                    >
+                      ⭐
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {question.type === "humör" && (
+                <div className="flex space-x-2">
+                  {[
+                    { value: 1, emoji: "😢", label: "Mycket dåligt" },
+                    { value: 2, emoji: "😞", label: "Dåligt" },
+                    { value: 3, emoji: "😐", label: "Okej" },
+                    { value: 4, emoji: "😊", label: "Bra" },
+                    { value: 5, emoji: "😄", label: "Mycket bra" }
+                  ].map((mood) => (
+                    <button
+                      key={mood.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          responses: { ...prev.responses, [question.id]: mood.value }
+                        }));
+                      }}
+                      className={`text-3xl p-2 rounded-lg border-2 transition-all ${
+                        formData.responses[question.id] === mood.value
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      title={mood.label}
+                    >
+                      {mood.emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
+
             </div>
           </Card>
         ))}
