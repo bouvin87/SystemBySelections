@@ -64,22 +64,20 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
         const moodEmojis = ["😞", "😐", "🙂", "😊", "😄"];
         const emoji = moodEmojis[Math.max(0, Math.min(4, roundedAverage - 1))];
         return (
-          <div className="flex items-center gap-2">
-            <span className="text-3xl">{emoji}</span>
-            <div>
-              <div className="text-xl font-bold">{average.toFixed(1)}</div>
-              <div className="text-xs text-muted-foreground">av 5</div>
-            </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">{emoji}</div>
+            <div className="text-xl font-bold">{average.toFixed(1)}</div>
+            <div className="text-xs text-muted-foreground">av 5</div>
           </div>
         );
       } else if (question.type === "stjärnor") {
         return (
-          <div className="flex items-center gap-2">
-            <div className="flex">
+          <div className="text-center">
+            <div className="flex justify-center mb-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <span
                   key={star}
-                  className={`text-lg ${
+                  className={`text-xl ${
                     star <= roundedAverage ? "text-yellow-400" : "text-gray-300"
                   }`}
                 >
@@ -87,15 +85,13 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
                 </span>
               ))}
             </div>
-            <div>
-              <div className="text-xl font-bold">{average.toFixed(1)}</div>
-              <div className="text-xs text-muted-foreground">av 5</div>
-            </div>
+            <div className="text-xl font-bold">{average.toFixed(1)}</div>
+            <div className="text-xs text-muted-foreground">av 5</div>
           </div>
         );
       } else {
         return (
-          <div>
+          <div className="text-center">
             <div className="text-2xl font-bold">{average.toFixed(1)}</div>
             <div className="text-xs text-muted-foreground">
               av {maxValue}
@@ -116,9 +112,7 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
           <p className="text-xs text-muted-foreground mt-2">
             Medelvärde av {values.length} svar
           </p>
-          <div className="mt-2">
-            <Progress value={(average / maxValue) * 100} className="h-2" />
-          </div>
+          
         </CardContent>
       </Card>
     );
