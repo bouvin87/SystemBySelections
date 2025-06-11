@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,7 +26,14 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Star, ChevronLeft, ChevronRight, Check, X } from "lucide-react";
-import { type Checklist, type WorkTask, type WorkStation, type Shift, type Question, type Category } from "@shared/schema";
+import {
+  type Checklist,
+  type WorkTask,
+  type WorkStation,
+  type Shift,
+  type Question,
+  type Category,
+} from "@shared/schema";
 
 interface FormModalProps {
   isOpen: boolean;
@@ -33,7 +52,11 @@ interface FormData {
 
 const MOOD_EMOJIS = ["😞", "😐", "🙂", "😊", "😄"];
 
-export default function FormModal({ isOpen, onClose, preselectedChecklistId }: FormModalProps) {
+export default function FormModal({
+  isOpen,
+  onClose,
+  preselectedChecklistId,
+}: FormModalProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(2); // Start directly at identification step
   const [formData, setFormData] = useState<FormData>({
@@ -48,9 +71,9 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   // Update form data when preselected checklist changes
   useEffect(() => {
     if (preselectedChecklistId) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        checklistId: preselectedChecklistId
+        checklistId: preselectedChecklistId,
       }));
     }
   }, [preselectedChecklistId]);
@@ -75,27 +98,32 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     enabled: isOpen,
   });
 
+  // Get the current checklist configuration
+  const currentChecklist = checklists.find(c => c.id === formData.checklistId);
+
   const { data: workTasks = [] } = useQuery<WorkTask[]>({
     queryKey: ["/api/work-tasks"],
-    enabled: isOpen,
+    enabled: isOpen && currentChecklist?.includeWorkTasks,
   });
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
-    enabled: isOpen && formData.workTaskId !== null,
+    enabled: isOpen && currentChecklist?.includeWorkStations && formData.workTaskId !== null,
   });
 
   const { data: shifts = [] } = useQuery<Shift[]>({
     queryKey: ["/api/shifts"],
-    enabled: isOpen,
+    enabled: isOpen && currentChecklist?.includeShifts,
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories", formData.checklistId],
     queryFn: async () => {
       if (!formData.checklistId) return [];
-      const response = await fetch(`/api/categories?checklistId=${formData.checklistId}`);
-      if (!response.ok) throw new Error('Failed to fetch categories');
+      const response = await fetch(
+        `/api/categories?checklistId=${formData.checklistId}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch categories");
       return response.json();
     },
     enabled: isOpen && formData.checklistId !== null,
@@ -108,13 +136,18 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
       const allQuestions: Question[] = [];
       for (const category of categories) {
         try {
-          const response = await fetch(`/api/questions?categoryId=${category.id}`);
+          const response = await fetch(
+            `/api/questions?categoryId=${category.id}`,
+          );
           if (response.ok) {
             const categoryQuestions = await response.json();
             allQuestions.push(...categoryQuestions);
           }
         } catch (error) {
-          console.warn(`Failed to fetch questions for category ${category.id}:`, error);
+          console.warn(
+            `Failed to fetch questions for category ${category.id}:`,
+            error,
+          );
         }
       }
       return allQuestions;
@@ -164,10 +197,10 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   };
 
   // Filter categories to only include those with questions
-  const categoriesWithQuestions = categories.filter(category => 
-    questions.some(question => question.categoryId === category.id)
+  const categoriesWithQuestions = categories.filter((category) =>
+    questions.some((question) => question.categoryId === category.id),
   );
-  
+
   const totalSteps = 1 + categoriesWithQuestions.length; // Only identification step + category steps with questions
   const progress = ((currentStep - 1) / totalSteps) * 100;
 
@@ -186,15 +219,24 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   };
 
   const handleSubmit = () => {
-    const submitData = {
+    const submitData: any = {
       checklistId: formData.checklistId!,
       operatorName: formData.operatorName,
-      workTaskId: formData.workTaskId!,
-      workStationId: formData.workStationId,
-      shiftId: formData.shiftId!,
       responses: formData.responses,
       isCompleted: true,
     };
+
+    // Only include work task, station, and shift if the checklist requires them
+    if (currentChecklist?.includeWorkTasks) {
+      submitData.workTaskId = formData.workTaskId;
+    }
+    if (currentChecklist?.includeWorkStations) {
+      submitData.workStationId = formData.workStationId;
+    }
+    if (currentChecklist?.includeShifts) {
+      submitData.shiftId = formData.shiftId;
+    }
+
     submitMutation.mutate(submitData);
   };
 
@@ -206,12 +248,14 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
             key={rating}
             type="button"
             className={`text-2xl transition-colors ${
-              rating <= currentRating ? "text-accent" : "text-gray-300 hover:text-accent"
+              rating <= currentRating
+                ? "text-accent"
+                : "text-gray-300 hover:text-accent"
             }`}
             onClick={() => {
-              setFormData(prev => ({
+              setFormData((prev) => ({
                 ...prev,
-                responses: { ...prev.responses, [questionId]: rating }
+                responses: { ...prev.responses, [questionId]: rating },
               }));
             }}
           >
@@ -232,12 +276,14 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
               key={index}
               type="button"
               className={`text-3xl transition-all hover:scale-110 ${
-                moodValue === currentMood ? "scale-110 opacity-100" : "opacity-50"
+                moodValue === currentMood
+                  ? "scale-110 opacity-100"
+                  : "opacity-50"
               }`}
               onClick={() => {
-                setFormData(prev => ({
+                setFormData((prev) => ({
                   ...prev,
-                  responses: { ...prev.responses, [questionId]: moodValue }
+                  responses: { ...prev.responses, [questionId]: moodValue },
                 }));
               }}
             >
@@ -256,75 +302,109 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
           <h3 className="text-lg font-medium mb-4">Identifiering</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="operator">Operatör</Label>
+              <Label htmlFor="operator">
+                Namn <span className="text-destructive ml-1">*</span>
+              </Label>
               <Input
                 id="operator"
                 placeholder="Ditt namn"
                 value={formData.operatorName}
-                onChange={(e) => setFormData(prev => ({ ...prev, operatorName: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    operatorName: e.target.value,
+                  }))
+                }
                 required
               />
             </div>
-            
-            <div>
-              <Label>Arbetsmoment</Label>
-              <Select
-                value={formData.workTaskId?.toString() || ""}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, workTaskId: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj arbetsmoment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {workTasks.map((task) => (
-                    <SelectItem key={task.id} value={task.id.toString()}>
-                      {task.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label>Station</Label>
-              <Select
-                value={formData.workStationId?.toString() || ""}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, workStationId: parseInt(value) }))}
-                disabled={!formData.workTaskId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj station" />
-                </SelectTrigger>
-                <SelectContent>
-                  {workStations
-                    .filter(station => station.workTaskId === formData.workTaskId)
-                    .map((station) => (
-                    <SelectItem key={station.id} value={station.id.toString()}>
-                      {station.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label>Skift</Label>
-              <Select
-                value={formData.shiftId?.toString() || ""}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, shiftId: parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj skift" />
-                </SelectTrigger>
-                <SelectContent>
-                  {shifts.map((shift) => (
-                    <SelectItem key={shift.id} value={shift.id.toString()}>
-                      {shift.name} ({shift.startTime}-{shift.endTime})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+            {currentChecklist?.includeWorkTasks && (
+              <div>
+                <Label>
+                  Arbetsmoment <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Select
+                  value={formData.workTaskId?.toString() || ""}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      workTaskId: parseInt(value),
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj arbetsmoment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workTasks.map((task) => (
+                      <SelectItem key={task.id} value={task.id.toString()}>
+                        {task.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {currentChecklist?.includeWorkStations && (
+              <div>
+                <Label>Station</Label>
+                <Select
+                  value={formData.workStationId?.toString() || ""}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      workStationId: parseInt(value),
+                    }))
+                  }
+                  disabled={!formData.workTaskId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj station" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workStations
+                      .filter(
+                        (station) => station.workTaskId === formData.workTaskId,
+                      )
+                      .map((station) => (
+                        <SelectItem
+                          key={station.id}
+                          value={station.id.toString()}
+                        >
+                          {station.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {currentChecklist?.includeShifts && (
+              <div>
+                <Label>
+                  Skift <span className="text-destructive ml-1">*</span>
+                </Label>
+                <Select
+                  value={formData.shiftId?.toString() || ""}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, shiftId: parseInt(value) }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj skift" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shifts.map((shift) => (
+                      <SelectItem key={shift.id} value={shift.id.toString()}>
+                        {shift.name} ({shift.startTime}-{shift.endTime})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -333,7 +413,9 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     // Question steps
     const categoryIndex = currentStep - 3;
     const category = categoriesWithQuestions[categoryIndex];
-    const categoryQuestions = questions.filter(q => q.categoryId === category?.id);
+    const categoryQuestions = questions.filter(
+      (q) => q.categoryId === category?.id,
+    );
 
     return (
       <div className="space-y-6">
@@ -343,43 +425,56 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-900">
                 {question.text}
-                {question.isRequired && <span className="text-destructive ml-1">*</span>}
+                {question.isRequired && (
+                  <span className="text-destructive ml-1">*</span>
+                )}
               </Label>
-              
+
               {question.type === "text" && (
                 <Textarea
                   placeholder="Skriv dina kommentarer här..."
                   value={formData.responses[question.id] || ""}
                   onChange={(e) => {
-                    setFormData(prev => ({
+                    setFormData((prev) => ({
                       ...prev,
-                      responses: { ...prev.responses, [question.id]: e.target.value }
+                      responses: {
+                        ...prev.responses,
+                        [question.id]: e.target.value,
+                      },
                     }));
                   }}
                   rows={3}
                 />
               )}
 
-              {question.type === "val" && question.options && Array.isArray(question.options) && (
-                <RadioGroup
-                  value={formData.responses[question.id]?.toString() || ""}
-                  onValueChange={(value) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      responses: { ...prev.responses, [question.id]: value }
-                    }));
-                  }}
-                >
-                  {question.options.map((option: string, index: number) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`${question.id}-${index}`} />
-                      <Label htmlFor={`${question.id}-${index}`} className="text-sm text-gray-700">
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              )}
+              {question.type === "val" &&
+                question.options &&
+                Array.isArray(question.options) && (
+                  <RadioGroup
+                    value={formData.responses[question.id]?.toString() || ""}
+                    onValueChange={(value) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        responses: { ...prev.responses, [question.id]: value },
+                      }));
+                    }}
+                  >
+                    {question.options.map((option: string, index: number) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value={option}
+                          id={`${question.id}-${index}`}
+                        />
+                        <Label
+                          htmlFor={`${question.id}-${index}`}
+                          className="text-sm text-gray-700"
+                        >
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
 
               {question.type === "nummer" && (
                 <Input
@@ -387,9 +482,12 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                   placeholder="Ange nummer..."
                   value={formData.responses[question.id] || ""}
                   onChange={(e) => {
-                    setFormData(prev => ({
+                    setFormData((prev) => ({
                       ...prev,
-                      responses: { ...prev.responses, [question.id]: e.target.value }
+                      responses: {
+                        ...prev.responses,
+                        [question.id]: e.target.value,
+                      },
                     }));
                   }}
                 />
@@ -401,22 +499,21 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                     id={`question-${question.id}`}
                     checked={formData.responses[question.id] || false}
                     onCheckedChange={(checked) => {
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
-                        responses: { ...prev.responses, [question.id]: checked }
+                        responses: {
+                          ...prev.responses,
+                          [question.id]: checked,
+                        },
                       }));
                     }}
                   />
-                  <Label htmlFor={`question-${question.id}`} className="text-sm text-gray-700 cursor-pointer">
+                  <Label
+                    htmlFor={`question-${question.id}`}
+                    className="text-sm text-gray-700 cursor-pointer"
+                  >
                     {formData.responses[question.id] ? "Ja" : "Nej"}
                   </Label>
-                </div>
-              )}
-
-              {/* Debug info */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-400 mt-1">
-                  Type: {question.type}
                 </div>
               )}
 
@@ -425,9 +522,12 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                   type="date"
                   value={formData.responses[question.id] || ""}
                   onChange={(e) => {
-                    setFormData(prev => ({
+                    setFormData((prev) => ({
                       ...prev,
-                      responses: { ...prev.responses, [question.id]: e.target.value }
+                      responses: {
+                        ...prev.responses,
+                        [question.id]: e.target.value,
+                      },
                     }));
                   }}
                 />
@@ -439,9 +539,12 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
-                        responses: { ...prev.responses, [question.id]: file.name }
+                        responses: {
+                          ...prev.responses,
+                          [question.id]: file.name,
+                        },
                       }));
                     }
                   }}
@@ -455,14 +558,14 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                       key={star}
                       type="button"
                       onClick={() => {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          responses: { ...prev.responses, [question.id]: star }
+                          responses: { ...prev.responses, [question.id]: star },
                         }));
                       }}
                       className={`text-2xl ${
-                        (formData.responses[question.id] || 0) >= star 
-                          ? "text-yellow-400" 
+                        (formData.responses[question.id] || 0) >= star
+                          ? "text-yellow-400"
                           : "text-gray-300"
                       } hover:text-yellow-400`}
                     >
@@ -479,15 +582,18 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                     { value: 2, emoji: "😞", label: "Dåligt" },
                     { value: 3, emoji: "😐", label: "Okej" },
                     { value: 4, emoji: "😊", label: "Bra" },
-                    { value: 5, emoji: "😄", label: "Mycket bra" }
+                    { value: 5, emoji: "😄", label: "Mycket bra" },
                   ].map((mood) => (
                     <button
                       key={mood.value}
                       type="button"
                       onClick={() => {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
-                          responses: { ...prev.responses, [question.id]: mood.value }
+                          responses: {
+                            ...prev.responses,
+                            [question.id]: mood.value,
+                          },
                         }));
                       }}
                       className={`text-3xl p-2 rounded-lg border-2 transition-all ${
@@ -502,7 +608,6 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                   ))}
                 </div>
               )}
-
             </div>
           </Card>
         ))}
@@ -511,13 +616,18 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   };
 
   const canProceed = () => {
-    if (currentStep === 2) return formData.operatorName && formData.workTaskId && formData.shiftId;
+    if (currentStep === 2)
+      return formData.operatorName && formData.workTaskId && formData.shiftId;
     return true;
   };
 
   // Get the selected checklist name for the title
-  const selectedChecklist = checklists.find(c => c.id === formData.checklistId);
-  const modalTitle = selectedChecklist ? `Ny ${selectedChecklist.name}` : "Ny kontroll";
+  const selectedChecklist = checklists.find(
+    (c) => c.id === formData.checklistId,
+  );
+  const modalTitle = selectedChecklist
+    ? `Ny ${selectedChecklist.name}`
+    : "Ny kontroll";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -532,7 +642,9 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
             <span className="text-sm font-medium text-gray-700">
               Steg {currentStep - 1} av {totalSteps}
             </span>
-            <span className="text-sm text-gray-500">{Math.round(progress)}% klart</span>
+            <span className="text-sm text-gray-500">
+              {Math.round(progress)}% klart
+            </span>
           </div>
           <Progress value={progress} className="w-full" />
         </div>
@@ -552,13 +664,13 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
             <ChevronLeft className="mr-2 h-4 w-4" />
             Föregående
           </Button>
-          
+
           <div className="flex space-x-3">
             <Button variant="outline" onClick={onClose}>
               Avbryt
             </Button>
-            <Button 
-              onClick={handleNext} 
+            <Button
+              onClick={handleNext}
               disabled={!canProceed() || submitMutation.isPending}
             >
               {currentStep === totalSteps + 1 ? (
