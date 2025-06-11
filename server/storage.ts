@@ -61,7 +61,17 @@ export interface IStorage {
   deleteChecklistWorkTask(checklistId: number, workTaskId: number): Promise<void>;
 
   // Checklist Responses
-  getChecklistResponses(filters?: { limit?: number; offset?: number; checklistId?: number }): Promise<ChecklistResponse[]>;
+  getChecklistResponses(filters?: { 
+    limit?: number; 
+    offset?: number; 
+    checklistId?: number;
+    workTaskId?: number;
+    workStationId?: number;
+    shiftId?: number;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }): Promise<ChecklistResponse[]>;
   getChecklistResponse(id: number): Promise<ChecklistResponse | undefined>;
   createChecklistResponse(response: InsertChecklistResponse): Promise<ChecklistResponse>;
   updateChecklistResponse(id: number, response: Partial<InsertChecklistResponse>): Promise<ChecklistResponse>;
@@ -258,18 +268,55 @@ export class DatabaseStorage implements IStorage {
 
 
   // Checklist Responses
-  async getChecklistResponses(filters: { limit?: number; offset?: number; checklistId?: number } = {}): Promise<ChecklistResponse[]> {
-    const { limit = 50, offset = 0, checklistId } = filters;
+  async getChecklistResponses(filters: { 
+    limit?: number; 
+    offset?: number; 
+    checklistId?: number;
+    workTaskId?: number;
+    workStationId?: number;
+    shiftId?: number;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  } = {}): Promise<ChecklistResponse[]> {
+    const { limit = 50, offset = 0, checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
     
+    let query = db.select().from(checklistResponses);
+    const conditions = [];
+
     if (checklistId) {
-      return await db.select().from(checklistResponses)
-        .where(eq(checklistResponses.checklistId, checklistId))
-        .orderBy(desc(checklistResponses.createdAt))
-        .limit(limit)
-        .offset(offset);
+      conditions.push(eq(checklistResponses.checklistId, checklistId));
     }
     
-    return await db.select().from(checklistResponses)
+    if (workTaskId) {
+      conditions.push(eq(checklistResponses.workTaskId, workTaskId));
+    }
+    
+    if (workStationId) {
+      conditions.push(eq(checklistResponses.workStationId, workStationId));
+    }
+    
+    if (shiftId) {
+      conditions.push(eq(checklistResponses.shiftId, shiftId));
+    }
+    
+    if (search) {
+      conditions.push(sql`${checklistResponses.operatorName} ILIKE ${`%${search}%`}`);
+    }
+    
+    if (startDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) >= ${startDate}`);
+    }
+    
+    if (endDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) <= ${endDate}`);
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query
       .orderBy(desc(checklistResponses.createdAt))
       .limit(limit)
       .offset(offset);

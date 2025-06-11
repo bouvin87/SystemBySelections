@@ -2,10 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
-import type { ChecklistResponse, Checklist } from "@shared/schema";
+import { ArrowLeft, Filter, Search, Calendar } from "lucide-react";
+import { useState } from "react";
+import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift } from "@shared/schema";
 
 interface DashboardStats {
   totalResponses: number;
@@ -19,6 +23,18 @@ interface ChecklistDashboardProps {
 
 export default function ChecklistDashboard({ checklistId }: ChecklistDashboardProps) {
   const id = parseInt(checklistId);
+  
+  // Filter state
+  const [filters, setFilters] = useState({
+    workTaskId: "",
+    workStationId: "",
+    shiftId: "",
+    startDate: "",
+    endDate: "",
+    search: "",
+  });
+
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data: checklist } = useQuery<Checklist>({
     queryKey: ["/api/checklists", id],
@@ -29,19 +45,50 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
     },
   });
 
+  // Fetch filter data
+  const { data: workTasks = [] } = useQuery<WorkTask[]>({
+    queryKey: ["/api/work-tasks"],
+    enabled: checklist?.includeWorkTasks,
+  });
+
+  const { data: workStations = [] } = useQuery<WorkStation[]>({
+    queryKey: ["/api/work-stations"],
+    enabled: checklist?.includeWorkStations,
+  });
+
+  const { data: shifts = [] } = useQuery<Shift[]>({
+    queryKey: ["/api/shifts"],
+    enabled: checklist?.includeShifts,
+  });
+
+  // Build query parameters for filtering
+  const buildQueryParams = () => {
+    const params = new URLSearchParams();
+    params.set('checklistId', id.toString());
+    
+    if (filters.workTaskId) params.set('workTaskId', filters.workTaskId);
+    if (filters.workStationId) params.set('workStationId', filters.workStationId);
+    if (filters.shiftId) params.set('shiftId', filters.shiftId);
+    if (filters.startDate) params.set('startDate', filters.startDate);
+    if (filters.endDate) params.set('endDate', filters.endDate);
+    if (filters.search) params.set('search', filters.search);
+    
+    return params.toString();
+  };
+
   const { data: stats } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats", id],
+    queryKey: ["/api/dashboard/stats", id, filters],
     queryFn: async () => {
-      const response = await fetch(`/api/dashboard/stats?checklistId=${id}`);
+      const response = await fetch(`/api/dashboard/stats?${buildQueryParams()}`);
       if (!response.ok) throw new Error("Failed to fetch stats");
       return response.json();
     },
   });
 
   const { data: responses = [] } = useQuery<ChecklistResponse[]>({
-    queryKey: ["/api/responses", id],
+    queryKey: ["/api/responses", id, filters],
     queryFn: async () => {
-      const response = await fetch(`/api/responses?checklistId=${id}`);
+      const response = await fetch(`/api/responses?${buildQueryParams()}`);
       if (!response.ok) throw new Error("Failed to fetch responses");
       return response.json();
     },
@@ -99,9 +146,160 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           </Link>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Dashboard - {checklist.name}
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Dashboard - {checklist.name}
+          </h1>
+          <Button 
+            onClick={() => setShowFilters(!showFilters)} 
+            variant="outline"
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Filter
+          </Button>
+        </div>
+
+        {showFilters && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filter alternativ
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Search */}
+                <div>
+                  <Label htmlFor="search">Sök operatör</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="search"
+                      placeholder="Sök på operatörsnamn..."
+                      value={filters.search}
+                      onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Date Range */}
+                <div>
+                  <Label htmlFor="startDate">Från datum</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="endDate">Till datum</Label>
+                  <Input
+                    id="endDate"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                  />
+                </div>
+
+                {/* Work Task Filter */}
+                {checklist.includeWorkTasks && (
+                  <div>
+                    <Label>Arbetsmoment</Label>
+                    <Select
+                      value={filters.workTaskId}
+                      onValueChange={(value) => setFilters(prev => ({ 
+                        ...prev, 
+                        workTaskId: value,
+                        workStationId: "" // Reset station when task changes
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Alla arbetsmoment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Alla arbetsmoment</SelectItem>
+                        {workTasks.map((task) => (
+                          <SelectItem key={task.id} value={task.id.toString()}>
+                            {task.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Work Station Filter */}
+                {checklist.includeWorkStations && (
+                  <div>
+                    <Label>Station</Label>
+                    <Select
+                      value={filters.workStationId}
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, workStationId: value }))}
+                      disabled={!filters.workTaskId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Alla stationer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Alla stationer</SelectItem>
+                        {workStations
+                          .filter(station => !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
+                          .map((station) => (
+                            <SelectItem key={station.id} value={station.id.toString()}>
+                              {station.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Shift Filter */}
+                {checklist.includeShifts && (
+                  <div>
+                    <Label>Skift</Label>
+                    <Select
+                      value={filters.shiftId}
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, shiftId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Alla skift" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Alla skift</SelectItem>
+                        {shifts.map((shift) => (
+                          <SelectItem key={shift.id} value={shift.id.toString()}>
+                            {shift.name} ({shift.startTime}-{shift.endTime})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setFilters({
+                    workTaskId: "",
+                    workStationId: "",
+                    shiftId: "",
+                    startDate: "",
+                    endDate: "",
+                    search: "",
+                  })}
+                >
+                  Rensa filter
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
