@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
@@ -395,8 +396,8 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
               )}
 
               {(question.type === "ja_nej" || question.type === "boolean") && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
+                <div className="flex items-center space-x-3">
+                  <Switch
                     id={`question-${question.id}`}
                     checked={formData.responses[question.id] || false}
                     onCheckedChange={(checked) => {
@@ -407,7 +408,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                     }}
                   />
                   <Label htmlFor={`question-${question.id}`} className="text-sm text-gray-700 cursor-pointer">
-                    Ja
+                    {formData.responses[question.id] ? "Ja" : "Nej"}
                   </Label>
                 </div>
               )}
