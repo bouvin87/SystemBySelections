@@ -566,8 +566,11 @@ export default function FormModal({
               {question.type === "stjärnor" && (
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => {
-                    const currentRating = Number(formData.responses[question.id] || 0);
-                    const isActive = star <= currentRating;
+                    const responseValue = formData.responses[question.id];
+                    const currentRating = responseValue ? Number(responseValue) : 0;
+                    const isActive = currentRating > 0 && star <= currentRating;
+                    
+                    console.log(`Star ${star}: responseValue=${responseValue}, currentRating=${currentRating}, isActive=${isActive}`);
                     
                     return (
                       <button
