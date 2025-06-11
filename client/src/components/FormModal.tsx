@@ -34,7 +34,7 @@ const MOOD_EMOJIS = ["😞", "😐", "🙂", "😊", "😄"];
 
 export default function FormModal({ isOpen, onClose, preselectedChecklistId }: FormModalProps) {
   const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(2); // Start directly at identification step
   const [formData, setFormData] = useState<FormData>({
     checklistId: preselectedChecklistId || null,
     operatorName: "",
@@ -44,30 +44,22 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     responses: {},
   });
 
-  // Update form data when preselected checklist changes and auto-advance to step 2
+  // Update form data when preselected checklist changes
   useEffect(() => {
     if (preselectedChecklistId) {
       setFormData(prev => ({
         ...prev,
         checklistId: preselectedChecklistId
       }));
-      setCurrentStep(2); // Skip checklist selection step
     }
   }, [preselectedChecklistId]);
-
-  // Reset to step 1 when modal opens without preselected checklist
-  useEffect(() => {
-    if (isOpen && !preselectedChecklistId) {
-      setCurrentStep(1);
-    }
-  }, [isOpen, preselectedChecklistId]);
 
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setCurrentStep(1);
+      setCurrentStep(2); // Always reset to identification step
       setFormData({
-        checklistId: null,
+        checklistId: preselectedChecklistId || null,
         operatorName: "",
         workTaskId: null,
         workStationId: null,
@@ -75,7 +67,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
         responses: {},
       });
     }
-  }, [isOpen]);
+  }, [isOpen, preselectedChecklistId]);
 
   const { data: checklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists"],
@@ -137,9 +129,9 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   });
 
   const resetForm = () => {
-    setCurrentStep(1);
+    setCurrentStep(2);
     setFormData({
-      checklistId: null,
+      checklistId: preselectedChecklistId || null,
       operatorName: "",
       workTaskId: null,
       workStationId: null,
@@ -148,11 +140,11 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     });
   };
 
-  const totalSteps = 2 + categories.length;
-  const progress = (currentStep / totalSteps) * 100;
+  const totalSteps = 1 + categories.length; // Only identification step + category steps
+  const progress = ((currentStep - 1) / totalSteps) * 100;
 
   const handleNext = () => {
-    if (currentStep < totalSteps) {
+    if (currentStep < totalSteps + 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -160,7 +152,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 2) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -230,42 +222,6 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   };
 
   const renderStep = () => {
-    if (currentStep === 1) {
-      return (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium mb-4">Välj checklista</h3>
-          <div className="space-y-3">
-            {checklists.map((checklist) => (
-              <Card
-                key={checklist.id}
-                className={`cursor-pointer transition-colors ${
-                  formData.checklistId === checklist.id ? "ring-2 ring-primary" : "hover:bg-gray-50"
-                }`}
-                onClick={() => setFormData(prev => ({ ...prev, checklistId: checklist.id }))}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="radio"
-                      checked={formData.checklistId === checklist.id}
-                      onChange={() => {}}
-                      className="text-primary focus:ring-primary"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{checklist.name}</div>
-                      {checklist.description && (
-                        <div className="text-sm text-gray-600">{checklist.description}</div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
     if (currentStep === 2) {
       return (
         <div className="space-y-4">
@@ -441,7 +397,6 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
   };
 
   const canProceed = () => {
-    if (currentStep === 1) return formData.checklistId !== null;
     if (currentStep === 2) return formData.operatorName && formData.workTaskId && formData.shiftId;
     return true;
   };
