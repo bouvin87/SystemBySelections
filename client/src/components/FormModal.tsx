@@ -44,15 +44,38 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     responses: {},
   });
 
-  // Update form data when preselected checklist changes
+  // Update form data when preselected checklist changes and auto-advance to step 2
   useEffect(() => {
     if (preselectedChecklistId) {
       setFormData(prev => ({
         ...prev,
         checklistId: preselectedChecklistId
       }));
+      setCurrentStep(2); // Skip checklist selection step
     }
   }, [preselectedChecklistId]);
+
+  // Reset to step 1 when modal opens without preselected checklist
+  useEffect(() => {
+    if (isOpen && !preselectedChecklistId) {
+      setCurrentStep(1);
+    }
+  }, [isOpen, preselectedChecklistId]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentStep(1);
+      setFormData({
+        checklistId: null,
+        operatorName: "",
+        workTaskId: null,
+        workStationId: null,
+        shiftId: null,
+        responses: {},
+      });
+    }
+  }, [isOpen]);
 
   const { data: checklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists"],

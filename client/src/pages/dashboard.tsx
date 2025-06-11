@@ -52,8 +52,16 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h2 className="text-2xl font-medium text-gray-900">Dashboard</h2>
           
-          {/* Filter Controls */}
+          {/* Action Button and Filter Controls */}
           <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() => setFormModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Välj checklista
+            </Button>
+            
             <Select value={shiftFilter} onValueChange={setShiftFilter}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Alla skift" />
