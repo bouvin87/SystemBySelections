@@ -1,0 +1,1 @@
+ALTER TABLE "checklists" ADD COLUMN "has_dashboard" boolean DEFAULT false NOT NULL;

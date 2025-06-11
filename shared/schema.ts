@@ -36,6 +36,7 @@ export const checklists = pgTable("checklists", {
   includeShifts: boolean("include_shifts").notNull().default(true),
   isActive: boolean("is_active").notNull().default(true),
   showInMenu: boolean("show_in_menu").notNull().default(false),
+  hasDashboard: boolean("has_dashboard").notNull().default(false),
   order: integer("order").notNull().default(0),
 });
 

@@ -195,6 +195,7 @@ export default function Admin() {
                             includeShifts: formData.get("includeShifts") === "on",
                             isActive: formData.get("isActive") === "on",
                             showInMenu: formData.get("showInMenu") === "on",
+                            hasDashboard: formData.get("hasDashboard") === "on",
                             order: parseInt(formData.get("order") as string) || 0,
                           };
                           handleSubmit("/api/checklists", data);
@@ -266,6 +267,14 @@ export default function Admin() {
                             defaultChecked={editingItem?.showInMenu ?? false}
                           />
                           <Label htmlFor="showInMenu">Visa som knapp i menyn</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="hasDashboard"
+                            name="hasDashboard"
+                            defaultChecked={editingItem?.hasDashboard ?? false}
+                          />
+                          <Label htmlFor="hasDashboard">Har egen dashboard</Label>
                         </div>
                         <Button type="submit" className="w-full">
                           <Save className="mr-2 h-4 w-4" />
