@@ -61,7 +61,7 @@ export interface IStorage {
   deleteChecklistWorkTask(checklistId: number, workTaskId: number): Promise<void>;
 
   // Checklist Responses
-  getChecklistResponses(filters?: { limit?: number; offset?: number }): Promise<ChecklistResponse[]>;
+  getChecklistResponses(filters?: { limit?: number; offset?: number; checklistId?: number }): Promise<ChecklistResponse[]>;
   getChecklistResponse(id: number): Promise<ChecklistResponse | undefined>;
   createChecklistResponse(response: InsertChecklistResponse): Promise<ChecklistResponse>;
   updateChecklistResponse(id: number, response: Partial<InsertChecklistResponse>): Promise<ChecklistResponse>;
@@ -258,9 +258,15 @@ export class DatabaseStorage implements IStorage {
 
 
   // Checklist Responses
-  async getChecklistResponses(filters: { limit?: number; offset?: number } = {}): Promise<ChecklistResponse[]> {
-    const { limit = 50, offset = 0 } = filters;
-    return await db.select().from(checklistResponses)
+  async getChecklistResponses(filters: { limit?: number; offset?: number; checklistId?: number } = {}): Promise<ChecklistResponse[]> {
+    const { limit = 50, offset = 0, checklistId } = filters;
+    let query = db.select().from(checklistResponses);
+    
+    if (checklistId) {
+      query = query.where(eq(checklistResponses.checklistId, checklistId));
+    }
+    
+    return await query
       .orderBy(desc(checklistResponses.createdAt))
       .limit(limit)
       .offset(offset);

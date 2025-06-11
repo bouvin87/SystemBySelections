@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import Admin from "@/pages/admin";
 import ChecklistEditor from "@/pages/checklist-editor";
 import ChecklistStart from "@/pages/checklist-start";
+import ChecklistDashboard from "@/pages/checklist-dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,9 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/admin/checklist/:id" component={ChecklistEditor} />
       <Route path="/checklist/:id/start" component={ChecklistStart} />
+      <Route path="/checklist/:id/dashboard">
+        {(params) => <ChecklistDashboard checklistId={params.id} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
