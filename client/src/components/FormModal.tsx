@@ -570,13 +570,18 @@ export default function FormModal({
                       key={star}
                       type="button"
                       onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          responses: { ...prev.responses, [question.id]: star },
-                        }));
+                        console.log(`Clicking star ${star} for question ${question.id}`);
+                        setFormData((prev) => {
+                          const newData = {
+                            ...prev,
+                            responses: { ...prev.responses, [question.id]: star },
+                          };
+                          console.log(`Updated responses:`, newData.responses);
+                          return newData;
+                        });
                       }}
                       className={`text-2xl ${
-                        (formData.responses[question.id] || 0) >= star
+                        Number(formData.responses[question.id] || 0) >= star
                           ? "text-yellow-400"
                           : "text-gray-300"
                       } hover:text-yellow-400`}
