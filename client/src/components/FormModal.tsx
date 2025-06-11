@@ -570,7 +570,7 @@ export default function FormModal({
                     const currentRating = responseValue ? Number(responseValue) : 0;
                     const isActive = currentRating > 0 && star <= currentRating;
                     
-                    console.log(`Star ${star}: responseValue=${responseValue}, currentRating=${currentRating}, isActive=${isActive}`);
+
                     
                     return (
                       <button
@@ -582,11 +582,11 @@ export default function FormModal({
                             responses: { ...prev.responses, [question.id]: star },
                           }));
                         }}
-                        className={`text-2xl transition-colors ${
-                          isActive ? "text-yellow-400" : "text-gray-300"
-                        } hover:text-yellow-400`}
+                        className={`text-2xl transition-colors hover:text-yellow-400 focus:outline-none ${
+                          isActive ? "text-yellow-500" : "text-gray-400"
+                        }`}
                       >
-                        ⭐
+                        {isActive ? "★" : "☆"}
                       </button>
                     );
                   })}
