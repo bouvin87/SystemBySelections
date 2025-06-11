@@ -153,11 +153,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/questions", async (req, res) => {
     try {
       const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : null;
-      if (!categoryId) {
-        return res.status(400).json({ message: "categoryId is required" });
+      const checklistId = req.query.checklistId ? parseInt(req.query.checklistId as string) : null;
+      
+      if (checklistId) {
+        // Get all questions for a checklist by getting categories first, then their questions
+        const categories = await storage.getCategories(checklistId);
+        const allQuestions = [];
+        for (const category of categories) {
+          const categoryQuestions = await storage.getQuestions(category.id);
+          allQuestions.push(...categoryQuestions.map(q => ({ ...q, category })));
+        }
+        return res.json(allQuestions);
+      } else if (categoryId) {
+        const questions = await storage.getQuestions(categoryId);
+        return res.json(questions);
+      } else {
+        return res.status(400).json({ message: "categoryId or checklistId is required" });
       }
-      const questions = await storage.getQuestions(categoryId);
-      res.json(questions);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch questions" });
     }

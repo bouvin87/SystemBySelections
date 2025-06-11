@@ -89,36 +89,15 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     enabled: isOpen,
   });
 
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories", formData.checklistId],
+  const { data: questions = [] } = useQuery<Question[]>({
+    queryKey: ["/api/questions", "checklist", formData.checklistId],
     queryFn: async () => {
       if (!formData.checklistId) return [];
-      const response = await fetch(`/api/categories?checklistId=${formData.checklistId}`);
-      if (!response.ok) throw new Error('Failed to fetch categories');
+      const response = await fetch(`/api/questions?checklistId=${formData.checklistId}`);
+      if (!response.ok) throw new Error('Failed to fetch questions');
       return response.json();
     },
     enabled: isOpen && formData.checklistId !== null,
-  });
-
-  const { data: questions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "for-checklist", formData.checklistId],
-    queryFn: async () => {
-      if (!categories || categories.length === 0) return [];
-      const allQuestions: Question[] = [];
-      for (const category of categories) {
-        try {
-          const response = await fetch(`/api/questions?categoryId=${category.id}`);
-          if (response.ok) {
-            const categoryQuestions = await response.json();
-            allQuestions.push(...categoryQuestions);
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch questions for category ${category.id}:`, error);
-        }
-      }
-      return allQuestions;
-    },
-    enabled: isOpen && formData.checklistId !== null && categories.length > 0,
   });
 
   const submitMutation = useMutation({
