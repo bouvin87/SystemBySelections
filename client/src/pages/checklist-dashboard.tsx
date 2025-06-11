@@ -300,35 +300,13 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           </Card>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="mb-8">
+          <Card className="w-full max-w-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Totala svar</CardTitle>
+              <CardTitle className="text-sm font-medium">Totala svar (filtrerat)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalResponses || 0}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Slutförda svar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.completedResponses || 0}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Genomförandeprocent</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stats?.totalResponses 
-                  ? Math.round((stats.completedResponses / stats.totalResponses) * 100) 
-                  : 0}%
-              </div>
             </CardContent>
           </Card>
         </div>

@@ -232,7 +232,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveChecklists(): Promise<Checklist[]> {
-    return await db.select().from(checklists).where(eq(checklists.isActive, true)).orderBy(checklists.order);
+    return await db.select().from(checklists).where(eq(checklists.isActive, true)).orderBy(checklists.id);
   }
 
   async getChecklist(id: number): Promise<Checklist | undefined> {
@@ -396,24 +396,20 @@ export class DatabaseStorage implements IStorage {
     const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
     
     let totalQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses);
-    let completedQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses).where(eq(checklistResponses.isCompleted, true));
     let recentQuery = db.select().from(checklistResponses);
 
     if (whereCondition) {
       totalQuery = totalQuery.where(whereCondition);
-      completedQuery = completedQuery.where(and(eq(checklistResponses.isCompleted, true), whereCondition));
       recentQuery = recentQuery.where(whereCondition);
     }
 
     const totalResponses = await totalQuery;
-    const completedResponses = await completedQuery;
     const recentResponses = await recentQuery
       .orderBy(desc(checklistResponses.createdAt))
       .limit(10);
 
     return {
       totalResponses: totalResponses[0]?.count || 0,
-      completedResponses: completedResponses[0]?.count || 0,
       recentResponses
     };
   }
