@@ -301,19 +301,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/checklists/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const checklist = await storage.getChecklist(id);
-      if (!checklist) {
-        return res.status(404).json({ message: "Checklist not found" });
-      }
-      res.json(checklist);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch checklist" });
-    }
-  });
-
   app.get("/api/checklists/active", async (req, res) => {
     try {
       const checklists = await storage.getActiveChecklists();
@@ -325,7 +312,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/checklists/:id", async (req, res) => {
     try {
-      const checklist = await storage.getChecklist(parseInt(req.params.id));
+      const id = parseInt(req.params.id);
+      const checklist = await storage.getChecklist(id);
       if (!checklist) {
         return res.status(404).json({ message: "Checklist not found" });
       }

@@ -235,7 +235,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveChecklists(): Promise<Checklist[]> {
-    return await db.select().from(checklists).where(eq(checklists.isActive, true)).orderBy(checklists.id);
+    return await db.select().from(checklists).where(
+      and(
+        eq(checklists.isActive, true),
+        eq(checklists.showInMenu, true)
+      )
+    ).orderBy(checklists.order, checklists.id);
   }
 
   async getChecklist(id: number): Promise<Checklist | undefined> {
