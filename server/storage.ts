@@ -178,6 +178,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCategory(id: number): Promise<void> {
+    // First delete all questions that belong to this category
+    await db.delete(questions).where(eq(questions.categoryId, id));
+    // Then delete the category
     await db.delete(categories).where(eq(categories.id, id));
   }
 
