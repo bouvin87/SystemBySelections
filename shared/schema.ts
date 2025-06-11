@@ -35,6 +35,7 @@ export const checklists = pgTable("checklists", {
   includeWorkStations: boolean("include_work_stations").notNull().default(true),
   includeShifts: boolean("include_shifts").notNull().default(true),
   isActive: boolean("is_active").notNull().default(true),
+  showInMenu: boolean("show_in_menu").notNull().default(false),
   order: integer("order").notNull().default(0),
 });
 
@@ -56,6 +57,7 @@ export const questions = pgTable("questions", {
   text: text("text").notNull(),
   type: text("type").notNull(), // checkbox, radio, text, rating, mood, number
   options: json("options"), // For radio buttons and other options
+  validation: json("validation"), // Validation rules
   showInDashboard: boolean("show_in_dashboard").notNull().default(false),
   dashboardDisplayType: text("dashboard_display_type"), // card, chart, progress, number
   order: integer("order").notNull().default(0),
