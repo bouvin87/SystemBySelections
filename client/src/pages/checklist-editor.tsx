@@ -63,7 +63,7 @@ export default function ChecklistEditor() {
   const categoriesQuery = useQuery<Category[]>({
     queryKey: ["/api/categories", checklistId],
     queryFn: async () => {
-      return await apiRequest(`/api/categories?checklistId=${checklistId}`, "GET") as unknown as Category[];
+      return await apiRequest("GET", `/api/categories?checklistId=${checklistId}`) as unknown as Category[];
     },
   });
 
@@ -74,7 +74,7 @@ export default function ChecklistEditor() {
       const allQuestions: Question[] = [];
       for (const category of categoriesQuery.data) {
         try {
-          const categoryQuestions = await apiRequest(`/api/questions?categoryId=${category.id}`, "GET") as unknown as Question[];
+          const categoryQuestions = await apiRequest("GET", `/api/questions?categoryId=${category.id}`) as unknown as Question[];
           allQuestions.push(...categoryQuestions);
         } catch (error) {
           console.warn(`Failed to fetch questions for category ${category.id}:`, error);
@@ -91,7 +91,7 @@ export default function ChecklistEditor() {
   // Mutations
   const createMutation = useMutation({
     mutationFn: async ({ endpoint, data }: { endpoint: string; data: any }) => {
-      return apiRequest(endpoint, "POST", data);
+      return apiRequest("POST", endpoint, data);
     },
     onSuccess: (_, { endpoint }) => {
       if (endpoint.includes("categories")) {
@@ -114,7 +114,7 @@ export default function ChecklistEditor() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ endpoint, id, data }: { endpoint: string; id: number; data: any }) => {
-      return apiRequest(`${endpoint}/${id}`, "PATCH", data);
+      return apiRequest("PATCH", `${endpoint}/${id}`, data);
     },
     onSuccess: (_, { endpoint }) => {
       if (endpoint.includes("categories")) {
@@ -137,7 +137,7 @@ export default function ChecklistEditor() {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ endpoint, id }: { endpoint: string; id: number }) => {
-      return apiRequest(`${endpoint}/${id}`, "DELETE");
+      return apiRequest("DELETE", `${endpoint}/${id}`);
     },
     onSuccess: (_, { endpoint }) => {
       if (endpoint.includes("categories")) {

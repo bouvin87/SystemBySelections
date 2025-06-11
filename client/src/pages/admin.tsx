@@ -60,7 +60,7 @@ export default function Admin() {
   // Mutations
   const createMutation = useMutation({
     mutationFn: async ({ endpoint, data }: { endpoint: string; data: any }) => {
-      return apiRequest(endpoint, "POST", data);
+      return apiRequest("POST", endpoint, data);
     },
     onSuccess: (_, { endpoint }) => {
       queryClient.invalidateQueries({ queryKey: [endpoint] });
@@ -79,7 +79,7 @@ export default function Admin() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ endpoint, id, data }: { endpoint: string; id: number; data: any }) => {
-      return apiRequest(`${endpoint}/${id}`, "PATCH", data);
+      return apiRequest("PATCH", `${endpoint}/${id}`, data);
     },
     onSuccess: (_, { endpoint }) => {
       queryClient.invalidateQueries({ queryKey: [endpoint] });
@@ -98,7 +98,7 @@ export default function Admin() {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ endpoint, id }: { endpoint: string; id: number }) => {
-      return apiRequest(`${endpoint}/${id}`, "DELETE");
+      return apiRequest("DELETE", `${endpoint}/${id}`);
     },
     onSuccess: (_, { endpoint }) => {
       queryClient.invalidateQueries({ queryKey: [endpoint] });
