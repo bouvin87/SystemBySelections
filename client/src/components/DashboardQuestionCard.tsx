@@ -55,8 +55,55 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
     if (values.length === 0) return null;
 
     const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const roundedAverage = Math.round(average);
     const maxValue = question.type === "nummer" ? 
       (question.validation as any)?.max || 100 : 5;
+
+    const renderAverageDisplay = () => {
+      if (question.type === "humör") {
+        const moodEmojis = ["😞", "😐", "🙂", "😊", "😄"];
+        const emoji = moodEmojis[Math.max(0, Math.min(4, roundedAverage - 1))];
+        return (
+          <div className="flex items-center gap-2">
+            <span className="text-3xl">{emoji}</span>
+            <div>
+              <div className="text-xl font-bold">{average.toFixed(1)}</div>
+              <div className="text-xs text-muted-foreground">av 5</div>
+            </div>
+          </div>
+        );
+      } else if (question.type === "stjärnor") {
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span
+                  key={star}
+                  className={`text-lg ${
+                    star <= roundedAverage ? "text-yellow-400" : "text-gray-300"
+                  }`}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <div>
+              <div className="text-xl font-bold">{average.toFixed(1)}</div>
+              <div className="text-xs text-muted-foreground">av 5</div>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div>
+            <div className="text-2xl font-bold">{average.toFixed(1)}</div>
+            <div className="text-xs text-muted-foreground">
+              av {maxValue}
+            </div>
+          </div>
+        );
+      }
+    };
 
     return (
       <Card>
@@ -65,8 +112,8 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{average.toFixed(1)}</div>
-          <p className="text-xs text-muted-foreground">
+          {renderAverageDisplay()}
+          <p className="text-xs text-muted-foreground mt-2">
             Medelvärde av {values.length} svar
           </p>
           <div className="mt-2">
@@ -153,9 +200,34 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
     if (values.length === 0) return null;
 
     const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const roundedAverage = Math.round(average);
     const maxValue = question.type === "nummer" ? 
       (question.validation as any)?.max || 100 : 5;
     const percentage = (average / maxValue) * 100;
+
+    const renderVisualIndicator = () => {
+      if (question.type === "humör") {
+        const moodEmojis = ["😞", "😐", "🙂", "😊", "😄"];
+        const emoji = moodEmojis[Math.max(0, Math.min(4, roundedAverage - 1))];
+        return <span className="text-lg">{emoji}</span>;
+      } else if (question.type === "stjärnor") {
+        return (
+          <div className="flex">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                className={`text-sm ${
+                  star <= roundedAverage ? "text-yellow-400" : "text-gray-300"
+                }`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+        );
+      }
+      return null;
+    };
 
     return (
       <Card>
@@ -166,7 +238,10 @@ export default function DashboardQuestionCard({ question, responses, filters }: 
         <CardContent>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Genomsnitt</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Genomsnitt</span>
+                {renderVisualIndicator()}
+              </div>
               <span className="text-sm font-medium">{average.toFixed(1)} / {maxValue}</span>
             </div>
             <Progress value={percentage} className="h-3" />
