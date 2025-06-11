@@ -106,7 +106,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getCategories();
+      const checklistId = req.query.checklistId ? parseInt(req.query.checklistId as string) : null;
+      if (!checklistId) {
+        return res.status(400).json({ message: "checklistId is required" });
+      }
+      const categories = await storage.getCategories(checklistId);
       res.json(categories);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch categories" });
@@ -147,7 +151,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Questions
   app.get("/api/questions", async (req, res) => {
     try {
-      const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+      const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : null;
+      if (!categoryId) {
+        return res.status(400).json({ message: "categoryId is required" });
+      }
       const questions = await storage.getQuestions(categoryId);
       res.json(questions);
     } catch (error) {
@@ -264,30 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Checklist Questions
-  app.get("/api/checklists/:id/questions", async (req, res) => {
-    try {
-      const checklistId = parseInt(req.params.id);
-      const questions = await storage.getChecklistQuestions(checklistId);
-      res.json(questions);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch checklist questions" });
-    }
-  });
 
-  app.post("/api/checklists/:id/questions", async (req, res) => {
-    try {
-      const checklistId = parseInt(req.params.id);
-      const validatedData = insertChecklistQuestionSchema.parse({
-        ...req.body,
-        checklistId
-      });
-      const question = await storage.createChecklistQuestion(validatedData);
-      res.status(201).json(question);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid checklist question data" });
-    }
-  });
 
   // Checklist Responses
   app.get("/api/responses", async (req, res) => {

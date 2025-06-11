@@ -247,24 +247,7 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  // Checklist Questions
-  async getChecklistQuestions(checklistId: number): Promise<ChecklistQuestion[]> {
-    return await db.select().from(checklistQuestions).where(eq(checklistQuestions.checklistId, checklistId));
-  }
 
-  async createChecklistQuestion(checklistQuestion: InsertChecklistQuestion): Promise<ChecklistQuestion> {
-    const [created] = await db.insert(checklistQuestions).values(checklistQuestion).returning();
-    return created;
-  }
-
-  async deleteChecklistQuestion(checklistId: number, questionId: number): Promise<void> {
-    await db.delete(checklistQuestions).where(
-      and(
-        eq(checklistQuestions.checklistId, checklistId),
-        eq(checklistQuestions.questionId, questionId)
-      )
-    );
-  }
 
   // Checklist Responses
   async getChecklistResponses(filters: { limit?: number; offset?: number } = {}): Promise<ChecklistResponse[]> {
