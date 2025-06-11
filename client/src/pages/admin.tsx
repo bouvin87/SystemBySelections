@@ -64,7 +64,12 @@ export default function Admin() {
       return apiRequest("POST", endpoint, data);
     },
     onSuccess: (_, { endpoint }) => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       setDialogOpen(false);
       setEditingItem(null);
       toast({ title: "Sparat!", description: "Objektet har skapats." });
@@ -83,7 +88,12 @@ export default function Admin() {
       return apiRequest("PATCH", `${endpoint}/${id}`, data);
     },
     onSuccess: (_, { endpoint }) => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       setDialogOpen(false);
       setEditingItem(null);
       toast({ title: "Uppdaterat!", description: "Objektet har uppdaterats." });
@@ -102,7 +112,12 @@ export default function Admin() {
       return apiRequest("DELETE", `${endpoint}/${id}`);
     },
     onSuccess: (_, { endpoint }) => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       toast({ title: "Borttaget!", description: "Objektet har tagits bort." });
     },
     onError: () => {
