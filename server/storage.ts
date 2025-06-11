@@ -78,7 +78,15 @@ export interface IStorage {
   deleteChecklistResponse(id: number): Promise<void>;
 
   // Dashboard Statistics
-  getDashboardStats(checklistId?: number): Promise<any>;
+  getDashboardStats(filters?: { 
+    checklistId?: number;
+    workTaskId?: number;
+    workStationId?: number;
+    shiftId?: number;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }): Promise<any>;
 
   // Admin Settings
   getAdminSettings(): Promise<AdminSetting[]>;
@@ -281,7 +289,6 @@ export class DatabaseStorage implements IStorage {
   } = {}): Promise<ChecklistResponse[]> {
     const { limit = 50, offset = 0, checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
     
-    let query = db.select().from(checklistResponses);
     const conditions = [];
 
     if (checklistId) {
@@ -313,10 +320,14 @@ export class DatabaseStorage implements IStorage {
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db.select().from(checklistResponses)
+        .where(and(...conditions))
+        .orderBy(desc(checklistResponses.createdAt))
+        .limit(limit)
+        .offset(offset);
     }
     
-    return await query
+    return await db.select().from(checklistResponses)
       .orderBy(desc(checklistResponses.createdAt))
       .limit(limit)
       .offset(offset);
@@ -342,15 +353,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard Statistics
-  async getDashboardStats(checklistId?: number): Promise<any> {
+  async getDashboardStats(filters: {
+    checklistId?: number;
+    workTaskId?: number;
+    workStationId?: number;
+    shiftId?: number;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  } = {}): Promise<any> {
+    const { checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
+    const conditions = [];
+    
+    if (checklistId) {
+      conditions.push(eq(checklistResponses.checklistId, checklistId));
+    }
+    
+    if (workTaskId) {
+      conditions.push(eq(checklistResponses.workTaskId, workTaskId));
+    }
+    
+    if (workStationId) {
+      conditions.push(eq(checklistResponses.workStationId, workStationId));
+    }
+    
+    if (shiftId) {
+      conditions.push(eq(checklistResponses.shiftId, shiftId));
+    }
+    
+    if (search) {
+      conditions.push(sql`${checklistResponses.operatorName} ILIKE ${`%${search}%`}`);
+    }
+    
+    if (startDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) >= ${startDate}`);
+    }
+    
+    if (endDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) <= ${endDate}`);
+    }
+
+    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    
     let totalQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses);
     let completedQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses).where(eq(checklistResponses.isCompleted, true));
     let recentQuery = db.select().from(checklistResponses);
 
-    if (checklistId) {
-      totalQuery = totalQuery.where(eq(checklistResponses.checklistId, checklistId));
-      completedQuery = completedQuery.where(and(eq(checklistResponses.isCompleted, true), eq(checklistResponses.checklistId, checklistId)));
-      recentQuery = recentQuery.where(eq(checklistResponses.checklistId, checklistId));
+    if (whereCondition) {
+      totalQuery = totalQuery.where(whereCondition);
+      completedQuery = completedQuery.where(and(eq(checklistResponses.isCompleted, true), whereCondition));
+      recentQuery = recentQuery.where(whereCondition);
     }
 
     const totalResponses = await totalQuery;

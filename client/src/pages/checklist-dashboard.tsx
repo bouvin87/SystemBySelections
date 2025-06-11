@@ -13,7 +13,6 @@ import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift } from 
 
 interface DashboardStats {
   totalResponses: number;
-  completedResponses: number;
   recentResponses: ChecklistResponse[];
 }
 
