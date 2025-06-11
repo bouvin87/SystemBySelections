@@ -141,7 +141,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     });
   };
 
-  const totalSteps = 1 + categories.length; // Only identification step + category steps
+  const totalSteps = questions.length > 0 ? 2 : 1; // Identification step + questions step
   const progress = ((currentStep - 1) / totalSteps) * 100;
 
   const handleNext = () => {
@@ -303,15 +303,11 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
       );
     }
 
-    // Question steps
-    const categoryIndex = currentStep - 3;
-    const category = categories[categoryIndex];
-    const categoryQuestions = questions.filter(q => q.categoryId === category?.id);
-
+    // Questions step
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
-        {categoryQuestions.map((question) => (
+        <h3 className="text-lg font-medium mb-4">Frågor</h3>
+        {questions.map((question) => (
           <Card key={question.id} className="p-4">
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-900">
