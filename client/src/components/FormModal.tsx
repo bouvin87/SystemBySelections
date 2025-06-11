@@ -565,30 +565,28 @@ export default function FormModal({
 
               {question.type === "stjärnor" && (
                 <div className="flex space-x-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => {
-                        console.log(`Clicking star ${star} for question ${question.id}`);
-                        setFormData((prev) => {
-                          const newData = {
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const currentRating = Number(formData.responses[question.id] || 0);
+                    const isActive = star <= currentRating;
+                    
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({
                             ...prev,
                             responses: { ...prev.responses, [question.id]: star },
-                          };
-                          console.log(`Updated responses:`, newData.responses);
-                          return newData;
-                        });
-                      }}
-                      className={`text-2xl ${
-                        Number(formData.responses[question.id] || 0) >= star
-                          ? "text-yellow-400"
-                          : "text-gray-300"
-                      } hover:text-yellow-400`}
-                    >
-                      ⭐
-                    </button>
-                  ))}
+                          }));
+                        }}
+                        className={`text-2xl transition-colors ${
+                          isActive ? "text-yellow-400" : "text-gray-300"
+                        } hover:text-yellow-400`}
+                      >
+                        ⭐
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
