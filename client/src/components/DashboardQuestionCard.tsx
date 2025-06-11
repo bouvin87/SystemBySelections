@@ -12,14 +12,14 @@ interface DashboardQuestionCardProps {
 
 export default function DashboardQuestionCard({ question, responses, filters }: DashboardQuestionCardProps) {
   // Filter responses that have answers for this question
-  const relevantResponses = responses.filter(response => 
-    response.responses && 
-    typeof response.responses === 'object' && 
-    response.responses[question.id.toString()]
-  );
+  const relevantResponses = responses.filter(response => {
+    if (!response.responses || typeof response.responses !== 'object') return false;
+    const responseObj = response.responses as Record<string, any>;
+    return responseObj[question.id.toString()] !== undefined;
+  });
 
   const getQuestionValue = (response: ChecklistResponse) => {
-    const responses = response.responses as Record<string, any>;
+    const responses = response.responses as Record<string, any> || {};
     return responses[question.id.toString()];
   };
 

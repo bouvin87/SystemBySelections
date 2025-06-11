@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
+import DashboardQuestionCard from "@/components/DashboardQuestionCard";
 import { Link } from "wouter";
 import { ArrowLeft, Filter, Search, Calendar } from "lucide-react";
 import { useState } from "react";
-import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift } from "@shared/schema";
+import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift, Question } from "@shared/schema";
 
 interface DashboardStats {
   totalResponses: number;
@@ -89,6 +90,15 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
     queryFn: async () => {
       const response = await fetch(`/api/responses?${buildQueryParams()}`);
       if (!response.ok) throw new Error("Failed to fetch responses");
+      return response.json();
+    },
+  });
+
+  const { data: dashboardQuestions = [] } = useQuery<Question[]>({
+    queryKey: ["/api/dashboard/questions", id],
+    queryFn: async () => {
+      const response = await fetch(`/api/dashboard/questions?checklistId=${id}`);
+      if (!response.ok) throw new Error("Failed to fetch dashboard questions");
       return response.json();
     },
   });
@@ -300,6 +310,23 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           </Card>
         )}
         
+        {/* Dashboard Question Cards */}
+        {dashboardQuestions.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Frågestatistik</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+              {dashboardQuestions.map((question) => (
+                <DashboardQuestionCard
+                  key={question.id}
+                  question={question}
+                  responses={responses}
+                  filters={filters}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
           <Card className="w-full max-w-sm">
             <CardHeader className="pb-2">
