@@ -349,7 +349,12 @@ export default function FormModal({
 
             {currentChecklist?.includeWorkStations && (
               <div>
-                <Label>Station</Label>
+                <Label>
+                  Station
+                  {formData.workTaskId && workTasks.find(task => task.id === formData.workTaskId)?.hasStations && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
+                </Label>
                 <Select
                   value={formData.workStationId?.toString() || ""}
                   onValueChange={(value) =>
@@ -622,6 +627,12 @@ export default function FormModal({
       
       // Only require work task if the checklist includes it
       if (currentChecklist?.includeWorkTasks && !formData.workTaskId) return false;
+      
+      // If work task has stations and checklist includes work stations, require station selection
+      if (currentChecklist?.includeWorkStations && formData.workTaskId) {
+        const selectedWorkTask = workTasks.find(task => task.id === formData.workTaskId);
+        if (selectedWorkTask?.hasStations && !formData.workStationId) return false;
+      }
       
       // Only require shift if the checklist includes it
       if (currentChecklist?.includeShifts && !formData.shiftId) return false;
