@@ -412,7 +412,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 -mx-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              Steg {currentStep} av {totalSteps}
+              Steg {currentStep - 1} av {totalSteps}
             </span>
             <span className="text-sm text-gray-500">{Math.round(progress)}% klart</span>
           </div>
@@ -428,8 +428,8 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
           <Button
             variant="ghost"
             onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className={currentStep === 1 ? "invisible" : ""}
+            disabled={currentStep === 2}
+            className={currentStep === 2 ? "invisible" : ""}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
             Föregående
@@ -443,7 +443,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
               onClick={handleNext} 
               disabled={!canProceed() || submitMutation.isPending}
             >
-              {currentStep === totalSteps ? (
+              {currentStep === totalSteps + 1 ? (
                 <>
                   <Check className="mr-2 h-4 w-4" />
                   Slutför
