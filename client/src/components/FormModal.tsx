@@ -89,15 +89,36 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     enabled: isOpen,
   });
 
-  const { data: questions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "checklist", formData.checklistId],
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories", formData.checklistId],
     queryFn: async () => {
       if (!formData.checklistId) return [];
-      const response = await fetch(`/api/questions?checklistId=${formData.checklistId}`);
-      if (!response.ok) throw new Error('Failed to fetch questions');
+      const response = await fetch(`/api/categories?checklistId=${formData.checklistId}`);
+      if (!response.ok) throw new Error('Failed to fetch categories');
       return response.json();
     },
     enabled: isOpen && formData.checklistId !== null,
+  });
+
+  const { data: questions = [] } = useQuery<Question[]>({
+    queryKey: ["/api/questions", "for-checklist", formData.checklistId],
+    queryFn: async () => {
+      if (!categories || categories.length === 0) return [];
+      const allQuestions: Question[] = [];
+      for (const category of categories) {
+        try {
+          const response = await fetch(`/api/questions?categoryId=${category.id}`);
+          if (response.ok) {
+            const categoryQuestions = await response.json();
+            allQuestions.push(...categoryQuestions);
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch questions for category ${category.id}:`, error);
+        }
+      }
+      return allQuestions;
+    },
+    enabled: isOpen && formData.checklistId !== null && categories.length > 0,
   });
 
   const submitMutation = useMutation({
@@ -141,7 +162,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     });
   };
 
-  const totalSteps = questions.length > 0 ? 2 : 1; // Identification step + questions step
+  const totalSteps = 1 + categories.length; // Only identification step + category steps
   const progress = ((currentStep - 1) / totalSteps) * 100;
 
   const handleNext = () => {
@@ -303,11 +324,15 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
       );
     }
 
-    // Questions step
+    // Question steps
+    const categoryIndex = currentStep - 3;
+    const category = categories[categoryIndex];
+    const categoryQuestions = questions.filter(q => q.categoryId === category?.id);
+
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-medium mb-4">Frågor</h3>
-        {questions.map((question) => (
+        <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
+        {categoryQuestions.map((question) => (
           <Card key={question.id} className="p-4">
             <div className="space-y-3">
               <Label className="text-sm font-medium text-gray-900">
