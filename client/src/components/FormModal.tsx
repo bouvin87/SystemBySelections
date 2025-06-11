@@ -406,9 +406,16 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                       }));
                     }}
                   />
-                  <Label htmlFor={`question-${question.id}`} className="text-sm text-gray-700">
+                  <Label htmlFor={`question-${question.id}`} className="text-sm text-gray-700 cursor-pointer">
                     Ja
                   </Label>
+                </div>
+              )}
+
+              {/* Debug info */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-xs text-gray-400 mt-1">
+                  Type: {question.type}
                 </div>
               )}
 
