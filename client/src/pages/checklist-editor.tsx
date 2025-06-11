@@ -52,6 +52,7 @@ export default function ChecklistEditor() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  const [selectedQuestionType, setSelectedQuestionType] = useState<string>("");
   const { toast } = useToast();
 
   // Queries
@@ -166,6 +167,7 @@ export default function ChecklistEditor() {
   const openQuestionDialog = (question?: any, categoryId?: number) => {
     setEditingQuestion(question);
     setSelectedCategory(categoryId || null);
+    setSelectedQuestionType(question?.type || "text");
     setQuestionDialogOpen(true);
   };
 
@@ -464,6 +466,8 @@ export default function ChecklistEditor() {
                       order: parseInt(formData.get("order") as string) || 0,
                       options: formData.get("options") ? JSON.parse(formData.get("options") as string) : undefined,
                       validation: formData.get("validation") ? JSON.parse(formData.get("validation") as string) : undefined,
+                      showInDashboard: formData.get("showInDashboard") === "on",
+                      dashboardDisplayType: formData.get("dashboardDisplayType") as string || null,
                     };
                     handleQuestionSubmit("/api/questions", data);
                   }}
@@ -480,7 +484,11 @@ export default function ChecklistEditor() {
                   </div>
                   <div>
                     <Label htmlFor="type">Typ</Label>
-                    <Select name="type" defaultValue={editingQuestion?.type || "text"}>
+                    <Select 
+                      name="type" 
+                      defaultValue={editingQuestion?.type || "text"}
+                      onValueChange={setSelectedQuestionType}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Välj typ" />
                       </SelectTrigger>
@@ -531,6 +539,40 @@ export default function ChecklistEditor() {
                       defaultValue={editingQuestion?.validation ? JSON.stringify(editingQuestion.validation) : ""}
                     />
                   </div>
+                  
+                  {/* Dashboard Card Configuration - Only for applicable types */}
+                  {(editingQuestion?.type === "nummer" || editingQuestion?.type === "ja_nej" || 
+                    editingQuestion?.type === "stjärnor" || editingQuestion?.type === "humör") && (
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium mb-3">Dashboard-kort</h4>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Switch
+                          id="showInDashboard"
+                          name="showInDashboard"
+                          defaultChecked={editingQuestion?.showInDashboard ?? false}
+                        />
+                        <Label htmlFor="showInDashboard">Visa som eget kort i dashboard</Label>
+                      </div>
+                      
+                      {(editingQuestion?.showInDashboard) && (
+                        <div>
+                          <Label htmlFor="dashboardDisplayType">Korttyp</Label>
+                          <Select name="dashboardDisplayType" defaultValue={editingQuestion?.dashboardDisplayType || "medelvärde"}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Välj korttyp" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="medelvärde">Medelvärde</SelectItem>
+                              <SelectItem value="graf">Graf (svar över tid)</SelectItem>
+                              <SelectItem value="progressbar">Progressbar</SelectItem>
+                              <SelectItem value="antal">Antal</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   <Button type="submit" className="w-full">
                     <Save className="mr-2 h-4 w-4" />
                     Spara

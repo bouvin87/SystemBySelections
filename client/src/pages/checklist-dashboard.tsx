@@ -325,9 +325,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                       {new Date(response.createdAt).toLocaleDateString('sv-SE')} {new Date(response.createdAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <Badge variant={response.isCompleted ? "default" : "secondary"}>
-                    {response.isCompleted ? "Slutförd" : "Pågående"}
-                  </Badge>
+
                 </div>
               ))}
               {responses.length === 0 && (
