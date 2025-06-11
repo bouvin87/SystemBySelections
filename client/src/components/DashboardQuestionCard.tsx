@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   LineChart,
@@ -107,6 +107,7 @@ export default function DashboardQuestionCard({
       } else {
         return (
           <div className="text-center">
+            <div className="text-4xl mb-2">#️</div>
             <div className="text-2xl font-bold">{average.toFixed(1)}</div>
           </div>
         );
@@ -121,13 +122,12 @@ export default function DashboardQuestionCard({
         </CardHeader>
         <CardContent>
           {renderAverageDisplay()}
-          <div className="mt-2">
-            <Progress value={(average / maxValue) * 100} className="h-2" />
-          </div>
+
           <p className="text-xs text-muted-foreground mt-3 text-center">
             Medelvärde av {values.length} svar
           </p>
         </CardContent>
+
       </Card>
     );
   };

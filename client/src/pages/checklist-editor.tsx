@@ -468,6 +468,7 @@ export default function ChecklistEditor() {
                       validation: formData.get("validation") ? JSON.parse(formData.get("validation") as string) : undefined,
                       showInDashboard: formData.get("showInDashboard") === "on",
                       dashboardDisplayType: formData.get("dashboardDisplayType") as string || null,
+                      hideInView: formData.get("hideInView") === "on",
                     };
                     handleQuestionSubmit("/api/questions", data);
                   }}
@@ -520,6 +521,14 @@ export default function ChecklistEditor() {
                       defaultChecked={editingQuestion?.isRequired ?? false}
                     />
                     <Label htmlFor="isRequired">Obligatorisk</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="hideInView"
+                      name="hideInView"
+                      defaultChecked={editingQuestion?.hideInView ?? false}
+                    />
+                    <Label htmlFor="hideInView">Dölj i visning</Label>
                   </div>
                   <div>
                     <Label htmlFor="options">Alternativ (JSON format för select-typer)</Label>

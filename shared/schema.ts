@@ -61,6 +61,7 @@ export const questions = pgTable("questions", {
   validation: json("validation"), // Validation rules
   showInDashboard: boolean("show_in_dashboard").notNull().default(false),
   dashboardDisplayType: text("dashboard_display_type"), // card, chart, progress, number
+  hideInView: boolean("hide_in_view").notNull().default(false),
   order: integer("order").notNull().default(0),
   isRequired: boolean("is_required").notNull().default(false),
 });

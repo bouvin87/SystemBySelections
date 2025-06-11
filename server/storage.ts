@@ -434,6 +434,7 @@ export class DatabaseStorage implements IStorage {
       validation: questions.validation,
       showInDashboard: questions.showInDashboard,
       dashboardDisplayType: questions.dashboardDisplayType,
+      hideInView: questions.hideInView,
       order: questions.order,
       isRequired: questions.isRequired,
     })

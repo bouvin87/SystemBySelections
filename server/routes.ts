@@ -422,6 +422,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/responses/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const response = await storage.getChecklistResponse(id);
+      if (!response) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch response" });
+    }
+  });
+
   app.post("/api/responses", async (req, res) => {
     try {
       const validatedData = insertChecklistResponseSchema.parse(req.body);
