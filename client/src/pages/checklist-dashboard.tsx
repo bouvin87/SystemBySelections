@@ -26,9 +26,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   
   // Filter state
   const [filters, setFilters] = useState({
-    workTaskId: "",
-    workStationId: "",
-    shiftId: "",
+    workTaskId: "all",
+    workStationId: "all",
+    shiftId: "all",
     startDate: "",
     endDate: "",
     search: "",
@@ -66,9 +66,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
     const params = new URLSearchParams();
     params.set('checklistId', id.toString());
     
-    if (filters.workTaskId) params.set('workTaskId', filters.workTaskId);
-    if (filters.workStationId) params.set('workStationId', filters.workStationId);
-    if (filters.shiftId) params.set('shiftId', filters.shiftId);
+    if (filters.workTaskId && filters.workTaskId !== "all") params.set('workTaskId', filters.workTaskId);
+    if (filters.workStationId && filters.workStationId !== "all") params.set('workStationId', filters.workStationId);
+    if (filters.shiftId && filters.shiftId !== "all") params.set('shiftId', filters.shiftId);
     if (filters.startDate) params.set('startDate', filters.startDate);
     if (filters.endDate) params.set('endDate', filters.endDate);
     if (filters.search) params.set('search', filters.search);
@@ -214,14 +214,14 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                       onValueChange={(value) => setFilters(prev => ({ 
                         ...prev, 
                         workTaskId: value,
-                        workStationId: "" // Reset station when task changes
+                        workStationId: "all" // Reset station when task changes
                       }))}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Alla arbetsmoment" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Alla arbetsmoment</SelectItem>
+                        <SelectItem value="all">Alla arbetsmoment</SelectItem>
                         {workTasks.map((task) => (
                           <SelectItem key={task.id} value={task.id.toString()}>
                             {task.name}
@@ -245,9 +245,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                         <SelectValue placeholder="Alla stationer" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Alla stationer</SelectItem>
+                        <SelectItem value="all">Alla stationer</SelectItem>
                         {workStations
-                          .filter(station => !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
+                          .filter(station => filters.workTaskId === "all" || !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
                           .map((station) => (
                             <SelectItem key={station.id} value={station.id.toString()}>
                               {station.name}
@@ -270,7 +270,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                         <SelectValue placeholder="Alla skift" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Alla skift</SelectItem>
+                        <SelectItem value="all">Alla skift</SelectItem>
                         {shifts.map((shift) => (
                           <SelectItem key={shift.id} value={shift.id.toString()}>
                             {shift.name} ({shift.startTime}-{shift.endTime})
@@ -286,9 +286,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 <Button 
                   variant="outline" 
                   onClick={() => setFilters({
-                    workTaskId: "",
-                    workStationId: "",
-                    shiftId: "",
+                    workTaskId: "all",
+                    workStationId: "all",
+                    shiftId: "all",
                     startDate: "",
                     endDate: "",
                     search: "",
