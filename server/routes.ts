@@ -41,6 +41,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/work-tasks/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertWorkTaskSchema.partial().parse(req.body);
+      const workTask = await storage.updateWorkTask(id, validatedData);
+      res.json(workTask);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid work task data" });
+    }
+  });
+
+  app.patch("/api/work-tasks/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertWorkTaskSchema.partial().parse(req.body);
+      const workTask = await storage.updateWorkTask(id, validatedData);
+      res.json(workTask);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid work task data" });
+    }
+  });
+
+  app.delete("/api/work-tasks/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteWorkTask(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete work task" });
+    }
+  });
+
   // Work Stations
   app.get("/api/work-stations", async (req, res) => {
     try {
@@ -59,6 +91,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(workStation);
     } catch (error) {
       res.status(400).json({ message: "Invalid work station data" });
+    }
+  });
+
+  app.put("/api/work-stations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertWorkStationSchema.partial().parse(req.body);
+      const workStation = await storage.updateWorkStation(id, validatedData);
+      res.json(workStation);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid work station data" });
+    }
+  });
+
+  app.patch("/api/work-stations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertWorkStationSchema.partial().parse(req.body);
+      const workStation = await storage.updateWorkStation(id, validatedData);
+      res.json(workStation);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid work station data" });
+    }
+  });
+
+  app.delete("/api/work-stations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteWorkStation(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete work station" });
     }
   });
 
@@ -83,6 +147,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/shifts/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertShiftSchema.partial().parse(req.body);
+      const shift = await storage.updateShift(id, validatedData);
+      res.json(shift);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid shift data" });
+    }
+  });
+
+  app.patch("/api/shifts/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertShiftSchema.partial().parse(req.body);
@@ -139,6 +214,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/categories/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertCategorySchema.partial().parse(req.body);
+      const category = await storage.updateCategory(id, validatedData);
+      res.json(category);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+
   app.delete("/api/categories/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -174,6 +260,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/questions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertQuestionSchema.partial().parse(req.body);
+      const question = await storage.updateQuestion(id, validatedData);
+      res.json(question);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid question data" });
+    }
+  });
+
+  app.patch("/api/questions/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertQuestionSchema.partial().parse(req.body);
@@ -227,6 +324,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/checklists/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertChecklistSchema.partial().parse(req.body);
+      const checklist = await storage.updateChecklist(id, validatedData);
+      res.json(checklist);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid checklist data" });
+    }
+  });
+
+  app.patch("/api/checklists/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertChecklistSchema.partial().parse(req.body);
