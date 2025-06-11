@@ -394,7 +394,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                 />
               )}
 
-              {question.type === "ja_nej" && (
+              {(question.type === "ja_nej" || question.type === "boolean") && (
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id={`question-${question.id}`}
@@ -419,7 +419,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
                 </div>
               )}
 
-              {question.type === "datum" && (
+              {(question.type === "datum" || question.type === "date") && (
                 <Input
                   type="date"
                   value={formData.responses[question.id] || ""}
