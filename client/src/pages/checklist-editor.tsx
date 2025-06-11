@@ -94,9 +94,9 @@ export default function ChecklistEditor() {
     },
     onSuccess: (_, { endpoint }) => {
       if (endpoint.includes("categories")) {
-        queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/categories", checklistId] });
       } else if (endpoint.includes("questions")) {
-        queryClient.invalidateQueries({ queryKey: ["/api/questions", "all"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
       }
       setDialogOpen(false);
       setEditingItem(null);
@@ -117,9 +117,9 @@ export default function ChecklistEditor() {
     },
     onSuccess: (_, { endpoint }) => {
       if (endpoint.includes("categories")) {
-        queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/categories", checklistId] });
       } else if (endpoint.includes("questions")) {
-        queryClient.invalidateQueries({ queryKey: ["/api/questions", "all"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
       }
       setDialogOpen(false);
       setEditingItem(null);
@@ -140,9 +140,9 @@ export default function ChecklistEditor() {
     },
     onSuccess: (_, { endpoint }) => {
       if (endpoint.includes("categories")) {
-        queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/categories", checklistId] });
       } else if (endpoint.includes("questions")) {
-        queryClient.invalidateQueries({ queryKey: ["/api/questions", "all"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
       }
       toast({ title: "Borttaget!", description: "Objektet har tagits bort." });
     },
