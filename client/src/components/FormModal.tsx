@@ -162,7 +162,12 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     });
   };
 
-  const totalSteps = 1 + categories.length; // Only identification step + category steps
+  // Filter categories to only include those with questions
+  const categoriesWithQuestions = categories.filter(category => 
+    questions.some(question => question.categoryId === category.id)
+  );
+  
+  const totalSteps = 1 + categoriesWithQuestions.length; // Only identification step + category steps with questions
   const progress = ((currentStep - 1) / totalSteps) * 100;
 
   const handleNext = () => {
@@ -326,7 +331,7 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
 
     // Question steps
     const categoryIndex = currentStep - 3;
-    const category = categories[categoryIndex];
+    const category = categoriesWithQuestions[categoryIndex];
     const categoryQuestions = questions.filter(q => q.categoryId === category?.id);
 
     return (
