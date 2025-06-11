@@ -167,7 +167,7 @@ export default function DashboardQuestionCard({
     if (chartData.length === 0) return null;
 
     return (
-      <Card className="h-80">
+      <Card className="col-span-2 h-80">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
