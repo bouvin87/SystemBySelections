@@ -428,11 +428,15 @@ export default function FormModal({ isOpen, onClose, preselectedChecklistId }: F
     return true;
   };
 
+  // Get the selected checklist name for the title
+  const selectedChecklist = checklists.find(c => c.id === formData.checklistId);
+  const modalTitle = selectedChecklist ? `Ny ${selectedChecklist.name}` : "Ny kontroll";
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-full max-w-2xl max-h-screen overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Ny kontroll</DialogTitle>
+          <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
 
         {/* Progress Bar */}
