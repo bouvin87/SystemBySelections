@@ -616,8 +616,18 @@ export default function FormModal({
   };
 
   const canProceed = () => {
-    if (currentStep === 2)
-      return formData.operatorName && formData.workTaskId && formData.shiftId;
+    if (currentStep === 2) {
+      // Always require operator name
+      if (!formData.operatorName) return false;
+      
+      // Only require work task if the checklist includes it
+      if (currentChecklist?.includeWorkTasks && !formData.workTaskId) return false;
+      
+      // Only require shift if the checklist includes it
+      if (currentChecklist?.includeShifts && !formData.shiftId) return false;
+      
+      return true;
+    }
     return true;
   };
 
