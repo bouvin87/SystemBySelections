@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { 
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema, 
   insertCategorySchema, insertQuestionSchema, insertChecklistSchema,
-  insertChecklistWorkTaskSchema, insertChecklistQuestionSchema,
+  insertChecklistWorkTaskSchema,
   insertChecklistResponseSchema, insertAdminSettingSchema
 } from "@shared/schema";
 

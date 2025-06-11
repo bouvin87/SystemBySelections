@@ -26,38 +26,40 @@ export const shifts = pgTable("shifts", {
   order: integer("order").notNull().default(0),
 });
 
-// Categories
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  key: text("key").notNull().unique(),
-  description: text("description"),
-  order: integer("order").notNull().default(0),
-  isActive: boolean("is_active").notNull().default(true),
-});
-
-// Questions
-export const questions = pgTable("questions", {
-  id: serial("id").primaryKey(),
-  text: text("text").notNull(),
-  type: text("type").notNull(), // checkbox, radio, text, rating, mood, number
-  categoryId: integer("category_id").references(() => categories.id),
-  options: json("options"), // For radio buttons and other options
-  workTaskId: integer("work_task_id").references(() => workTasks.id),
-  showInDashboard: boolean("show_in_dashboard").notNull().default(false),
-  dashboardDisplayType: text("dashboard_display_type"), // card, chart, progress, number
-  order: integer("order").notNull().default(0),
-  isRequired: boolean("is_required").notNull().default(false),
-});
-
 // Checklists
 export const checklists = pgTable("checklists", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   includeWorkTasks: boolean("include_work_tasks").notNull().default(true),
+  includeWorkStations: boolean("include_work_stations").notNull().default(true),
+  includeShifts: boolean("include_shifts").notNull().default(true),
   isActive: boolean("is_active").notNull().default(true),
   order: integer("order").notNull().default(0),
+});
+
+// Categories (now belongs to specific checklists)
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  checklistId: integer("checklist_id").references(() => checklists.id).notNull(),
+  name: text("name").notNull(),
+  key: text("key").notNull(),
+  description: text("description"),
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
+// Questions (now belongs to categories within checklists)
+export const questions = pgTable("questions", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").references(() => categories.id).notNull(),
+  text: text("text").notNull(),
+  type: text("type").notNull(), // checkbox, radio, text, rating, mood, number
+  options: json("options"), // For radio buttons and other options
+  showInDashboard: boolean("show_in_dashboard").notNull().default(false),
+  dashboardDisplayType: text("dashboard_display_type"), // card, chart, progress, number
+  order: integer("order").notNull().default(0),
+  isRequired: boolean("is_required").notNull().default(false),
 });
 
 // Checklist Work Tasks (junction table)
@@ -65,13 +67,6 @@ export const checklistWorkTasks = pgTable("checklist_work_tasks", {
   id: serial("id").primaryKey(),
   checklistId: integer("checklist_id").references(() => checklists.id),
   workTaskId: integer("work_task_id").references(() => workTasks.id),
-});
-
-// Checklist Questions (junction table)
-export const checklistQuestions = pgTable("checklist_questions", {
-  id: serial("id").primaryKey(),
-  checklistId: integer("checklist_id").references(() => checklists.id),
-  questionId: integer("question_id").references(() => questions.id),
 });
 
 // Checklist Responses
@@ -102,7 +97,7 @@ export const insertCategorySchema = createInsertSchema(categories).omit({ id: tr
 export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true });
 export const insertChecklistSchema = createInsertSchema(checklists).omit({ id: true });
 export const insertChecklistWorkTaskSchema = createInsertSchema(checklistWorkTasks).omit({ id: true });
-export const insertChecklistQuestionSchema = createInsertSchema(checklistQuestions).omit({ id: true });
+
 export const insertChecklistResponseSchema = createInsertSchema(checklistResponses).omit({ id: true, createdAt: true });
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true });
 
@@ -121,8 +116,7 @@ export type Checklist = typeof checklists.$inferSelect;
 export type InsertChecklist = z.infer<typeof insertChecklistSchema>;
 export type ChecklistWorkTask = typeof checklistWorkTasks.$inferSelect;
 export type InsertChecklistWorkTask = z.infer<typeof insertChecklistWorkTaskSchema>;
-export type ChecklistQuestion = typeof checklistQuestions.$inferSelect;
-export type InsertChecklistQuestion = z.infer<typeof insertChecklistQuestionSchema>;
+
 export type ChecklistResponse = typeof checklistResponses.$inferSelect;
 export type InsertChecklistResponse = z.infer<typeof insertChecklistResponseSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;

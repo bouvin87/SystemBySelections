@@ -1,11 +1,10 @@
 import { 
   workTasks, workStations, shifts, categories, questions, checklists, 
-  checklistWorkTasks, checklistQuestions, checklistResponses, adminSettings,
+  checklistWorkTasks, checklistResponses, adminSettings,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
   type Question, type InsertQuestion, type Checklist, type InsertChecklist,
   type ChecklistWorkTask, type InsertChecklistWorkTask,
-  type ChecklistQuestion, type InsertChecklistQuestion,
   type ChecklistResponse, type InsertChecklistResponse,
   type AdminSetting, type InsertAdminSetting
 } from "@shared/schema";
@@ -34,15 +33,15 @@ export interface IStorage {
   updateShift(id: number, shift: Partial<InsertShift>): Promise<Shift>;
   deleteShift(id: number): Promise<void>;
 
-  // Categories
-  getCategories(): Promise<Category[]>;
+  // Categories (now belonging to checklists)
+  getCategories(checklistId: number): Promise<Category[]>;
   getCategory(id: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category>;
   deleteCategory(id: number): Promise<void>;
 
-  // Questions
-  getQuestions(categoryId?: number): Promise<Question[]>;
+  // Questions (now belonging to categories)
+  getQuestions(categoryId: number): Promise<Question[]>;
   getQuestion(id: number): Promise<Question | undefined>;
   createQuestion(question: InsertQuestion): Promise<Question>;
   updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question>;
@@ -59,11 +58,6 @@ export interface IStorage {
   getChecklistWorkTasks(checklistId: number): Promise<ChecklistWorkTask[]>;
   createChecklistWorkTask(checklistWorkTask: InsertChecklistWorkTask): Promise<ChecklistWorkTask>;
   deleteChecklistWorkTask(checklistId: number, workTaskId: number): Promise<void>;
-
-  // Checklist Questions
-  getChecklistQuestions(checklistId: number): Promise<ChecklistQuestion[]>;
-  createChecklistQuestion(checklistQuestion: InsertChecklistQuestion): Promise<ChecklistQuestion>;
-  deleteChecklistQuestion(checklistId: number, questionId: number): Promise<void>;
 
   // Checklist Responses
   getChecklistResponses(filters?: { limit?: number; offset?: number }): Promise<ChecklistResponse[]>;
@@ -158,8 +152,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Categories
-  async getCategories(): Promise<Category[]> {
-    return await db.select().from(categories).where(eq(categories.isActive, true)).orderBy(categories.order);
+  async getCategories(checklistId: number): Promise<Category[]> {
+    return await db.select().from(categories).where(
+      and(
+        eq(categories.checklistId, checklistId),
+        eq(categories.isActive, true)
+      )
+    ).orderBy(categories.order);
   }
 
   async getCategory(id: number): Promise<Category | undefined> {
@@ -182,11 +181,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Questions
-  async getQuestions(categoryId?: number): Promise<Question[]> {
-    if (categoryId) {
-      return await db.select().from(questions).where(eq(questions.categoryId, categoryId)).orderBy(questions.order);
-    }
-    return await db.select().from(questions).orderBy(questions.order);
+  async getQuestions(categoryId: number): Promise<Question[]> {
+    return await db.select().from(questions).where(eq(questions.categoryId, categoryId)).orderBy(questions.order);
   }
 
   async getQuestion(id: number): Promise<Question | undefined> {
