@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import DashboardQuestionCard from "@/components/DashboardQuestionCard";
+import ResponseViewModal from "@/components/ResponseViewModal";
 import { Link } from "wouter";
-import { ArrowLeft, Filter, Search, Calendar } from "lucide-react";
+import { ArrowLeft, Filter, Search, Calendar, Eye } from "lucide-react";
 import { useState } from "react";
 import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift, Question } from "@shared/schema";
 
@@ -33,6 +34,10 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
     endDate: "",
     search: "",
   });
+
+  // Response view modal state
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -352,7 +357,17 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                       {new Date(response.createdAt).toLocaleDateString('sv-SE')} {new Date(response.createdAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedResponseId(response.id);
+                      setViewModalOpen(true);
+                    }}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Visa
+                  </Button>
                 </div>
               ))}
               {responses.length === 0 && (
@@ -362,6 +377,15 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           </CardContent>
         </Card>
       </div>
+
+      <ResponseViewModal
+        isOpen={viewModalOpen}
+        onClose={() => {
+          setViewModalOpen(false);
+          setSelectedResponseId(null);
+        }}
+        responseId={selectedResponseId}
+      />
     </div>
   );
 }

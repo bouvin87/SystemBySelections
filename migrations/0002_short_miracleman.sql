@@ -1,0 +1,1 @@
+ALTER TABLE "questions" ADD COLUMN "hide_in_view" boolean DEFAULT false NOT NULL;
