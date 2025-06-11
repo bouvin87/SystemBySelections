@@ -167,7 +167,7 @@ export default function DashboardQuestionCard({
     if (chartData.length === 0) return null;
 
     return (
-      <Card className="col-span-2 h-80">
+      <Card className="h-80">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -175,11 +175,12 @@ export default function DashboardQuestionCard({
         <CardContent className="h-64">
           <div className="h-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis
                   dataKey="date"
                   fontSize={12}
+                  stroke="#666"
                   tickFormatter={(date) =>
                     new Date(date).toLocaleDateString("sv-SE", {
                       month: "short",
@@ -187,7 +188,7 @@ export default function DashboardQuestionCard({
                     })
                   }
                 />
-                <YAxis fontSize={12} />
+                <YAxis fontSize={12} stroke="#666" />
                 <Tooltip
                   labelFormatter={(date) =>
                     new Date(date).toLocaleDateString("sv-SE")
@@ -200,12 +201,12 @@ export default function DashboardQuestionCard({
                 <Line
                   type="monotone"
                   dataKey="värde"
-                  stroke="hsl(var(--primary))"
+                  stroke="#3b82f6"
                   strokeWidth={3}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
+                  dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, fill: "#3b82f6", stroke: "#ffffff", strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
