@@ -61,16 +61,18 @@ export default function ChecklistEditor() {
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-    queryFn: () => apiRequest(`/api/categories?checklistId=${checklistId}`, "GET"),
+    queryKey: ["/api/categories", checklistId],
+    queryFn: async () => {
+      return await apiRequest(`/api/categories?checklistId=${checklistId}`, "GET");
+    },
   });
 
   const { data: questions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "all"],
+    queryKey: ["/api/questions", "all", checklistId],
     queryFn: async () => {
       const allQuestions: Question[] = [];
       for (const category of categories) {
-        const categoryQuestions = await apiRequest(`/api/questions?categoryId=${category.id}`, "GET");
+        const categoryQuestions: Question[] = await apiRequest(`/api/questions?categoryId=${category.id}`, "GET");
         allQuestions.push(...categoryQuestions);
       }
       return allQuestions;

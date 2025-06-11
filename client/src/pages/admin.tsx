@@ -445,9 +445,7 @@ export default function Admin() {
                               const formData = new FormData(e.currentTarget);
                               const data: InsertWorkTask = {
                                 name: formData.get("name") as string,
-                                description: formData.get("description") as string || undefined,
                                 hasStations: formData.get("hasStations") === "on",
-                                isActive: formData.get("isActive") === "on",
                               };
                               handleSubmit("/api/work-tasks", data);
                             }}
@@ -462,14 +460,6 @@ export default function Admin() {
                                 required
                               />
                             </div>
-                            <div>
-                              <Label htmlFor="description">Beskrivning</Label>
-                              <Textarea
-                                id="description"
-                                name="description"
-                                defaultValue={editingItem?.description || ""}
-                              />
-                            </div>
                             <div className="flex items-center space-x-2">
                               <Switch
                                 id="hasStations"
@@ -477,14 +467,6 @@ export default function Admin() {
                                 defaultChecked={editingItem?.hasStations ?? false}
                               />
                               <Label htmlFor="hasStations">Har stationer</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch
-                                id="isActive"
-                                name="isActive"
-                                defaultChecked={editingItem?.isActive ?? true}
-                              />
-                              <Label htmlFor="isActive">Aktiv</Label>
                             </div>
                             <Button type="submit" className="w-full">
                               <Save className="mr-2 h-4 w-4" />
@@ -502,14 +484,8 @@ export default function Admin() {
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-gray-900">{task.name}</h4>
-                                {task.description && (
-                                  <p className="text-sm text-gray-600">{task.description}</p>
-                                )}
                                 <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
-                                  <Badge variant={task.isActive ? "default" : "secondary"}>
-                                    {task.isActive ? "Aktiv" : "Inaktiv"}
-                                  </Badge>
-                                  {task.hasStations && <span>Har stationer</span>}
+                                  {task.hasStations && <Badge variant="outline">Har stationer</Badge>}
                                 </div>
                               </div>
                               <div className="flex space-x-2">
