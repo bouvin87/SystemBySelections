@@ -176,6 +176,7 @@ export default function Admin() {
                             includeWorkStations: formData.get("includeWorkStations") === "on",
                             includeShifts: formData.get("includeShifts") === "on",
                             isActive: formData.get("isActive") === "on",
+                            showInMenu: formData.get("showInMenu") === "on",
                             order: parseInt(formData.get("order") as string) || 0,
                           };
                           handleSubmit("/api/checklists", data);
@@ -239,6 +240,14 @@ export default function Admin() {
                             defaultChecked={editingItem?.isActive ?? true}
                           />
                           <Label htmlFor="isActive">Aktiv</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="showInMenu"
+                            name="showInMenu"
+                            defaultChecked={editingItem?.showInMenu ?? false}
+                          />
+                          <Label htmlFor="showInMenu">Visa som knapp i menyn</Label>
                         </div>
                         <Button type="submit" className="w-full">
                           <Save className="mr-2 h-4 w-4" />

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import Admin from "@/pages/admin";
 import ChecklistEditor from "@/pages/checklist-editor";
+import ChecklistStart from "@/pages/checklist-start";
 import NotFound from "@/pages/not-found";
 
 function Router() {
