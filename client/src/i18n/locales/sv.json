@@ -23,7 +23,7 @@
     "active": "Aktiv",
     "showInMenu": "Visa i meny",
     "includeWorkTasks": "Inkludera arbetsuppgifter",
-    "includeWorkStations": "Inkludera arbetsstationer", 
+    "includeWorkStations": "Inkludera arbetsstationer",
     "includeShifts": "Inkludera skift",
     "startTime": "Starttid",
     "endTime": "Sluttid",
@@ -76,6 +76,17 @@
     "positiveAnswers": "{{positive}} av {{total}} svar",
     "averageFromAnswers": "Medelvärde av {{count}} svar"
   },
+  "navigation": {
+    "startNewChecklist": "Starta checklista",
+    "selectChecklist": "Välj checklista att genomföra",
+    "searchChecklists": "Sök checklistor...",
+    "noChecklistsFound": "Inga checklistor hittades",
+    "noChecklistsAvailable": "Inga checklistor tillgängliga",
+    "startChecklist": "Starta",
+    "includesWorkTasks": "Inkl. arbetsmoment",
+    "includesWorkStations": "Inkl. stationer", 
+    "includesShifts": "Inkl. skift"
+  },
   "form": {
     "selectChecklist": "Välj checklista",
     "operatorName": "Operatörens namn",
@@ -102,7 +113,7 @@
       "val": "Val",
       "nummer": "Nummer",
       "ja_nej": "Switch",
-      "datum": "Datum", 
+      "datum": "Datum",
       "fil": "Fil",
       "stjärnor": "Stjärnor",
       "humör": "Humör",
@@ -137,6 +148,7 @@
     "clear": "Rensa",
     "close": "Stäng",
     "open": "Öppna",
-    "unknown": "Okänt"
+    "unknown": "Okänt",
+    "view": "Visa"
   }
 }

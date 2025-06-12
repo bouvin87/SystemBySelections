@@ -23,7 +23,7 @@
     "active": "Active",
     "showInMenu": "Show in menu",
     "includeWorkTasks": "Include work tasks",
-    "includeWorkStations": "Include work stations", 
+    "includeWorkStations": "Include work stations",
     "includeShifts": "Include shifts",
     "startTime": "Start time",
     "endTime": "End time",
@@ -76,6 +76,17 @@
     "positiveAnswers": "{{positive}} of {{total}} answers",
     "averageFromAnswers": "Average of {{count}} answers"
   },
+  "navigation": {
+    "startNewChecklist": "Start Checklist",
+    "selectChecklist": "Select checklist to perform",
+    "searchChecklists": "Search checklists...",
+    "noChecklistsFound": "No checklists found",
+    "noChecklistsAvailable": "No checklists available",
+    "startChecklist": "Start",
+    "includesWorkTasks": "Incl. work tasks",
+    "includesWorkStations": "Incl. stations",
+    "includesShifts": "Incl. shifts"
+  },
   "form": {
     "selectChecklist": "Select checklist",
     "operatorName": "Operator name",
@@ -102,7 +113,7 @@
       "val": "Choice",
       "nummer": "Number",
       "ja_nej": "Switch",
-      "datum": "Date", 
+      "datum": "Date",
       "fil": "File",
       "stjärnor": "Stars",
       "humör": "Mood",
@@ -137,6 +148,7 @@
     "clear": "Clear",
     "close": "Close",
     "open": "Open",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "view": "View"
   }
 }

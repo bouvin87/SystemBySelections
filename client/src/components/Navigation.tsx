@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Menu, X, CheckSquare } from "lucide-react";
+import { ClipboardList, Menu, X, CheckSquare, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
 import FormModal from "@/components/FormModal";
+import ChecklistSelectionModal from "@/components/ChecklistSelectionModal";
 import { renderIcon } from "@/lib/icon-utils";
 
 export default function Navigation() {
+  const { t } = useTranslation();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [checklistSelectionOpen, setChecklistSelectionOpen] = useState(false);
   const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(null);
 
   // Fetch checklistor that should be shown in menu
@@ -34,6 +38,12 @@ export default function Navigation() {
     setMobileMenuOpen(false);
   };
 
+  const handleChecklistSelection = (checklistId: number) => {
+    setSelectedChecklistId(checklistId);
+    setModalOpen(true);
+    setChecklistSelectionOpen(false);
+  };
+
   return (
     <>
       <nav className="bg-primary text-white material-shadow-2 sticky top-0 z-50">
@@ -45,7 +55,7 @@ export default function Navigation() {
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-6">
+          <div className="hidden md:flex space-x-6 items-center">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -68,6 +78,16 @@ export default function Navigation() {
                 {checklist.name}
               </Button>
             ))}
+            
+            {/* Checklist Selection Button */}
+            <Button
+              onClick={() => setChecklistSelectionOpen(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded flex items-center"
+              variant="ghost"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {t('navigation.startNewChecklist')}
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -109,6 +129,19 @@ export default function Navigation() {
                 {checklist.name}
               </Button>
             ))}
+            
+            {/* Mobile Checklist Selection Button */}
+            <Button
+              onClick={() => {
+                setChecklistSelectionOpen(true);
+                setMobileMenuOpen(false);
+              }}
+              className="block px-3 py-2 rounded-md hover:bg-orange-700 transition-colors bg-orange-600 flex items-center text-white w-full justify-start"
+              variant="ghost"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {t('navigation.startNewChecklist')}
+            </Button>
           </div>
         </div>
       )}
@@ -119,6 +152,13 @@ export default function Navigation() {
       isOpen={modalOpen}
       onClose={() => setModalOpen(false)}
       preselectedChecklistId={selectedChecklistId || undefined}
+    />
+
+    {/* Checklist Selection Modal */}
+    <ChecklistSelectionModal
+      isOpen={checklistSelectionOpen}
+      onClose={() => setChecklistSelectionOpen(false)}
+      onSelectChecklist={handleChecklistSelection}
     />
     </>
   );
