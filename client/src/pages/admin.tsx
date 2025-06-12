@@ -184,7 +184,7 @@ export default function Admin() {
                     <DialogTrigger asChild>
                       <Button onClick={() => openDialog()}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Ny checklista
+                        {t('admin.add')} {t('admin.checklist').toLowerCase()}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>

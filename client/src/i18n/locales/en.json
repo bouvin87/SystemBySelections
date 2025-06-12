@@ -39,7 +39,8 @@
     "workStation": "Work station",
     "selectWorkTask": "Select work task",
     "shift": "Shift",
-    "selectShift": "Select shift"
+    "selectShift": "Select shift",
+    "checklist": "Checklist"
   },
   "dashboard": {
     "title": "Dashboard",

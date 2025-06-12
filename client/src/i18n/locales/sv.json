@@ -39,7 +39,8 @@
     "workStation": "Arbetsstation",
     "selectWorkTask": "Välj arbetsuppgift",
     "shift": "Skift",
-    "selectShift": "Välj skift"
+    "selectShift": "Välj skift",
+    "checklist": "Checklista"
   },
   "dashboard": {
     "title": "Dashboard",
