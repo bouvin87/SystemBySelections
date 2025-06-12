@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
 import { Star, ChevronLeft, ChevronRight, Check, X, Frown, Meh, Smile } from "lucide-react";
 import {
   type Checklist,
@@ -58,6 +59,7 @@ export default function FormModal({
   preselectedChecklistId,
 }: FormModalProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(2); // Start directly at identification step
   const [formData, setFormData] = useState<FormData>({
     checklistId: preselectedChecklistId || null,
@@ -303,11 +305,11 @@ export default function FormModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="operator">
-                Namn <span className="text-destructive ml-1">*</span>
+                {t('form.operatorName')} <span className="text-destructive ml-1">*</span>
               </Label>
               <Input
                 id="operator"
-                placeholder="Ditt namn"
+                placeholder={t('form.operatorName')}
                 value={formData.operatorName}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -322,7 +324,7 @@ export default function FormModal({
             {currentChecklist?.includeWorkTasks && (
               <div>
                 <Label>
-                  Arbetsmoment <span className="text-destructive ml-1">*</span>
+                  {t('admin.workTasks')} <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Select
                   value={formData.workTaskId?.toString() || ""}
@@ -338,7 +340,7 @@ export default function FormModal({
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj arbetsmoment" />
+                    <SelectValue placeholder={t('form.selectWorkTask')} />
                   </SelectTrigger>
                   <SelectContent>
                     {workTasks.map((task) => (
@@ -354,7 +356,7 @@ export default function FormModal({
             {currentChecklist?.includeWorkStations && (
               <div>
                 <Label>
-                  Station
+                  {t('admin.workStations')}
                   {formData.workTaskId && workTasks.find(task => task.id === formData.workTaskId)?.hasStations && (
                     <span className="text-destructive ml-1">*</span>
                   )}
