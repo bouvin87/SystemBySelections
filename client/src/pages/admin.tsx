@@ -37,11 +37,13 @@ import type {
   InsertCategory,
   Question,
   InsertQuestion,
+  User,
+  InsertUser,
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState("checklists");
+  const [activeTab, setActiveTab] = useState("users");
   const [basicDataTab, setBasicDataTab] = useState("work-tasks");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -91,6 +93,11 @@ export default function Admin() {
   }
 
   // Queries
+  const { data: users = [] } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+    enabled: activeTab === "users",
+  });
+
   const { data: checklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists"],
     enabled: activeTab === "checklists",

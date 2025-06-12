@@ -12,7 +12,8 @@ import {
 } from "./middleware/auth";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
-  insertChecklistSchema, insertCategorySchema, insertQuestionSchema
+  insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
+  insertUserSchema
 } from "@shared/schema";
 
 /**
@@ -55,6 +56,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // === MODULE ROUTES ===
   // Checklist module - protected and tenant-scoped
   app.use('/api/modules/checklists', requireModule('checklists'), checklistRoutes);
+
+  // === USER MANAGEMENT ROUTES ===
+  // Get all users for the tenant (admin only)
+  app.get('/api/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Only admins can view all users
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const users = await storage.getUsers(req.tenantId!);
+      res.json(users);
+    } catch (error) {
+      console.error('Get users error:', error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Create a new user (admin only)
+  app.post('/api/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Only admins can create users
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const validatedData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(user);
+    } catch (error) {
+      console.error('Create user error:', error);
+      res.status(400).json({ message: "Invalid user data or email already exists" });
+    }
+  });
+
+  // Update a user (admin only)
+  app.patch('/api/users/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Only admins can update users
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      const validatedData = insertUserSchema.partial().parse(req.body);
+      
+      // Ensure the user belongs to the same tenant
+      const existingUser = await storage.getUser(id);
+      if (!existingUser || existingUser.tenantId !== req.tenantId!) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const user = await storage.updateUser(id, validatedData);
+      res.json(user);
+    } catch (error) {
+      console.error('Update user error:', error);
+      res.status(400).json({ message: "Invalid user data" });
+    }
+  });
+
+  // Delete a user (admin only)
+  app.delete('/api/users/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      // Only admins can delete users
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      
+      // Ensure the user belongs to the same tenant and isn't trying to delete themselves
+      const existingUser = await storage.getUser(id);
+      if (!existingUser || existingUser.tenantId !== req.tenantId!) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      if (existingUser.id === req.user?.id) {
+        return res.status(400).json({ message: 'Cannot delete your own account' });
+      }
+
+      await storage.deleteUser(id);
+      res.status(200).json({ message: "User deleted" });
+    } catch (error) {
+      console.error('Delete user error:', error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
 
   // === HEALTH CHECK ===
   app.get('/api/health', (req, res) => {
