@@ -9,6 +9,13 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -24,6 +31,14 @@ import { useLocation } from "wouter";
 import IconPicker from "@/components/IconPicker";
 import { renderIcon } from "@/lib/icon-utils";
 import LanguageSelector from "@/components/LanguageSelector";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type {
   Checklist,
   InsertChecklist,
@@ -136,6 +151,7 @@ export default function Admin() {
     onSuccess: (_, { endpoint }) => {
       // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [endpoint] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
       queryClient.invalidateQueries({ queryKey: ["/api/checklists/active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/checklists/all-active"] });
@@ -237,13 +253,166 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full ${hasChecklistsModule ? 'grid-cols-3' : 'grid-cols-2'}`}>
+              <TabsList className={`grid w-full ${hasChecklistsModule ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                <TabsTrigger value="users">Användare</TabsTrigger>
                 {hasChecklistsModule && (
                   <TabsTrigger value="checklists">{t('admin.checklists')}</TabsTrigger>
                 )}
                 <TabsTrigger value="basic-data">{t('admin.basicData')}</TabsTrigger>
                 <TabsTrigger value="settings">{t('admin.settings')}</TabsTrigger>
               </TabsList>
+
+              {/* Users Tab */}
+              <TabsContent value="users">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Hantera användare</h3>
+                  <Dialog open={dialogOpen && activeTab === "users"} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button onClick={() => openDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Lägg till användare
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingItem ? "Redigera användare" : "Lägg till användare"}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          const data: InsertUser = {
+                            email: formData.get("email") as string,
+                            firstName: formData.get("firstName") as string,
+                            lastName: formData.get("lastName") as string,
+                            role: formData.get("role") as "admin" | "user",
+                            password: formData.get("password") as string,
+                          };
+                          handleSubmit("/api/users", data);
+                        }}
+                        className="space-y-4"
+                      >
+                        <div>
+                          <Label htmlFor="email">E-post</Label>
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            defaultValue={editingItem?.email || ""}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="firstName">Förnamn</Label>
+                          <Input
+                            id="firstName"
+                            name="firstName"
+                            defaultValue={editingItem?.firstName || ""}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName">Efternamn</Label>
+                          <Input
+                            id="lastName"
+                            name="lastName"
+                            defaultValue={editingItem?.lastName || ""}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="role">Roll</Label>
+                          <Select name="role" defaultValue={editingItem?.role || "user"}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Välj roll" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">Användare</SelectItem>
+                              <SelectItem value="admin">Administratör</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {!editingItem && (
+                          <div>
+                            <Label htmlFor="password">Lösenord</Label>
+                            <Input
+                              id="password"
+                              name="password"
+                              type="password"
+                              required
+                            />
+                          </div>
+                        )}
+                        <Button type="submit" className="w-full">
+                          <Save className="mr-2 h-4 w-4" />
+                          Spara
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Namn</TableHead>
+                        <TableHead>E-post</TableHead>
+                        <TableHead>Roll</TableHead>
+                        <TableHead>Skapad</TableHead>
+                        <TableHead className="w-[100px]">Åtgärder</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((userItem) => (
+                        <TableRow key={userItem.id}>
+                          <TableCell>
+                            {userItem.firstName} {userItem.lastName}
+                          </TableCell>
+                          <TableCell>{userItem.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={userItem.role === 'admin' ? 'default' : 'secondary'}>
+                              {userItem.role === 'admin' ? 'Administratör' : 'Användare'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {userItem.createdAt ? new Date(userItem.createdAt).toLocaleDateString('sv-SE') : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openDialog(userItem)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              {userItem.id !== user?.id && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDelete("/api/users", userItem.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {users.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-gray-500">
+                            Inga användare hittades
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
 
               {/* Checklists Tab */}
               {hasChecklistsModule && (
