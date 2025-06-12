@@ -53,7 +53,13 @@
     "workStation": "Arbetsstation",
     "shift": "Skift",
     "createdAt": "Skapad",
-    "completed": "Slutförd"
+    "completed": "Slutförd",
+    "productionLogging": "Produktionsloggning",
+    "selectDashboard": "Välj en dashboard för att se statistik och data",
+    "viewDashboard": "Visa Dashboard",
+    "noDashboardsAvailable": "Inga dashboards tillgängliga",
+    "noDashboardsDescription": "Det finns inga checklistor med aktiverad dashboard-funktion.",
+    "goToAdmin": "Gå till Administration"
   },
   "form": {
     "selectChecklist": "Välj checklista",

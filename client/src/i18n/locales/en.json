@@ -53,7 +53,13 @@
     "workStation": "Work station",
     "shift": "Shift",
     "createdAt": "Created",
-    "completed": "Completed"
+    "completed": "Completed",
+    "productionLogging": "Production Logging",
+    "selectDashboard": "Select a dashboard to view statistics and data",
+    "viewDashboard": "View Dashboard",
+    "noDashboardsAvailable": "No dashboards available",
+    "noDashboardsDescription": "There are no checklists with dashboard functionality enabled.",
+    "goToAdmin": "Go to Administration"
   },
   "form": {
     "selectChecklist": "Select checklist",
