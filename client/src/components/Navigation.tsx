@@ -64,7 +64,7 @@ export default function Navigation() {
                 className="hover:text-blue-200 transition-colors px-3 py-2 rounded flex items-center bg-green-600 hover:bg-green-700 text-white"
                 variant="ghost"
               >
-                <CheckSquare className="mr-2 h-4 w-4" />
+                {renderIcon(checklist.icon, "mr-2 h-4 w-4") || <CheckSquare className="mr-2 h-4 w-4" />}
                 {checklist.name}
               </Button>
             ))}
@@ -105,7 +105,7 @@ export default function Navigation() {
                 className="block px-3 py-2 rounded-md hover:bg-green-700 transition-colors bg-green-600 flex items-center text-white w-full justify-start"
                 variant="ghost"
               >
-                <CheckSquare className="mr-2 h-4 w-4" />
+                {renderIcon(checklist.icon, "mr-2 h-4 w-4") || <CheckSquare className="mr-2 h-4 w-4" />}
                 {checklist.name}
               </Button>
             ))}
