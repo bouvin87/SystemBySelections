@@ -474,7 +474,7 @@ export default function FormModal({
                     }));
                   }}
                 >
-                  {question.options.map((option: string, index: number) => (
+                  {(question.options as string[]).map((option: string, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
                       <RadioGroupItem
                         value={option}

@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { TrendingUp, BarChart3, Target, Hash, Star, Frown, Meh, Smile } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Question, ChecklistResponse } from "@shared/schema";
 
 interface DashboardQuestionCardProps {
@@ -23,6 +24,7 @@ export default function DashboardQuestionCard({
   responses,
   filters,
 }: DashboardQuestionCardProps) {
+  const { t } = useTranslation();
   // Filter responses that have answers for this question
   const relevantResponses = responses.filter((response) => {
     if (!response.responses || typeof response.responses !== "object")
@@ -163,9 +165,12 @@ export default function DashboardQuestionCard({
           {renderAverageDisplay()}
 
           <p className="text-xs text-muted-foreground mt-3 text-center">
-            {question.type === "ja_nej" || question.type === "check" 
-              ? `${values.filter(v => v === true).length} av ${values.length} svar`
-              : `Medelvärde av ${values.length} svar`
+            {question.type === "ja_nej" || (question.type as string) === "check" 
+              ? t('dashboard.positiveAnswers', { 
+                  positive: values.filter(v => v === true).length, 
+                  total: values.length 
+                })
+              : t('dashboard.averageFromAnswers', { count: values.length })
             }
           </p>
         </CardContent>

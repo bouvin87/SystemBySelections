@@ -72,7 +72,9 @@
     "questionStatistics": "Question statistics",
     "totalResponsesFiltered": "Total responses (filtered)",
     "latestResponses": "Latest responses",
-    "noResponsesYet": "No responses yet"
+    "noResponsesYet": "No responses yet",
+    "positiveAnswers": "{{positive}} of {{total}} answers",
+    "averageFromAnswers": "Average of {{count}} answers"
   },
   "form": {
     "selectChecklist": "Select checklist",

@@ -72,7 +72,9 @@
     "questionStatistics": "Frågestatistik",
     "totalResponsesFiltered": "Totala svar (filtrerat)",
     "latestResponses": "Senaste svar",
-    "noResponsesYet": "Inga svar ännu"
+    "noResponsesYet": "Inga svar ännu",
+    "positiveAnswers": "{{positive}} av {{total}} svar",
+    "averageFromAnswers": "Medelvärde av {{count}} svar"
   },
   "form": {
     "selectChecklist": "Välj checklista",
