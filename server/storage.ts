@@ -218,16 +218,59 @@ export class DatabaseStorage implements IStorage {
 
   async createQuestion(question: InsertQuestion): Promise<Question> {
     const [created] = await db.insert(questions).values(question).returning();
+    
+    // Update checklist hasDashboard if showInDashboard is true
+    if (question.showInDashboard) {
+      await this.updateChecklistDashboardStatus(created.categoryId);
+    }
+    
     return created;
   }
 
   async updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question> {
     const [updated] = await db.update(questions).set(question).where(eq(questions.id, id)).returning();
+    
+    // Update checklist hasDashboard if showInDashboard changed
+    if (question.showInDashboard !== undefined) {
+      await this.updateChecklistDashboardStatus(updated.categoryId);
+    }
+    
     return updated;
   }
 
   async deleteQuestion(id: number): Promise<void> {
+    // Get the question before deleting to know which checklist to update
+    const [question] = await db.select().from(questions).where(eq(questions.id, id));
     await db.delete(questions).where(eq(questions.id, id));
+    
+    // Update checklist hasDashboard if the deleted question had showInDashboard
+    if (question?.showInDashboard) {
+      await this.updateChecklistDashboardStatus(question.categoryId);
+    }
+  }
+
+  // Helper function to update checklist hasDashboard based on questions
+  private async updateChecklistDashboardStatus(categoryId: number): Promise<void> {
+    // Get the checklist ID from the category
+    const [category] = await db.select().from(categories).where(eq(categories.id, categoryId));
+    if (!category) return;
+
+    // Check if any questions in this checklist have showInDashboard = true
+    const dashboardQuestions = await db.select()
+      .from(questions)
+      .innerJoin(categories, eq(questions.categoryId, categories.id))
+      .where(and(
+        eq(categories.checklistId, category.checklistId),
+        eq(questions.showInDashboard, true)
+      ))
+      .limit(1);
+
+    const hasDashboard = dashboardQuestions.length > 0;
+    
+    // Update the checklist
+    await db.update(checklists)
+      .set({ hasDashboard })
+      .where(eq(checklists.id, category.checklistId));
   }
 
   // Checklists

@@ -101,6 +101,10 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/categories", checklistId] });
       } else if (endpoint.includes("questions")) {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
+        // Invalidate checklist data to update dashboard status
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists", parseInt(checklistId)] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/questions"] });
       }
       setDialogOpen(false);
       setQuestionDialogOpen(false);
@@ -127,6 +131,10 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/categories", checklistId] });
       } else if (endpoint.includes("questions")) {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
+        // Invalidate checklist data to update dashboard status
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists", parseInt(checklistId)] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/questions"] });
       }
       setDialogOpen(false);
       setQuestionDialogOpen(false);
