@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/dashboard";
 import Admin from "@/pages/admin";
+import SuperAdmin from "@/pages/SuperAdmin";
 import ChecklistEditor from "@/pages/checklist-editor";
 import ChecklistStart from "@/pages/checklist-start";
 import ChecklistDashboard from "@/pages/checklist-dashboard";
@@ -13,7 +14,7 @@ import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -28,6 +29,17 @@ function Router() {
 
   if (!isAuthenticated) {
     return <Login />;
+  }
+
+  // Redirect superadmin to super-admin panel
+  if (user?.role === 'superadmin') {
+    return (
+      <Switch>
+        <Route path="/" component={SuperAdmin} />
+        <Route path="/super-admin" component={SuperAdmin} />
+        <Route component={() => <SuperAdmin />} />
+      </Switch>
+    );
   }
 
   return (
