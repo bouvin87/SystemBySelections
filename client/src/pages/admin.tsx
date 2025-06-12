@@ -57,6 +57,15 @@ export default function Admin() {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Fetch user data to check module access
+  const { data: authData } = useQuery({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  });
+
+  // Check if user has access to checklists module
+  const hasChecklistsModule = authData?.tenant?.modules?.includes('checklists') ?? false;
+
   // Redirect non-admin users to dashboard
   useEffect(() => {
     if (!isLoading && (!user || user.role !== 'admin')) {
@@ -68,6 +77,13 @@ export default function Admin() {
       setLocation('/dashboard');
     }
   }, [user, isLoading, setLocation, toast]);
+
+  // Set default tab based on module access
+  useEffect(() => {
+    if (!hasChecklistsModule && activeTab === "checklists") {
+      setActiveTab("basic-data");
+    }
+  }, [hasChecklistsModule, activeTab]);
 
   // Show loading or nothing while checking authorization
   if (isLoading || !user || user.role !== 'admin') {
@@ -214,14 +230,17 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="checklists">{t('admin.checklists')}</TabsTrigger>
+              <TabsList className={`grid w-full ${hasChecklistsModule ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                {hasChecklistsModule && (
+                  <TabsTrigger value="checklists">{t('admin.checklists')}</TabsTrigger>
+                )}
                 <TabsTrigger value="basic-data">{t('admin.basicData')}</TabsTrigger>
                 <TabsTrigger value="settings">{t('admin.settings')}</TabsTrigger>
               </TabsList>
 
               {/* Checklists Tab */}
-              <TabsContent value="checklists">
+              {hasChecklistsModule && (
+                <TabsContent value="checklists">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-medium">{t('admin.manage')} {t('admin.checklists').toLowerCase()}</h3>
                   <Dialog open={dialogOpen && activeTab === "checklists"} onOpenChange={setDialogOpen}>
@@ -732,6 +751,7 @@ export default function Admin() {
                   </DialogContent>
                 </Dialog>
               </TabsContent>
+              )}
 
               {/* Basic Data Tab */}
               <TabsContent value="basic-data">
