@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
 import FormModal from "@/components/FormModal";
 import ChecklistSelectionModal from "@/components/ChecklistSelectionModal";
+import UserMenu from "@/components/UserMenu";
 import { renderIcon } from "@/lib/icon-utils";
 
 export default function Navigation() {
@@ -88,6 +89,9 @@ export default function Navigation() {
               <Plus className="mr-2 h-4 w-4" />
               {t('navigation.startNewChecklist')}
             </Button>
+            
+            {/* User Menu */}
+            <UserMenu />
           </div>
 
           {/* Mobile Menu Button */}
