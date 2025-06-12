@@ -20,7 +20,6 @@ i18n
   .init({
     resources,
     fallbackLng: 'sv',
-    lng: 'sv',
     debug: false,
     interpolation: {
       escapeValue: false,
@@ -28,6 +27,7 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+      lookupLocalStorage: 'i18nextLng',
     }
   });
 
