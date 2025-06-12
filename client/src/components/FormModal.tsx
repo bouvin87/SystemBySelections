@@ -687,8 +687,17 @@ export default function FormModal({
       for (const question of categoryQuestions) {
         if (question.isRequired) {
           const response = formData.responses[question.id];
-          if (response === undefined || response === null || response === "") {
-            return false;
+          
+          // For checkbox questions, require true (not just any value)
+          if (question.type === "check") {
+            if (response !== true) {
+              return false;
+            }
+          } else {
+            // For other question types, check for empty/null/undefined
+            if (response === undefined || response === null || response === "") {
+              return false;
+            }
           }
         }
       }
