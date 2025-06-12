@@ -155,7 +155,7 @@ export default function Admin() {
   };
 
   const handleDelete = (endpoint: string, id: number) => {
-    if (confirm("Är du säker på att du vill ta bort detta objekt?")) {
+    if (confirm(t('admin.confirmDelete'))) {
       deleteMutation.mutate({ endpoint, id });
     }
   };
@@ -172,7 +172,7 @@ export default function Admin() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="checklists">{t('admin.checklists')}</TabsTrigger>
-                <TabsTrigger value="basic-data">Grunddata</TabsTrigger>
+                <TabsTrigger value="basic-data">{t('admin.basicData')}</TabsTrigger>
                 <TabsTrigger value="settings">{t('admin.settings')}</TabsTrigger>
               </TabsList>
 
@@ -332,7 +332,7 @@ export default function Admin() {
                               }}
                             >
                               <Settings className="mr-1 h-3 w-3" />
-                              Hantera
+                              {t('admin.manage')}
                             </Button>
                             <Button
                               variant="ghost"
@@ -360,26 +360,26 @@ export default function Admin() {
               <TabsContent value="basic-data">
                 <Tabs value={basicDataTab} onValueChange={setBasicDataTab}>
                   <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="work-tasks">Arbetsmoment</TabsTrigger>
-                    <TabsTrigger value="work-stations">Arbetsstationer</TabsTrigger>
-                    <TabsTrigger value="shifts">Skift</TabsTrigger>
+                    <TabsTrigger value="work-tasks">{t('admin.workTasks')}</TabsTrigger>
+                    <TabsTrigger value="work-stations">{t('admin.workStations')}</TabsTrigger>
+                    <TabsTrigger value="shifts">{t('admin.shifts')}</TabsTrigger>
                   </TabsList>
 
                   {/* Work Tasks Tab */}
                   <TabsContent value="work-tasks">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium">Hantera arbetsmoment</h3>
+                      <h3 className="text-lg font-medium">{t('admin.manage')} {t('admin.workTasks').toLowerCase()}</h3>
                       <Dialog open={dialogOpen && activeTab === "basic-data" && basicDataTab === "work-tasks"} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
                           <Button onClick={() => openDialog()}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Nytt arbetsmoment
+                            {t('admin.add')} {t('admin.workTask').toLowerCase()}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>
-                              {editingItem ? "Redigera arbetsmoment" : "Nytt arbetsmoment"}
+                              {editingItem ? t('admin.edit') + " " + t('admin.workTask').toLowerCase() : t('admin.add') + " " + t('admin.workTask').toLowerCase()}
                             </DialogTitle>
                           </DialogHeader>
                           <form
@@ -395,7 +395,7 @@ export default function Admin() {
                             className="space-y-4"
                           >
                             <div>
-                              <Label htmlFor="name">Namn</Label>
+                              <Label htmlFor="name">{t('admin.name')}</Label>
                               <Input
                                 id="name"
                                 name="name"
@@ -409,11 +409,11 @@ export default function Admin() {
                                 name="hasStations"
                                 defaultChecked={editingItem?.hasStations ?? false}
                               />
-                              <Label htmlFor="hasStations">Har stationer</Label>
+                              <Label htmlFor="hasStations">{t('admin.hasStations')}</Label>
                             </div>
                             <Button type="submit" className="w-full">
                               <Save className="mr-2 h-4 w-4" />
-                              Spara
+                              {t('admin.save')}
                             </Button>
                           </form>
                         </DialogContent>

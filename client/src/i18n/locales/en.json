@@ -32,7 +32,9 @@
     "icon": "Icon",
     "selectIcon": "Select icon",
     "hasDashboard": "Has dashboard",
-    "basicData": "Basic data"
+    "basicData": "Basic data",
+    "inactive": "Inactive",
+    "manage": "Manage"
   },
   "dashboard": {
     "title": "Dashboard",

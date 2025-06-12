@@ -32,7 +32,9 @@
     "icon": "Ikon",
     "selectIcon": "Välj ikon",
     "hasDashboard": "Har egen dashboard",
-    "basicData": "Grunddata"
+    "basicData": "Grunddata",
+    "inactive": "Inaktiv",
+    "manage": "Hantera"
   },
   "dashboard": {
     "title": "Dashboard",
