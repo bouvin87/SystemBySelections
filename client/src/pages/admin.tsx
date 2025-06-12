@@ -18,6 +18,7 @@ import {
 import { Plus, Edit, Trash2, Save, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import IconPicker from "@/components/IconPicker";
 import type {
   Checklist,
   InsertChecklist,
@@ -35,6 +36,7 @@ export default function Admin() {
   const [basicDataTab, setBasicDataTab] = useState("work-tasks");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [selectedIcon, setSelectedIcon] = useState<string>("");
   const { toast } = useToast();
 
   // Queries
@@ -134,6 +136,7 @@ export default function Admin() {
 
   const openDialog = (item?: any) => {
     setEditingItem(item);
+    setSelectedIcon(item?.icon || "");
     setDialogOpen(true);
   };
 
@@ -190,6 +193,7 @@ export default function Admin() {
                           const data: InsertChecklist = {
                             name: formData.get("name") as string,
                             description: formData.get("description") as string || undefined,
+                            icon: selectedIcon || undefined,
                             includeWorkTasks: formData.get("includeWorkTasks") === "on",
                             includeWorkStations: formData.get("includeWorkStations") === "on",
                             includeShifts: formData.get("includeShifts") === "on",
@@ -219,6 +223,11 @@ export default function Admin() {
                             defaultValue={editingItem?.description || ""}
                           />
                         </div>
+                        <IconPicker
+                          value={selectedIcon}
+                          onChange={setSelectedIcon}
+                          placeholder="Välj ikon för checklistan"
+                        />
                         <div>
                           <Label htmlFor="order">Ordning</Label>
                           <Input
