@@ -36,7 +36,7 @@ function QuestionTypeLabel({ type }: { type: string }) {
     text: "Text",
     val: "Val",
     nummer: "Nummer", 
-    ja_nej: "Ja/Nej",
+    ja_nej: "Switch",
     datum: "Datum",
     fil: "Fil",
     stjärnor: "Stjärnor",
@@ -503,7 +503,7 @@ export default function ChecklistEditor() {
                         <SelectItem value="text">Text</SelectItem>
                         <SelectItem value="val">Val</SelectItem>
                         <SelectItem value="nummer">Nummer</SelectItem>
-                        <SelectItem value="ja_nej">Ja/Nej</SelectItem>
+                        <SelectItem value="ja_nej">Switch</SelectItem>
                         <SelectItem value="datum">Datum</SelectItem>
                         <SelectItem value="fil">Fil</SelectItem>
                         <SelectItem value="stjärnor">Stjärnor (1-5)</SelectItem>
