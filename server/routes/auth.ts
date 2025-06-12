@@ -41,7 +41,7 @@ router.post('/login', async (req, res) => {
     let subdomain = host.split('.')[0];
     
     // For development/replit environment, determine tenant from email domain
-    if (!subdomain || subdomain === 'localhost' || host.includes('replit.dev') || host.includes('replit.app')) {
+    if (!subdomain || host.includes('localhost') || host.includes('replit.dev') || host.includes('replit.app')) {
       const emailDomain = email.split('@')[1];
       
       // Map email domains to tenant subdomains
@@ -61,7 +61,9 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    console.log(`Login attempt - Email: ${email}, Host: ${host}, Resolved subdomain: ${subdomain}`);
+    console.log(`Login attempt - Email: ${email}, Host: ${host}, Initial subdomain: ${subdomain}`);
+    console.log(`Development check - localhost?: ${host.includes('localhost')}, replit.dev?: ${host.includes('replit.dev')}, replit.app?: ${host.includes('replit.app')}`);
+    console.log(`Final subdomain after processing: ${subdomain}`);
 
     const tenant = await storage.getTenantBySubdomain(subdomain);
     if (!tenant) {
