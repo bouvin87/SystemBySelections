@@ -434,7 +434,7 @@ export default function FormModal({
         <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
         {categoryQuestions.map((question) => (
           <div key={question.id} className="space-y-3">
-            {question.type !== "check" && (
+            {question.type !== "check" && question.type !== "ja_nej" && (
               <Label className="text-sm font-medium text-gray-900">
                 {question.text}
                 {question.isRequired && (
@@ -523,9 +523,12 @@ export default function FormModal({
                   />
                   <Label
                     htmlFor={`question-${question.id}`}
-                    className="text-sm text-gray-700 cursor-pointer"
+                    className="text-sm font-medium cursor-pointer"
                   >
-                    {formData.responses[question.id] ? "Ja" : "Nej"}
+                    {question.text}
+                    {question.isRequired && (
+                      <span className="text-destructive ml-1">*</span>
+                    )}
                   </Label>
                 </div>
               )}
