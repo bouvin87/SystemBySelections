@@ -97,20 +97,11 @@ export default function DashboardQuestionCard({
 
     const renderAverageDisplay = () => {
       if (question.type === "humör") {
-        const moodIcons = [
-          { icon: Frown, color: "text-red-500" },
-          { icon: Frown, color: "text-orange-500" },
-          { icon: Meh, color: "text-yellow-500" },
-          { icon: Smile, color: "text-green-500" },
-          { icon: Smile, color: "text-green-600" }
-        ];
-        const iconData = moodIcons[Math.max(0, Math.min(4, roundedAverage - 1))];
-        const IconComponent = iconData.icon;
+        const moodEmojis = ["😢", "😞", "😐", "😊", "😄"];
+        const emoji = moodEmojis[Math.max(0, Math.min(4, roundedAverage - 1))];
         return (
           <div className="text-center">
-            <div className="mb-2">
-              <IconComponent className={`h-12 w-12 mx-auto ${iconData.color}`} />
-            </div>
+            <div className="text-4xl mb-2">{emoji}</div>
             <div className="text-2xl font-bold">{average.toFixed(1)}</div>
           </div>
         );

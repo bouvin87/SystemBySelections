@@ -598,40 +598,34 @@ export default function FormModal({
               {question.type === "humör" && (
                 <div className="flex space-x-2">
                   {[
-                    { value: 1, icon: Frown, label: "Mycket dåligt", color: "text-red-500" },
-                    { value: 2, icon: Frown, label: "Dåligt", color: "text-orange-500" },
-                    { value: 3, icon: Meh, label: "Okej", color: "text-yellow-500" },
-                    { value: 4, icon: Smile, label: "Bra", color: "text-green-500" },
-                    { value: 5, icon: Smile, label: "Mycket bra", color: "text-green-600" },
-                  ].map((mood) => {
-                    const IconComponent = mood.icon;
-                    const isSelected = formData.responses[question.id] === mood.value;
-                    return (
-                      <button
-                        key={mood.value}
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            responses: {
-                              ...prev.responses,
-                              [question.id]: mood.value,
-                            },
-                          }));
-                        }}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          isSelected
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                        title={mood.label}
-                      >
-                        <IconComponent 
-                          className={`h-6 w-6 ${isSelected ? mood.color : "text-gray-400"}`}
-                        />
-                      </button>
-                    );
-                  })}
+                    { value: 1, emoji: "😢", label: "Mycket dåligt" },
+                    { value: 2, emoji: "😞", label: "Dåligt" },
+                    { value: 3, emoji: "😐", label: "Okej" },
+                    { value: 4, emoji: "😊", label: "Bra" },
+                    { value: 5, emoji: "😄", label: "Mycket bra" },
+                  ].map((mood) => (
+                    <button
+                      key={mood.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: {
+                            ...prev.responses,
+                            [question.id]: mood.value,
+                          },
+                        }));
+                      }}
+                      className={`text-3xl p-2 rounded-lg border-2 transition-all ${
+                        formData.responses[question.id] === mood.value
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      title={mood.label}
+                    >
+                      {mood.emoji}
+                    </button>
+                  ))}
                 </div>
               )}
           </div>
