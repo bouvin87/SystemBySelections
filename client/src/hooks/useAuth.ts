@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { JWTPayload, Tenant } from '@shared/schema';
+import { queryClient } from '@/lib/queryClient';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -89,6 +90,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const data = await response.json();
       localStorage.setItem('authToken', data.token);
+      
+      // Invalidate all cached queries to ensure fresh data with new user context
+      queryClient.clear();
       
       setAuthState({
         isAuthenticated: true,
