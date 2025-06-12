@@ -34,7 +34,12 @@
     "hasDashboard": "Har egen dashboard",
     "basicData": "Grunddata",
     "inactive": "Inaktiv",
-    "manage": "Hantera"
+    "manage": "Hantera",
+    "confirmDelete": "Är du säker på att du vill ta bort detta objekt?",
+    "workStation": "Arbetsstation",
+    "selectWorkTask": "Välj arbetsuppgift",
+    "shift": "Skift",
+    "selectShift": "Välj skift"
   },
   "dashboard": {
     "title": "Dashboard",

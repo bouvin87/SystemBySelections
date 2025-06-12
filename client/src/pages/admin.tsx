@@ -179,7 +179,7 @@ export default function Admin() {
               {/* Checklists Tab */}
               <TabsContent value="checklists">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Hantera checklistor</h3>
+                  <h3 className="text-lg font-medium">{t('admin.manage')} {t('admin.checklists').toLowerCase()}</h3>
                   <Dialog open={dialogOpen && activeTab === "checklists"} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
                       <Button onClick={() => openDialog()}>
@@ -457,18 +457,18 @@ export default function Admin() {
                   {/* Work Stations Tab */}
                   <TabsContent value="work-stations">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium">Hantera arbetsstationer</h3>
+                      <h3 className="text-lg font-medium">{t('admin.manage')} {t('admin.workStations').toLowerCase()}</h3>
                       <Dialog open={dialogOpen && activeTab === "basic-data" && basicDataTab === "work-stations"} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
                           <Button onClick={() => openDialog()}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Ny arbetsstation
+                            {t('admin.add')} {t('admin.workStation').toLowerCase()}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>
-                              {editingItem ? "Redigera arbetsstation" : "Ny arbetsstation"}
+                              {editingItem ? t('admin.edit') + " " + t('admin.workStation').toLowerCase() : t('admin.add') + " " + t('admin.workStation').toLowerCase()}
                             </DialogTitle>
                           </DialogHeader>
                           <form
@@ -484,7 +484,7 @@ export default function Admin() {
                             className="space-y-4"
                           >
                             <div>
-                              <Label htmlFor="name">Namn</Label>
+                              <Label htmlFor="name">{t('admin.name')}</Label>
                               <Input
                                 id="name"
                                 name="name"
@@ -493,7 +493,7 @@ export default function Admin() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="workTaskId">Arbetsmoment</Label>
+                              <Label htmlFor="workTaskId">{t('admin.workTask')}</Label>
                               <select
                                 id="workTaskId"
                                 name="workTaskId"
@@ -501,7 +501,7 @@ export default function Admin() {
                                 defaultValue={editingItem?.workTaskId || ""}
                                 required
                               >
-                                <option value="">Välj arbetsmoment</option>
+                                <option value="">{t('admin.selectWorkTask')}</option>
                                 {workTasks.map((task) => (
                                   <option key={task.id} value={task.id}>
                                     {task.name}
@@ -511,7 +511,7 @@ export default function Admin() {
                             </div>
                             <Button type="submit" className="w-full">
                               <Save className="mr-2 h-4 w-4" />
-                              Spara
+                              {t('admin.save')}
                             </Button>
                           </form>
                         </DialogContent>
@@ -554,18 +554,18 @@ export default function Admin() {
                   {/* Shifts Tab */}
                   <TabsContent value="shifts">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-medium">Hantera skift</h3>
+                      <h3 className="text-lg font-medium">{t('admin.manage')} {t('admin.shifts').toLowerCase()}</h3>
                       <Dialog open={dialogOpen && activeTab === "basic-data" && basicDataTab === "shifts"} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
                           <Button onClick={() => openDialog()}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Nytt skift
+                            {t('admin.add')} {t('admin.shift').toLowerCase()}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>
-                              {editingItem ? "Redigera skift" : "Nytt skift"}
+                              {editingItem ? t('admin.edit') + " " + t('admin.shift').toLowerCase() : t('admin.add') + " " + t('admin.shift').toLowerCase()}
                             </DialogTitle>
                           </DialogHeader>
                           <form
@@ -583,7 +583,7 @@ export default function Admin() {
                             className="space-y-4"
                           >
                             <div>
-                              <Label htmlFor="name">Namn</Label>
+                              <Label htmlFor="name">{t('admin.name')}</Label>
                               <Input
                                 id="name"
                                 name="name"
@@ -593,7 +593,7 @@ export default function Admin() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor="startTime">Starttid</Label>
+                                <Label htmlFor="startTime">{t('admin.startTime')}</Label>
                                 <Input
                                   id="startTime"
                                   name="startTime"
@@ -603,7 +603,7 @@ export default function Admin() {
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="endTime">Sluttid</Label>
+                                <Label htmlFor="endTime">{t('admin.endTime')}</Label>
                                 <Input
                                   id="endTime"
                                   name="endTime"
@@ -619,11 +619,11 @@ export default function Admin() {
                                 name="isActive"
                                 defaultChecked={editingItem?.isActive ?? true}
                               />
-                              <Label htmlFor="isActive">Aktiv</Label>
+                              <Label htmlFor="isActive">{t('admin.active')}</Label>
                             </div>
                             <Button type="submit" className="w-full">
                               <Save className="mr-2 h-4 w-4" />
-                              Spara
+                              {t('admin.save')}
                             </Button>
                           </form>
                         </DialogContent>

@@ -34,7 +34,12 @@
     "hasDashboard": "Has dashboard",
     "basicData": "Basic data",
     "inactive": "Inactive",
-    "manage": "Manage"
+    "manage": "Manage",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "workStation": "Work station",
+    "selectWorkTask": "Select work task",
+    "shift": "Shift",
+    "selectShift": "Select shift"
   },
   "dashboard": {
     "title": "Dashboard",
