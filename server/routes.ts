@@ -310,6 +310,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/checklists/all-active", async (req, res) => {
+    try {
+      const checklists = await storage.getAllActiveChecklists();
+      res.json(checklists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch all active checklists" });
+    }
+  });
+
   app.get("/api/checklists/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
