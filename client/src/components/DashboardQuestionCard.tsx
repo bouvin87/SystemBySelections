@@ -70,7 +70,7 @@ export default function DashboardQuestionCard({
     let maxValue: number;
     let roundedAverage: number;
 
-    if (question.type === "ja_nej" || question.type === "check") {
+    if (question.type === "ja_nej" || (question.type as string) === "check") {
       const boolValues = relevantResponses
         .map(getQuestionValue)
         .filter((val) => typeof val === "boolean");

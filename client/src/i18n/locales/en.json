@@ -68,7 +68,11 @@
     "searchOperator": "Search operator",
     "searchOperatorPlaceholder": "Search by operator name...",
     "fromDate": "From date",
-    "toDate": "To date"
+    "toDate": "To date",
+    "questionStatistics": "Question statistics",
+    "totalResponsesFiltered": "Total responses (filtered)",
+    "latestResponses": "Latest responses",
+    "noResponsesYet": "No responses yet"
   },
   "form": {
     "selectChecklist": "Select checklist",

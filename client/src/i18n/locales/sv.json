@@ -68,7 +68,11 @@
     "searchOperator": "Sök operatör",
     "searchOperatorPlaceholder": "Sök på operatörsnamn...",
     "fromDate": "Från datum",
-    "toDate": "Till datum"
+    "toDate": "Till datum",
+    "questionStatistics": "Frågestatistik",
+    "totalResponsesFiltered": "Totala svar (filtrerat)",
+    "latestResponses": "Senaste svar",
+    "noResponsesYet": "Inga svar ännu"
   },
   "form": {
     "selectChecklist": "Välj checklista",

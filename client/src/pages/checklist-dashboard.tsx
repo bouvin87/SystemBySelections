@@ -224,7 +224,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 {/* Work Task Filter */}
                 {checklist.includeWorkTasks && (
                   <div>
-                    <Label>Arbetsmoment</Label>
+                    <Label>{t('common.workTask')}</Label>
                     <Select
                       value={filters.workTaskId}
                       onValueChange={(value) => setFilters(prev => ({ 
@@ -234,10 +234,10 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                       }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Alla arbetsmoment" />
+                        <SelectValue placeholder={t('common.allWorkTasks')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Alla arbetsmoment</SelectItem>
+                        <SelectItem value="all">{t('common.allWorkTasks')}</SelectItem>
                         {workTasks.map((task) => (
                           <SelectItem key={task.id} value={task.id.toString()}>
                             {task.name}
@@ -251,17 +251,17 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 {/* Work Station Filter */}
                 {checklist.includeWorkStations && (
                   <div>
-                    <Label>Station</Label>
+                    <Label>{t('common.workStation')}</Label>
                     <Select
                       value={filters.workStationId}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, workStationId: value }))}
                       disabled={!filters.workTaskId}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Alla stationer" />
+                        <SelectValue placeholder={t('common.allWorkStations')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Alla stationer</SelectItem>
+                        <SelectItem value="all">{t('common.allWorkStations')}</SelectItem>
                         {workStations
                           .filter(station => filters.workTaskId === "all" || !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
                           .map((station) => (
@@ -277,16 +277,16 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 {/* Shift Filter */}
                 {checklist.includeShifts && (
                   <div>
-                    <Label>Skift</Label>
+                    <Label>{t('common.shift')}</Label>
                     <Select
                       value={filters.shiftId}
                       onValueChange={(value) => setFilters(prev => ({ ...prev, shiftId: value }))}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Alla skift" />
+                        <SelectValue placeholder={t('common.allShifts')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Alla skift</SelectItem>
+                        <SelectItem value="all">{t('common.allShifts')}</SelectItem>
                         {shifts.map((shift) => (
                           <SelectItem key={shift.id} value={shift.id.toString()}>
                             {shift.name} ({shift.startTime}-{shift.endTime})
@@ -310,7 +310,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                     search: "",
                   })}
                 >
-                  Rensa filter
+                  {t('common.clearFilters')}
                 </Button>
               </div>
             </CardContent>
@@ -320,7 +320,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
         {/* Dashboard Question Cards */}
         {dashboardQuestions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Frågestatistik</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('dashboard.questionStatistics')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               {dashboardQuestions.map((question) => (
                 <DashboardQuestionCard
@@ -337,7 +337,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
         <div className="mb-8">
           <Card className="w-full max-w-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Totala svar (filtrerat)</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.totalResponsesFiltered')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats?.totalResponses || 0}</div>
@@ -347,7 +347,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
 
         <Card>
           <CardHeader>
-            <CardTitle>Senaste svar</CardTitle>
+            <CardTitle>{t('dashboard.latestResponses')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -368,12 +368,12 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                     }}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    Visa
+                    {t('common.view')}
                   </Button>
                 </div>
               ))}
               {responses.length === 0 && (
-                <p className="text-center text-gray-500 py-8">Inga svar ännu</p>
+                <p className="text-center text-gray-500 py-8">{t('dashboard.noResponsesYet')}</p>
               )}
             </div>
           </CardContent>
