@@ -371,12 +371,10 @@ export default function Admin() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {
-                                window.location.href = `/admin/checklist/${checklist.id}`;
-                              }}
+                              onClick={() => setSelectedChecklistId(checklist.id)}
                             >
                               <Settings className="mr-1 h-3 w-3" />
-                              {t('admin.manage')}
+                              Hantera kategorier
                             </Button>
                             <Button
                               variant="ghost"
@@ -398,6 +396,341 @@ export default function Admin() {
                     </Card>
                   ))}
                 </div>
+
+                {/* Category Management Modal */}
+                {selectedChecklistId && (
+                  <Dialog open={true} onOpenChange={() => setSelectedChecklistId(null)}>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Hantera kategorier och frågor</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-medium">Kategorier</h3>
+                          <Button
+                            onClick={() => {
+                              setEditingCategory(null);
+                              setCategoryDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Ny kategori
+                          </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                          {categories.map((category) => (
+                            <Card key={category.id}>
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      {renderIcon(category.icon, "h-4 w-4 text-gray-600")}
+                                      <h4 className="text-sm font-medium">{category.name}</h4>
+                                    </div>
+                                    {category.description && (
+                                      <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                                    )}
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setSelectedCategoryId(category.id)}
+                                    >
+                                      Hantera frågor
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingCategory(category);
+                                        setCategoryDialogOpen(true);
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDelete("/api/categories", category.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+                {/* Category Create/Edit Dialog */}
+                <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingCategory ? "Redigera kategori" : "Skapa kategori"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const data = {
+                          name: formData.get("name") as string,
+                          description: formData.get("description") as string,
+                          checklistId: selectedChecklistId!,
+                          order: parseInt(formData.get("order") as string) || 0,
+                          isActive: formData.get("isActive") === "on",
+                          icon: selectedIcon || editingCategory?.icon || null,
+                        };
+                        
+                        if (editingCategory) {
+                          updateMutation.mutate({
+                            endpoint: `/api/categories/${editingCategory.id}`,
+                            data,
+                          });
+                        } else {
+                          createMutation.mutate({
+                            endpoint: "/api/categories",
+                            data,
+                          });
+                        }
+                        setCategoryDialogOpen(false);
+                        setEditingCategory(null);
+                        setSelectedIcon("");
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <Label htmlFor="name">Namn</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          defaultValue={editingCategory?.name || ""}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="description">Beskrivning</Label>
+                        <Textarea
+                          id="description"
+                          name="description"
+                          defaultValue={editingCategory?.description || ""}
+                        />
+                      </div>
+                      <IconPicker
+                        value={selectedIcon || editingCategory?.icon || ""}
+                        onChange={setSelectedIcon}
+                        placeholder="Välj ikon"
+                      />
+                      <div>
+                        <Label htmlFor="order">Ordning</Label>
+                        <Input
+                          id="order"
+                          name="order"
+                          type="number"
+                          defaultValue={editingCategory?.order || 0}
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="isActive"
+                          name="isActive"
+                          defaultChecked={editingCategory?.isActive ?? true}
+                        />
+                        <Label htmlFor="isActive">Aktiv</Label>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        <Save className="mr-2 h-4 w-4" />
+                        Spara
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Question Management Modal */}
+                {selectedCategoryId && (
+                  <Dialog open={true} onOpenChange={() => setSelectedCategoryId(null)}>
+                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Hantera frågor</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-medium">Frågor</h3>
+                          <Button
+                            onClick={() => {
+                              setEditingQuestion(null);
+                              setQuestionDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Ny fråga
+                          </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                          {questions.map((question) => (
+                            <Card key={question.id}>
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="text-sm font-medium">{question.text}</h4>
+                                    <p className="text-sm text-gray-600">Typ: {question.type}</p>
+                                    {question.isRequired && (
+                                      <Badge variant="outline" className="mt-1">Obligatorisk</Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingQuestion(question);
+                                        setQuestionDialogOpen(true);
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDelete("/api/questions", question.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+                {/* Question Create/Edit Dialog */}
+                <Dialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingQuestion ? "Redigera fråga" : "Skapa fråga"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const data = {
+                          text: formData.get("text") as string,
+                          type: formData.get("type") as string,
+                          categoryId: selectedCategoryId!,
+                          order: parseInt(formData.get("order") as string) || 0,
+                          isRequired: formData.get("isRequired") === "on",
+                          showInDashboard: formData.get("showInDashboard") === "on",
+                          hideInView: formData.get("hideInView") === "on",
+                          dashboardDisplayType: formData.get("dashboardDisplayType") as string || null,
+                        };
+                        
+                        if (editingQuestion) {
+                          updateMutation.mutate({
+                            endpoint: `/api/questions/${editingQuestion.id}`,
+                            data,
+                          });
+                        } else {
+                          createMutation.mutate({
+                            endpoint: "/api/questions",
+                            data,
+                          });
+                        }
+                        setQuestionDialogOpen(false);
+                        setEditingQuestion(null);
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <Label htmlFor="text">Frågetext</Label>
+                        <Input
+                          id="text"
+                          name="text"
+                          defaultValue={editingQuestion?.text || ""}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="type">Typ</Label>
+                        <select
+                          id="type"
+                          name="type"
+                          className="w-full p-2 border rounded"
+                          defaultValue={editingQuestion?.type || "text"}
+                          required
+                        >
+                          <option value="text">Text</option>
+                          <option value="check">Kryssruta</option>
+                          <option value="ja_nej">Ja/Nej</option>
+                          <option value="number">Nummer</option>
+                        </select>
+                      </div>
+                      <div>
+                        <Label htmlFor="order">Ordning</Label>
+                        <Input
+                          id="order"
+                          name="order"
+                          type="number"
+                          defaultValue={editingQuestion?.order || 0}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="dashboardDisplayType">Dashboard visningstyp</Label>
+                        <select
+                          id="dashboardDisplayType"
+                          name="dashboardDisplayType"
+                          className="w-full p-2 border rounded"
+                          defaultValue={editingQuestion?.dashboardDisplayType || ""}
+                        >
+                          <option value="">Standard</option>
+                          <option value="chart">Diagram</option>
+                          <option value="metric">Mätetal</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="isRequired"
+                          name="isRequired"
+                          defaultChecked={editingQuestion?.isRequired ?? false}
+                        />
+                        <Label htmlFor="isRequired">Obligatorisk</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="showInDashboard"
+                          name="showInDashboard"
+                          defaultChecked={editingQuestion?.showInDashboard ?? false}
+                        />
+                        <Label htmlFor="showInDashboard">Visa i dashboard</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="hideInView"
+                          name="hideInView"
+                          defaultChecked={editingQuestion?.hideInView ?? false}
+                        />
+                        <Label htmlFor="hideInView">Dölj i vy</Label>
+                      </div>
+                      <Button type="submit" className="w-full">
+                        <Save className="mr-2 h-4 w-4" />
+                        Spara
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </TabsContent>
 
               {/* Basic Data Tab */}
