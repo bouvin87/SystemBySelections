@@ -31,6 +31,56 @@ const router = express.Router();
  * AUTH ROUTES: Core authentication endpoints
  */
 
+// Get current user endpoint
+router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const user = req.user!;
+    const userData = await storage.getUser(user.userId);
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Handle superadmin users without tenant
+    if (user.role === 'superadmin') {
+      return res.json({
+        user: {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role,
+        },
+        tenant: null,
+      });
+    }
+
+    // Get tenant for regular users
+    const tenant = await storage.getTenant(user.tenantId!);
+    if (!tenant) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+
+    res.json({
+      user: {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+      },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        modules: tenant.modules,
+      },
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Failed to get user' });
+  }
+});
+
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {

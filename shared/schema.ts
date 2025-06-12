@@ -187,7 +187,7 @@ export type LoginRequest = z.infer<typeof loginSchema>;
 // JWT payload type
 export interface JWTPayload {
   userId: number;
-  tenantId: number;
+  tenantId?: number;
   role: string;
   email: string;
   firstName?: string;
