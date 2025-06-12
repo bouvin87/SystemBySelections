@@ -191,7 +191,7 @@ export default function FormModal({
   );
 
   const totalSteps = categoriesWithQuestions.length; // Only category steps with questions (since we start at step 2)
-  const progress = ((currentStep - 2) / totalSteps) * 100;
+  const progress = totalSteps > 0 ? ((currentStep - 2) / totalSteps) * 100 : 0;
 
   const handleNext = () => {
     if (currentStep < totalSteps + 1) {
