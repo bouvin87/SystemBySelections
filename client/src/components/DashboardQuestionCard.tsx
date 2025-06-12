@@ -59,22 +59,41 @@ export default function DashboardQuestionCard({
     if (
       question.type !== "nummer" &&
       question.type !== "stjärnor" &&
-      question.type !== "humör"
+      question.type !== "humör" &&
+      question.type !== "ja_nej"
     ) {
       return null;
     }
 
-    const values = relevantResponses
-      .map(getQuestionValue)
-      .filter((val) => typeof val === "number" || !isNaN(Number(val)))
-      .map((val) => Number(val));
+    let values: any[];
+    let average: number;
+    let maxValue: number;
+    let roundedAverage: number;
 
-    if (values.length === 0) return null;
+    if (question.type === "ja_nej") {
+      const boolValues = relevantResponses
+        .map(getQuestionValue)
+        .filter((val) => typeof val === "boolean");
+      
+      if (boolValues.length === 0) return null;
+      
+      const yesCount = boolValues.filter(val => val === true).length;
+      average = (yesCount / boolValues.length) * 100; // Percentage of yes answers
+      maxValue = 100;
+      values = boolValues;
+      roundedAverage = Math.round(average);
+    } else {
+      values = relevantResponses
+        .map(getQuestionValue)
+        .filter((val) => typeof val === "number" || !isNaN(Number(val)))
+        .map((val) => Number(val));
 
-    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const roundedAverage = Math.round(average);
-    const maxValue =
-      question.type === "nummer" ? (question.validation as any)?.max || 100 : 5;
+      if (values.length === 0) return null;
+
+      average = values.reduce((sum, val) => sum + val, 0) / values.length;
+      maxValue = question.type === "nummer" ? (question.validation as any)?.max || 100 : 5;
+      roundedAverage = Math.round(average);
+    }
 
     const renderAverageDisplay = () => {
       if (question.type === "humör") {
@@ -175,7 +194,7 @@ export default function DashboardQuestionCard({
         <CardContent>
           <div className="h-[108px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <LineChart data={chartData} margin={{ top: 5, right: 5, left: -45, bottom: -10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
                 <XAxis
                   dataKey="date"
@@ -220,23 +239,43 @@ export default function DashboardQuestionCard({
     if (
       question.type !== "nummer" &&
       question.type !== "stjärnor" &&
-      question.type !== "humör"
+      question.type !== "humör" &&
+      question.type !== "ja_nej"
     ) {
       return null;
     }
 
-    const values = relevantResponses
-      .map(getQuestionValue)
-      .filter((val) => typeof val === "number" || !isNaN(Number(val)))
-      .map((val) => Number(val));
+    let values: number[];
+    let average: number;
+    let maxValue: number;
+    let percentage: number;
 
-    if (values.length === 0) return null;
+    if (question.type === "ja_nej") {
+      const boolValues = relevantResponses
+        .map(getQuestionValue)
+        .filter((val) => typeof val === "boolean");
+      
+      if (boolValues.length === 0) return null;
+      
+      const yesCount = boolValues.filter(val => val === true).length;
+      average = yesCount;
+      maxValue = boolValues.length;
+      percentage = (yesCount / boolValues.length) * 100;
+      values = boolValues.map(val => val ? 1 : 0);
+    } else {
+      values = relevantResponses
+        .map(getQuestionValue)
+        .filter((val) => typeof val === "number" || !isNaN(Number(val)))
+        .map((val) => Number(val));
 
-    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+      if (values.length === 0) return null;
+
+      average = values.reduce((sum, val) => sum + val, 0) / values.length;
+      maxValue = question.type === "nummer" ? (question.validation as any)?.max || 100 : 5;
+      percentage = (average / maxValue) * 100;
+    }
+
     const roundedAverage = Math.round(average);
-    const maxValue =
-      question.type === "nummer" ? (question.validation as any)?.max || 100 : 5;
-    const percentage = (average / maxValue) * 100;
 
     const renderVisualIndicator = () => {
       if (question.type === "humör") {
@@ -258,6 +297,10 @@ export default function DashboardQuestionCard({
             ))}
           </div>
         );
+      } else if (question.type === "nummer") {
+        return <span className="text-lg font-bold">{roundedAverage}</span>;
+      } else if (question.type === "ja_nej") {
+        return <span className="text-lg">{percentage >= 50 ? "✓" : "✗"}</span>;
       }
       return null;
     };
