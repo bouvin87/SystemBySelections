@@ -42,15 +42,36 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Get the user's tenant
-    const tenant = await storage.getTenant(user.tenantId);
-    if (!tenant) {
-      return res.status(401).json({ message: 'Tenant not found for user' });
-    }
-
     const isPasswordValid = await comparePassword(password, user.hashedPassword);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Handle superadmin users without tenant
+    if (user.role === 'superadmin') {
+      const token = generateToken({
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+      });
+
+      return res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+        tenant: null, // Superadmin has no tenant
+      });
+    }
+
+    // Get the user's tenant for regular users
+    const tenant = await storage.getTenant(user.tenantId!);
+    if (!tenant) {
+      return res.status(401).json({ message: 'Tenant not found for user' });
     }
 
     const token = generateToken({
@@ -72,7 +93,6 @@ router.post('/login', async (req, res) => {
       tenant: {
         id: tenant.id,
         name: tenant.name,
-        subdomain: tenant.subdomain,
         modules: tenant.modules,
       },
     });

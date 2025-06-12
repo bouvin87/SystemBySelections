@@ -117,6 +117,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const hasModule = (module: string): boolean => {
+    // Superadmin has access to all modules
+    if (authState.user?.role === 'superadmin') {
+      return true;
+    }
     return authState.tenant ? authState.tenant.modules.includes(module) : false;
   };
 
