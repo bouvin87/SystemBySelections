@@ -247,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Checklists
-  app.get('/api/checklists', authenticateToken, async (req, res) => {
+  app.get('/api/checklists', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const checklists = await storage.getChecklists(req.tenantId!);
       res.json(checklists);
@@ -256,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/checklists/active', authenticateToken, async (req, res) => {
+  app.get('/api/checklists/active', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const checklists = await storage.getActiveChecklists(req.tenantId!);
       res.json(checklists);
