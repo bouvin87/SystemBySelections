@@ -260,7 +260,6 @@ export default function ChecklistEditor() {
                       const data: InsertCategory = {
                         name: formData.get("name") as string,
                         checklistId: checklistId,
-                        key: formData.get("key") as string,
                         description: formData.get("description") as string || undefined,
                         order: parseInt(formData.get("order") as string) || 0,
                         isActive: formData.get("isActive") === "on",
@@ -279,16 +278,7 @@ export default function ChecklistEditor() {
                         required
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="key">Nyckel</Label>
-                      <Input
-                        id="key"
-                        name="key"
-                        placeholder="t.ex. kvalitet, sakerhet"
-                        defaultValue={editingItem?.key || ""}
-                        required
-                      />
-                    </div>
+
                     <div>
                       <Label htmlFor="description">Beskrivning</Label>
                       <Textarea
@@ -354,7 +344,7 @@ export default function ChecklistEditor() {
                                     {renderIcon(category.icon, "h-4 w-4 text-gray-600")}
                                     <h4 className="text-sm font-medium text-gray-900">{category.name}</h4>
                                   </div>
-                                  <p className="text-xs text-gray-500">Nyckel: {category.key}</p>
+
                                   {category.description && (
                                     <p className="text-sm text-gray-600 mt-1">{category.description}</p>
                                   )}

@@ -46,7 +46,6 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   checklistId: integer("checklist_id").references(() => checklists.id).notNull(),
   name: text("name").notNull(),
-  key: text("key").notNull(),
   description: text("description"),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
