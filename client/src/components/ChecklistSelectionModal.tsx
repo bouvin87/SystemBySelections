@@ -29,8 +29,14 @@ export default function ChecklistSelectionModal({
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: allChecklists = [], isLoading } = useQuery<Checklist[]>({
-    queryKey: ["/api/checklists/active"],
+    queryKey: ["/api/checklists/all-active"],
     enabled: isOpen,
+    queryFn: async () => {
+      const result = await fetch("/api/checklists");
+      const checklists = await result.json();
+      // Filter to only show active checklists (regardless of showInMenu)
+      return checklists.filter((checklist: Checklist) => checklist.isActive === true);
+    },
   });
 
   const filteredChecklists = allChecklists.filter((checklist) =>
