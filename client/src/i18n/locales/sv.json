@@ -40,7 +40,10 @@
     "selectWorkTask": "Välj arbetsuppgift",
     "shift": "Skift",
     "selectShift": "Välj skift",
-    "checklist": "Checklista"
+    "checklist": "Checklista",
+    "includesWorkTasks": "Inkluderar arbetsmoment",
+    "includesWorkStations": "Inkluderar stationer",
+    "includesShifts": "Inkluderar skift"
   },
   "dashboard": {
     "title": "Dashboard",

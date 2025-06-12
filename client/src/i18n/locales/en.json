@@ -40,7 +40,10 @@
     "selectWorkTask": "Select work task",
     "shift": "Shift",
     "selectShift": "Select shift",
-    "checklist": "Checklist"
+    "checklist": "Checklist",
+    "includesWorkTasks": "Includes work tasks",
+    "includesWorkStations": "Includes stations",
+    "includesShifts": "Includes shifts"
   },
   "dashboard": {
     "title": "Dashboard",
