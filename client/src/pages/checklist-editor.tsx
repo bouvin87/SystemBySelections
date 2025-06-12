@@ -41,6 +41,7 @@ function QuestionTypeLabel({ type }: { type: string }) {
     fil: "Fil",
     stjärnor: "Stjärnor",
     humör: "Humör",
+    check: "Checkbox",
   };
   return <span>{typeLabels[type] || type}</span>;
 }
@@ -507,6 +508,7 @@ export default function ChecklistEditor() {
                         <SelectItem value="fil">Fil</SelectItem>
                         <SelectItem value="stjärnor">Stjärnor (1-5)</SelectItem>
                         <SelectItem value="humör">Humör (1-5)</SelectItem>
+                        <SelectItem value="check">Checkbox</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

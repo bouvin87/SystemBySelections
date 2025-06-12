@@ -99,6 +99,12 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
             {value ? "Ja" : "Nej"}
           </Badge>
         );
+      case "check":
+        return (
+          <Badge variant={value ? "default" : "secondary"}>
+            {value ? "Markerad" : "Ej markerad"}
+          </Badge>
+        );
       case "stjärnor":
         return (
           <div className="flex items-center gap-1">

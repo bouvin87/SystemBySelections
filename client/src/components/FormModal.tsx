@@ -628,6 +628,30 @@ export default function FormModal({
                   ))}
                 </div>
               )}
+
+              {question.type === "check" && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`check-${question.id}`}
+                    checked={formData.responses[question.id] === true}
+                    onCheckedChange={(checked) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        responses: {
+                          ...prev.responses,
+                          [question.id]: checked === true,
+                        },
+                      }));
+                    }}
+                  />
+                  <Label 
+                    htmlFor={`check-${question.id}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Markera som utförd
+                  </Label>
+                </div>
+              )}
           </div>
         ))}
       </div>

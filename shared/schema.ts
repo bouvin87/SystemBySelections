@@ -57,7 +57,7 @@ export const questions = pgTable("questions", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").references(() => categories.id).notNull(),
   text: text("text").notNull(),
-  type: text("type").notNull(), // text, val, nummer, ja_nej, datum, fil, stjärnor, humör
+  type: text("type").notNull(), // text, val, nummer, ja_nej, datum, fil, stjärnor, humör, check
   options: json("options"), // For radio buttons and other options
   validation: json("validation"), // Validation rules
   showInDashboard: boolean("show_in_dashboard").notNull().default(false),

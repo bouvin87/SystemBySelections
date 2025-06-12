@@ -70,7 +70,7 @@ export default function DashboardQuestionCard({
     let maxValue: number;
     let roundedAverage: number;
 
-    if (question.type === "ja_nej") {
+    if (question.type === "ja_nej" || question.type === "check") {
       const boolValues = relevantResponses
         .map(getQuestionValue)
         .filter((val) => typeof val === "boolean");
@@ -78,7 +78,7 @@ export default function DashboardQuestionCard({
       if (boolValues.length === 0) return null;
       
       const yesCount = boolValues.filter(val => val === true).length;
-      average = (yesCount / boolValues.length) * 100; // Percentage of yes answers
+      average = (yesCount / boolValues.length) * 100; // Percentage of yes/checked answers
       maxValue = 100;
       values = boolValues;
       roundedAverage = Math.round(average);
@@ -127,6 +127,20 @@ export default function DashboardQuestionCard({
           <div className="text-center">
             <div className="text-4xl mb-2">{average >= 50 ? "✓" : "✗"}</div>
             <div className="text-2xl font-bold">{average.toFixed(1)}%</div>
+          </div>
+        );
+      } else if (question.type === "ja_nej") {
+        return (
+          <div className="text-center">
+            <div className="text-4xl mb-2">{roundedAverage >= 50 ? "✅" : "❌"}</div>
+            <div className="text-2xl font-bold">{roundedAverage}%</div>
+          </div>
+        );
+      } else if (question.type === "check") {
+        return (
+          <div className="text-center">
+            <div className="text-4xl mb-2">☑️</div>
+            <div className="text-2xl font-bold">{roundedAverage}%</div>
           </div>
         );
       } else {
