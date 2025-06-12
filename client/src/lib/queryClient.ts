@@ -17,21 +17,37 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
-  url: string,
+  optionsOrMethod: { endpoint: string; method: string; data?: unknown } | string,
+  url?: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  let endpoint: string;
+  let method: string;
+  let requestData: unknown;
+
+  if (typeof optionsOrMethod === 'string') {
+    // Legacy format: apiRequest(method, url, data)
+    method = optionsOrMethod;
+    endpoint = url!;
+    requestData = data;
+  } else {
+    // New format: apiRequest({ endpoint, method, data })
+    endpoint = optionsOrMethod.endpoint;
+    method = optionsOrMethod.method;
+    requestData = optionsOrMethod.data;
+  }
+
   const token = localStorage.getItem('authToken');
-  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  const headers: Record<string, string> = requestData ? { "Content-Type": "application/json" } : {};
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  const res = await fetch(endpoint, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body: requestData ? JSON.stringify(requestData) : undefined,
     credentials: "include",
   });
 
