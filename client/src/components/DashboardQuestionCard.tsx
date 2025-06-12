@@ -123,6 +123,13 @@ export default function DashboardQuestionCard({
             <div className="text-2xl font-bold">{average.toFixed(1)}</div>
           </div>
         );
+      } else if (question.type === "ja_nej") {
+        return (
+          <div className="text-center">
+            <div className="text-4xl mb-2">{average >= 50 ? "✓" : "✗"}</div>
+            <div className="text-2xl font-bold">{average.toFixed(1)}%</div>
+          </div>
+        );
       } else {
         return (
           <div className="text-center">
@@ -321,12 +328,12 @@ export default function DashboardQuestionCard({
                 {renderVisualIndicator()}
               </div>
               <span className="text-sm font-medium">
-                {average.toFixed(1)} / {maxValue}
+                {question.type === "ja_nej" ? `${average.toFixed(1)}%` : `${average.toFixed(1)} / ${maxValue}`}
               </span>
             </div>
             <Progress value={percentage} className="h-3" />
             <p className="text-xs text-muted-foreground text-center">
-              {percentage.toFixed(1)}% av maxvärdet
+              {question.type === "ja_nej" ? `${percentage.toFixed(1)}% Ja-svar` : `${percentage.toFixed(1)}% av maxvärdet`}
             </p>
           </div>
         </CardContent>
