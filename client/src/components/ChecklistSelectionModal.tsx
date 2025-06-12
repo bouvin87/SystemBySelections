@@ -34,8 +34,11 @@ export default function ChecklistSelectionModal({
     queryFn: async () => {
       const result = await fetch("/api/checklists");
       const checklists = await result.json();
+      console.log('All checklists from API:', checklists);
       // Filter to only show active checklists
-      return checklists.filter((checklist: Checklist) => checklist.isActive);
+      const activeChecklists = checklists.filter((checklist: Checklist) => checklist.isActive);
+      console.log('Filtered active checklists:', activeChecklists);
+      return activeChecklists;
     },
   });
 
