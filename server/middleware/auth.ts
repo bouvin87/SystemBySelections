@@ -87,11 +87,7 @@ export const requireAdmin = requireRole(['superadmin', 'admin']);
  */
 export const requireModule = (moduleName: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    console.log(`[DEBUG] Checking module access for: ${moduleName}`);
-    console.log(`[DEBUG] User:`, req.user);
-    
     if (!req.user) {
-      console.log(`[DEBUG] No user found in request`);
       return res.status(401).json({ 
         message: 'Authentication required',
         error: 'AUTHENTICATION_REQUIRED'
@@ -103,22 +99,14 @@ export const requireModule = (moduleName: string) => {
     
     try {
       const tenant = await storage.getTenant(req.user.tenantId);
-      console.log(`[DEBUG] Tenant:`, tenant);
-      console.log(`[DEBUG] Tenant modules:`, tenant?.modules);
-      console.log(`[DEBUG] Required module:`, moduleName);
-      console.log(`[DEBUG] Module includes check:`, tenant?.modules.includes(moduleName));
-      
       if (!tenant || !tenant.modules.includes(moduleName)) {
-        console.log(`[DEBUG] Access denied for module: ${moduleName}`);
         return res.status(403).json({ 
           message: `Module '${moduleName}' not enabled for this tenant`,
           error: 'MODULE_ACCESS_DENIED'
         });
       }
-      console.log(`[DEBUG] Access granted for module: ${moduleName}`);
       next();
     } catch (error) {
-      console.log(`[DEBUG] Error checking module access:`, error);
       return res.status(500).json({ 
         message: 'Error checking module access',
         error: 'MODULE_CHECK_FAILED'
