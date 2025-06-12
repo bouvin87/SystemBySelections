@@ -87,7 +87,7 @@
     "noChecklistsAvailable": "Inga checklistor tillgängliga",
     "startChecklist": "Starta",
     "includesWorkTasks": "Inkl. arbetsmoment",
-    "includesWorkStations": "Inkl. stationer", 
+    "includesWorkStations": "Inkl. stationer",
     "includesShifts": "Inkl. skift"
   },
   "form": {
@@ -152,6 +152,9 @@
     "close": "Stäng",
     "open": "Öppna",
     "unknown": "Okänt",
-    "view": "Visa"
+    "view": "Visa",
+    "includesWorkTasks": "Inkluderar arbetsmoment",
+    "includesWorkStations": "Inkluderar stationer",
+    "includesShifts": "Inkluderar skift"
   }
 }

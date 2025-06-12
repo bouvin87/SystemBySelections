@@ -152,6 +152,9 @@
     "close": "Close",
     "open": "Open",
     "unknown": "Unknown",
-    "view": "View"
+    "view": "View",
+    "includesWorkTasks": "Includes work tasks",
+    "includesWorkStations": "Includes stations",
+    "includesShifts": "Includes shifts"
   }
 }

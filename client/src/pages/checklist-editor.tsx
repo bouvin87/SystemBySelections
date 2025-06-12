@@ -537,24 +537,18 @@ export default function ChecklistEditor() {
                     />
                     <Label htmlFor="hideInView">Dölj i visning</Label>
                   </div>
-                  <div>
-                    <Label htmlFor="options">Alternativ (JSON format för select-typer)</Label>
-                    <Textarea
-                      id="options"
-                      name="options"
-                      placeholder='["Alternativ 1", "Alternativ 2"]'
-                      defaultValue={editingQuestion?.options ? JSON.stringify(editingQuestion.options) : ""}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="validation">Validering (JSON format)</Label>
-                    <Textarea
-                      id="validation"
-                      name="validation"
-                      placeholder='{"min": 0, "max": 100}'
-                      defaultValue={editingQuestion?.validation ? JSON.stringify(editingQuestion.validation) : ""}
-                    />
-                  </div>
+                  {/* Show options field only for "val" (select) type */}
+                  {(selectedQuestionType === "val" || editingQuestion?.type === "val") && (
+                    <div>
+                      <Label htmlFor="options">Alternativ (JSON format för select-typer)</Label>
+                      <Textarea
+                        id="options"
+                        name="options"
+                        placeholder='["Alternativ 1", "Alternativ 2"]'
+                        defaultValue={editingQuestion?.options ? JSON.stringify(editingQuestion.options) : ""}
+                      />
+                    </div>
+                  )}
                   
                   {/* Dashboard Card Configuration - Only for applicable types */}
                   {(selectedQuestionType === "nummer" || selectedQuestionType === "ja_nej" || 
