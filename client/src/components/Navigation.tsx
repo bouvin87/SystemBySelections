@@ -22,7 +22,17 @@ export default function Navigation() {
   const { data: menuChecklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists/active", "menu"],
     queryFn: async () => {
-      const result = await fetch("/api/checklists/active");
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const result = await fetch("/api/checklists/active", { headers });
+      if (!result.ok) {
+        throw new Error(`Failed to fetch active checklists: ${result.status}`);
+      }
       const activeChecklists = await result.json();
       return activeChecklists.filter((checklist: Checklist) => checklist.showInMenu);
     },

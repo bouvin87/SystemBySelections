@@ -103,6 +103,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/work-tasks/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertWorkTaskSchema.partial().parse(req.body);
+      const workTask = await storage.updateWorkTask(id, validatedData, req.tenantId!);
+      res.json(workTask);
+    } catch (error) {
+      console.error('Update work task error:', error);
+      res.status(400).json({ message: "Invalid work task data" });
+    }
+  });
+
+  app.delete('/api/work-tasks/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteWorkTask(id, req.tenantId!);
+      res.status(200).json({ message: "Work task deleted" });
+    } catch (error) {
+      console.error('Delete work task error:', error);
+      res.status(500).json({ message: "Failed to delete work task" });
+    }
+  });
+
   // Work Stations  
   app.get('/api/work-stations', authenticateToken, async (req, res) => {
     try {
@@ -128,6 +151,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/work-stations/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertWorkStationSchema.partial().parse(req.body);
+      const workStation = await storage.updateWorkStation(id, validatedData, req.tenantId!);
+      res.json(workStation);
+    } catch (error) {
+      console.error('Update work station error:', error);
+      res.status(400).json({ message: "Invalid work station data" });
+    }
+  });
+
+  app.delete('/api/work-stations/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteWorkStation(id, req.tenantId!);
+      res.status(200).json({ message: "Work station deleted" });
+    } catch (error) {
+      console.error('Delete work station error:', error);
+      res.status(500).json({ message: "Failed to delete work station" });
+    }
+  });
+
   // Shifts
   app.get('/api/shifts', authenticateToken, async (req, res) => {
     try {
@@ -149,6 +195,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Create shift error:', error);
       res.status(400).json({ message: "Invalid shift data" });
+    }
+  });
+
+  app.patch('/api/shifts/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertShiftSchema.partial().parse(req.body);
+      const shift = await storage.updateShift(id, validatedData, req.tenantId!);
+      res.json(shift);
+    } catch (error) {
+      console.error('Update shift error:', error);
+      res.status(400).json({ message: "Invalid shift data" });
+    }
+  });
+
+  app.delete('/api/shifts/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteShift(id, req.tenantId!);
+      res.status(200).json({ message: "Shift deleted" });
+    } catch (error) {
+      console.error('Delete shift error:', error);
+      res.status(500).json({ message: "Failed to delete shift" });
     }
   });
 
@@ -182,6 +251,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Create checklist error:', error);
       res.status(400).json({ message: "Invalid checklist data" });
+    }
+  });
+
+  app.patch('/api/checklists/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertChecklistSchema.partial().parse(req.body);
+      const checklist = await storage.updateChecklist(id, validatedData, req.tenantId!);
+      res.json(checklist);
+    } catch (error) {
+      console.error('Update checklist error:', error);
+      res.status(400).json({ message: "Invalid checklist data" });
+    }
+  });
+
+  app.delete('/api/checklists/:id', authenticateToken, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteChecklist(id, req.tenantId!);
+      res.status(200).json({ message: "Checklist deleted" });
+    } catch (error) {
+      console.error('Delete checklist error:', error);
+      res.status(500).json({ message: "Failed to delete checklist" });
     }
   });
 
