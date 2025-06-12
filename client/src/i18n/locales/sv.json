@@ -59,7 +59,16 @@
     "viewDashboard": "Visa Dashboard",
     "noDashboardsAvailable": "Inga dashboards tillgängliga",
     "noDashboardsDescription": "Det finns inga checklistor med aktiverad dashboard-funktion.",
-    "goToAdmin": "Gå till Administration"
+    "goToAdmin": "Gå till Administration",
+    "dashboardNotEnabled": "Dashboard inte aktiverad",
+    "dashboardNotEnabledDescription": "Denna checklista har inte aktiverad dashboard-funktion.",
+    "backToHome": "Tillbaka till startsidan",
+    "back": "Tillbaka",
+    "filterOptions": "Filter alternativ",
+    "searchOperator": "Sök operatör",
+    "searchOperatorPlaceholder": "Sök på operatörsnamn...",
+    "fromDate": "Från datum",
+    "toDate": "Till datum"
   },
   "form": {
     "selectChecklist": "Välj checklista",

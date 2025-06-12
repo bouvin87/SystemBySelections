@@ -59,7 +59,16 @@
     "viewDashboard": "View Dashboard",
     "noDashboardsAvailable": "No dashboards available",
     "noDashboardsDescription": "There are no checklists with dashboard functionality enabled.",
-    "goToAdmin": "Go to Administration"
+    "goToAdmin": "Go to Administration",
+    "dashboardNotEnabled": "Dashboard not enabled",
+    "dashboardNotEnabledDescription": "This checklist does not have dashboard functionality enabled.",
+    "backToHome": "Back to home",
+    "back": "Back",
+    "filterOptions": "Filter options",
+    "searchOperator": "Search operator",
+    "searchOperatorPlaceholder": "Search by operator name...",
+    "fromDate": "From date",
+    "toDate": "To date"
   },
   "form": {
     "selectChecklist": "Select checklist",

@@ -11,6 +11,7 @@ import ResponseViewModal from "@/components/ResponseViewModal";
 import { Link } from "wouter";
 import { ArrowLeft, Filter, Search, Calendar, Eye } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift, Question } from "@shared/schema";
 
 interface DashboardStats {
@@ -23,6 +24,7 @@ interface ChecklistDashboardProps {
 }
 
 export default function ChecklistDashboard({ checklistId }: ChecklistDashboardProps) {
+  const { t } = useTranslation();
   const id = parseInt(checklistId);
   
   // Filter state
@@ -114,7 +116,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p>Laddar...</p>
+            <p>{t('common.loading')}</p>
           </div>
         </div>
       </div>
@@ -129,15 +131,15 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           <Card className="text-center py-12">
             <CardContent>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Dashboard inte aktiverad
+                {t('dashboard.dashboardNotEnabled')}
               </h3>
               <p className="text-gray-600 mb-6">
-                Denna checklista har inte aktiverad dashboard-funktion.
+                {t('dashboard.dashboardNotEnabledDescription')}
               </p>
               <Link href="/">
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Tillbaka till startsidan
+                  {t('dashboard.backToHome')}
                 </Button>
               </Link>
             </CardContent>
@@ -155,21 +157,21 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           <Link href="/">
             <Button variant="outline" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Tillbaka
+              {t('dashboard.back')}
             </Button>
           </Link>
         </div>
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Dashboard - {checklist.name}
+            {t('dashboard.title')} - {checklist.name}
           </h1>
           <Button 
             onClick={() => setShowFilters(!showFilters)} 
             variant="outline"
           >
             <Filter className="mr-2 h-4 w-4" />
-            Filter
+            {t('common.filter')}
           </Button>
         </div>
 
@@ -178,19 +180,19 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Filter className="h-5 w-5" />
-                Filter alternativ
+                {t('dashboard.filterOptions')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Search */}
                 <div>
-                  <Label htmlFor="search">Sök operatör</Label>
+                  <Label htmlFor="search">{t('dashboard.searchOperator')}</Label>
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                       id="search"
-                      placeholder="Sök på operatörsnamn..."
+                      placeholder={t('dashboard.searchOperatorPlaceholder')}
                       value={filters.search}
                       onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                       className="pl-10"
@@ -200,7 +202,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
 
                 {/* Date Range */}
                 <div>
-                  <Label htmlFor="startDate">Från datum</Label>
+                  <Label htmlFor="startDate">{t('dashboard.fromDate')}</Label>
                   <Input
                     id="startDate"
                     type="date"
@@ -210,7 +212,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 </div>
 
                 <div>
-                  <Label htmlFor="endDate">Till datum</Label>
+                  <Label htmlFor="endDate">{t('dashboard.toDate')}</Label>
                   <Input
                     id="endDate"
                     type="date"
