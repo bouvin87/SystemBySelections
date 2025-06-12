@@ -18,9 +18,19 @@ export default function Navigation() {
   const [checklistSelectionOpen, setChecklistSelectionOpen] = useState(false);
   const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(null);
 
-  // Fetch checklistor that should be shown in menu
+  // Fetch user data to check module access
+  const { data: authData } = useQuery({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  });
+
+  // Check if user has access to checklists module
+  const hasChecklistsModule = authData?.tenant?.modules?.includes('checklists') ?? false;
+
+  // Fetch checklistor that should be shown in menu (only if user has access)
   const { data: menuChecklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists/active", "menu"],
+    enabled: hasChecklistsModule,
     queryFn: async () => {
       const token = localStorage.getItem('authToken');
       const headers: Record<string, string> = {};
@@ -40,6 +50,7 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
+    ...(hasChecklistsModule ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   const openModal = (checklistId: number) => {
@@ -89,15 +100,17 @@ export default function Navigation() {
               </Button>
             ))}
             
-            {/* Checklist Selection Button */}
-            <Button
-              onClick={() => setChecklistSelectionOpen(true)}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded flex items-center"
-              variant="ghost"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {t('navigation.startNewChecklist')}
-            </Button>
+            {/* Checklist Selection Button - only show if user has checklists module */}
+            {hasChecklistsModule && (
+              <Button
+                onClick={() => setChecklistSelectionOpen(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded flex items-center"
+                variant="ghost"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t('navigation.startNewChecklist')}
+              </Button>
+            )}
             
             {/* User Menu */}
             <UserMenu />
@@ -143,18 +156,20 @@ export default function Navigation() {
               </Button>
             ))}
             
-            {/* Mobile Checklist Selection Button */}
-            <Button
-              onClick={() => {
-                setChecklistSelectionOpen(true);
-                setMobileMenuOpen(false);
-              }}
-              className="block px-3 py-2 rounded-md hover:bg-orange-700 transition-colors bg-orange-600 flex items-center text-white w-full justify-start"
-              variant="ghost"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {t('navigation.startNewChecklist')}
-            </Button>
+            {/* Mobile Checklist Selection Button - only show if user has checklists module */}
+            {hasChecklistsModule && (
+              <Button
+                onClick={() => {
+                  setChecklistSelectionOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="block px-3 py-2 rounded-md hover:bg-orange-700 transition-colors bg-orange-600 flex items-center text-white w-full justify-start"
+                variant="ghost"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t('navigation.startNewChecklist')}
+              </Button>
+            )}
           </div>
         </div>
       )}
