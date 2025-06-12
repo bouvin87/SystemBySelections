@@ -163,7 +163,10 @@ export default function DashboardQuestionCard({
           {renderAverageDisplay()}
 
           <p className="text-xs text-muted-foreground mt-3 text-center">
-            Medelvärde av {values.length} svar
+            {question.type === "ja_nej" || question.type === "check" 
+              ? `${values.filter(v => v === true).length} av ${values.length} svar`
+              : `Medelvärde av ${values.length} svar`
+            }
           </p>
         </CardContent>
 
