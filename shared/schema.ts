@@ -8,7 +8,6 @@ import { z } from "zod";
 export const tenants = pgTable("tenants", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  subdomain: varchar("subdomain", { length: 100 }).notNull().unique(),
   modules: json("modules").$type<string[]>().notNull().default([]), // Active modules: ['checklists', 'maintenance']
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

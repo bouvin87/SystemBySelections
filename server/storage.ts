@@ -17,7 +17,6 @@ export interface IStorage {
   // Tenants
   getTenants(): Promise<Tenant[]>;
   getTenant(id: number): Promise<Tenant | undefined>;
-  getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined>;
   createTenant(tenant: InsertTenant): Promise<Tenant>;
   updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant>;
   deleteTenant(id: number): Promise<void>;
@@ -26,6 +25,7 @@ export interface IStorage {
   getUsers(tenantId: number): Promise<User[]>;
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string, tenantId: number): Promise<User | undefined>;
+  getUserByEmailGlobal(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
@@ -130,10 +130,7 @@ export class DatabaseStorage implements IStorage {
     return tenant || undefined;
   }
 
-  async getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined> {
-    const [tenant] = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain));
-    return tenant || undefined;
-  }
+
 
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
     const [created] = await db.insert(tenants).values(tenant).returning();
@@ -163,6 +160,11 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(
       and(eq(users.email, email), eq(users.tenantId, tenantId))
     );
+    return user || undefined;
+  }
+
+  async getUserByEmailGlobal(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 

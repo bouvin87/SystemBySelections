@@ -36,39 +36,16 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
     
-    // Extract tenant info from subdomain or determine from email domain
-    const host = req.get('host') || '';
-    let subdomain = host.split('.')[0];
-    
-    // For development/replit environment, determine tenant from email domain
-    if (!subdomain || host.includes('localhost') || host.includes('replit.dev') || host.includes('replit.app')) {
-      const emailDomain = email.split('@')[1];
-      
-      // Map email domains to tenant subdomains
-      switch (emailDomain) {
-        case 'demo.se':
-          subdomain = 'demo';
-          break;
-        case 'volvo.se':
-          subdomain = 'volvo';
-          break;
-        case 'ikea.se':
-          subdomain = 'ikea';
-          break;
-        default:
-          subdomain = 'demo'; // fallback to demo
-          break;
-      }
-    }
-
-    const tenant = await storage.getTenantBySubdomain(subdomain);
-    if (!tenant) {
-      return res.status(404).json({ message: 'Tenant not found' });
-    }
-
-    const user = await storage.getUserByEmail(email, tenant.id);
+    // Find user by email across all tenants
+    const user = await storage.getUserByEmailGlobal(email);
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Get the user's tenant
+    const tenant = await storage.getTenant(user.tenantId);
+    if (!tenant) {
+      return res.status(401).json({ message: 'Tenant not found for user' });
     }
 
     const isPasswordValid = await comparePassword(password, user.hashedPassword);
