@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import authRoutes from "./routes/auth";
 import checklistRoutes from "./modules/checklists/routes";
+import superAdminRoutes from "./routes/super-admin";
 import { resolveTenant } from "./middleware/tenant";
 import { 
   authenticateToken, 
@@ -26,6 +27,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // === AUTHENTICATION ROUTES ===
   // Public routes for login, register, and tenant management (handle their own tenant resolution)
   app.use('/api/auth', authRoutes);
+
+  // === SUPER ADMIN ROUTES ===
+  // Protected routes for superadmin functionality (tenant and module management)
+  app.use('/api/super-admin', superAdminRoutes);
 
   // === GLOBAL SECURITY MIDDLEWARE ===
   // Apply comprehensive security to all protected routes

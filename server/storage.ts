@@ -133,7 +133,7 @@ export class DatabaseStorage implements IStorage {
 
 
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
-    const [created] = await db.insert(tenants).values(tenant).returning();
+    const [created] = await db.insert(tenants).values([tenant]).returning();
     return created;
   }
 
@@ -197,7 +197,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorkTask(workTask: InsertWorkTask): Promise<WorkTask> {
-    const [created] = await db.insert(workTasks).values(workTask).returning();
+    const [created] = await db.insert(workTasks).values([workTask]).returning();
     return created;
   }
 
