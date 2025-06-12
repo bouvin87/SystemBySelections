@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { JWTPayload, Tenant } from '@shared/schema';
 
 interface AuthState {
@@ -37,7 +37,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     isLoading: true,
@@ -128,15 +128,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return authState.user ? roles.includes(authState.user.role) : false;
   };
 
-  return (
-    <AuthContext.Provider value={{
-      ...authState,
-      login,
-      logout,
-      hasModule,
-      hasRole,
-    }}>
-      {children}
-    </AuthContext.Provider>
+  return React.createElement(
+    AuthContext.Provider,
+    {
+      value: {
+        ...authState,
+        login,
+        logout,
+        hasModule,
+        hasRole,
+      }
+    },
+    children
   );
 };
