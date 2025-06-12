@@ -433,70 +433,69 @@ export default function FormModal({
       <div className="space-y-6">
         <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
         {categoryQuestions.map((question) => (
-          <Card key={question.id} className="p-4">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-gray-900">
-                {question.text}
-                {question.isRequired && (
-                  <span className="text-destructive ml-1">*</span>
-                )}
-              </Label>
+          <div key={question.id} className="space-y-3">
+            <Label className="text-sm font-medium text-gray-900">
+              {question.text}
+              {question.isRequired && (
+                <span className="text-destructive ml-1">*</span>
+              )}
+            </Label>
 
-              {question.type === "text" && (
-                <Textarea
-                  placeholder="Skriv dina kommentarer här..."
-                  value={formData.responses[question.id] || ""}
-                  onChange={(e) => {
+            {question.type === "text" && (
+              <Textarea
+                placeholder="Skriv dina kommentarer här..."
+                value={formData.responses[question.id] || ""}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    responses: {
+                      ...prev.responses,
+                      [question.id]: e.target.value,
+                    },
+                  }));
+                }}
+                rows={3}
+              />
+            )}
+
+            {question.type === "val" &&
+              question.options &&
+              Array.isArray(question.options) && (
+                <RadioGroup
+                  value={formData.responses[question.id]?.toString() || ""}
+                  onValueChange={(value) => {
                     setFormData((prev) => ({
                       ...prev,
-                      responses: {
-                        ...prev.responses,
-                        [question.id]: e.target.value,
-                      },
+                      responses: { ...prev.responses, [question.id]: value },
                     }));
                   }}
-                  rows={3}
-                />
+                >
+                  {question.options.map((option: string, index: number) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={option}
+                        id={`${question.id}-${index}`}
+                      />
+                      <Label
+                        htmlFor={`${question.id}-${index}`}
+                        className="text-sm text-gray-700"
+                      >
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
               )}
 
-              {question.type === "val" &&
-                question.options &&
-                Array.isArray(question.options) && (
-                  <RadioGroup
-                    value={formData.responses[question.id]?.toString() || ""}
-                    onValueChange={(value) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: { ...prev.responses, [question.id]: value },
-                      }));
-                    }}
-                  >
-                    {question.options.map((option: string, index: number) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value={option}
-                          id={`${question.id}-${index}`}
-                        />
-                        <Label
-                          htmlFor={`${question.id}-${index}`}
-                          className="text-sm text-gray-700"
-                        >
-                          {option}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                )}
-
-              {question.type === "nummer" && (
-                <Input
-                  type="number"
-                  placeholder="Ange nummer..."
-                  value={formData.responses[question.id] || ""}
-                  onChange={(e) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      responses: {
+            {question.type === "nummer" && (
+              <Input
+                type="number"
+                placeholder="Ange nummer..."
+                value={formData.responses[question.id] || ""}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    responses: {
                         ...prev.responses,
                         [question.id]: e.target.value,
                       },
@@ -626,8 +625,7 @@ export default function FormModal({
                   ))}
                 </div>
               )}
-            </div>
-          </Card>
+          </div>
         ))}
       </div>
     );
