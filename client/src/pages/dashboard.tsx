@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { Link } from "wouter";
 import { BarChart, TrendingUp } from "lucide-react";
+import { renderIcon } from "@/lib/icon-utils";
 import type { Checklist } from "@shared/schema";
 
 export default function Dashboard() {
@@ -31,7 +32,7 @@ export default function Dashboard() {
               <Card key={checklist.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BarChart className="h-5 w-5 text-blue-600" />
+                    {renderIcon(checklist.icon, "h-5 w-5 text-blue-600") || <BarChart className="h-5 w-5 text-blue-600" />}
                     {checklist.name}
                   </CardTitle>
                   {checklist.description && (

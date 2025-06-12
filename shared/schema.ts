@@ -50,6 +50,7 @@ export const categories = pgTable("categories", {
   description: text("description"),
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+  icon: text("icon"), // Lucide icon name
 });
 
 // Questions (now belongs to categories within checklists)

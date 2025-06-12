@@ -20,6 +20,8 @@ import { Plus, Edit, Trash2, Save, ArrowLeft, ChevronDown, ChevronRight } from "
 import { Link, useParams } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import IconPicker from "@/components/IconPicker";
+import { renderIcon } from "@/lib/icon-utils";
 import type {
   Category,
   InsertCategory,
@@ -53,6 +55,7 @@ export default function ChecklistEditor() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [selectedQuestionType, setSelectedQuestionType] = useState<string>("");
+  const [selectedCategoryIcon, setSelectedCategoryIcon] = useState<string>("");
   const { toast } = useToast();
 
   // Queries
@@ -161,6 +164,7 @@ export default function ChecklistEditor() {
 
   const openDialog = (item?: any) => {
     setEditingItem(item);
+    setSelectedCategoryIcon(item?.icon || "");
     setDialogOpen(true);
   };
 
@@ -258,6 +262,7 @@ export default function ChecklistEditor() {
                         description: formData.get("description") as string || undefined,
                         order: parseInt(formData.get("order") as string) || 0,
                         isActive: formData.get("isActive") === "on",
+                        icon: selectedCategoryIcon || undefined,
                       };
                       handleSubmit("/api/categories", data);
                     }}
