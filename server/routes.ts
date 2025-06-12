@@ -6,7 +6,7 @@ import { resolveTenant } from "./middleware/tenant";
 import { authenticateToken } from "./middleware/auth";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
-  insertChecklistSchema
+  insertChecklistSchema, insertCategorySchema, insertQuestionSchema
 } from "@shared/schema";
 
 /**
@@ -274,6 +274,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete checklist error:', error);
       res.status(500).json({ message: "Failed to delete checklist" });
+    }
+  });
+
+  // === CATEGORIES ===
+  app.get("/api/categories", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const checklistId = req.query.checklistId ? parseInt(req.query.checklistId as string) : null;
+      if (!checklistId) {
+        return res.status(400).json({ message: "checklistId is required" });
+      }
+      const categories = await storage.getCategories(checklistId, req.tenantId!);
+      res.json(categories);
+    } catch (error) {
+      console.error('Get categories error:', error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.post("/api/categories", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const validatedData = insertCategorySchema.omit({ tenantId: true }).parse(req.body);
+      const categoryData = { ...validatedData, tenantId: req.tenantId! };
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error('Create category error:', error);
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+
+  app.patch("/api/categories/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertCategorySchema.omit({ tenantId: true }).partial().parse(req.body);
+      const category = await storage.updateCategory(id, validatedData, req.tenantId!);
+      res.json(category);
+    } catch (error) {
+      console.error('Update category error:', error);
+      res.status(400).json({ message: "Invalid category data" });
+    }
+  });
+
+  app.delete("/api/categories/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCategory(id, req.tenantId!);
+      res.status(200).json({ message: "Category deleted" });
+    } catch (error) {
+      console.error('Delete category error:', error);
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+
+  // === QUESTIONS ===
+  app.get("/api/questions", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : null;
+      if (!categoryId) {
+        return res.status(400).json({ message: "categoryId is required" });
+      }
+      const questions = await storage.getQuestions(categoryId, req.tenantId!);
+      res.json(questions);
+    } catch (error) {
+      console.error('Get questions error:', error);
+      res.status(500).json({ message: "Failed to fetch questions" });
+    }
+  });
+
+  app.post("/api/questions", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const validatedData = insertQuestionSchema.omit({ tenantId: true }).parse(req.body);
+      const questionData = { ...validatedData, tenantId: req.tenantId! };
+      const question = await storage.createQuestion(questionData);
+      res.status(201).json(question);
+    } catch (error) {
+      console.error('Create question error:', error);
+      res.status(400).json({ message: "Invalid question data" });
+    }
+  });
+
+  app.patch("/api/questions/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertQuestionSchema.omit({ tenantId: true }).partial().parse(req.body);
+      const question = await storage.updateQuestion(id, validatedData, req.tenantId!);
+      res.json(question);
+    } catch (error) {
+      console.error('Update question error:', error);
+      res.status(400).json({ message: "Invalid question data" });
+    }
+  });
+
+  app.delete("/api/questions/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteQuestion(id, req.tenantId!);
+      res.status(200).json({ message: "Question deleted" });
+    } catch (error) {
+      console.error('Delete question error:', error);
+      res.status(500).json({ message: "Failed to delete question" });
     }
   });
 

@@ -33,6 +33,10 @@ import type {
   InsertWorkStation,
   Shift,
   InsertShift,
+  Category,
+  InsertCategory,
+  Question,
+  InsertQuestion,
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
 
@@ -42,6 +46,12 @@ export default function Admin() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedIcon, setSelectedIcon] = useState<string>("");
+  const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isLoading } = useAuth();
@@ -83,6 +93,16 @@ export default function Admin() {
   const { data: shifts = [] } = useQuery<Shift[]>({
     queryKey: ["/api/shifts"],
     enabled: activeTab === "basic-data",
+  });
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories", selectedChecklistId],
+    enabled: selectedChecklistId !== null,
+  });
+
+  const { data: questions = [] } = useQuery<Question[]>({
+    queryKey: ["/api/questions", selectedCategoryId],
+    enabled: selectedCategoryId !== null,
   });
 
   // Mutations
