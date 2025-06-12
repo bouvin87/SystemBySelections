@@ -19,6 +19,7 @@ import { Plus, Edit, Trash2, Save, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import IconPicker from "@/components/IconPicker";
+import { renderIcon } from "@/lib/icon-utils";
 import type {
   Checklist,
   InsertChecklist,
@@ -75,6 +76,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       setDialogOpen(false);
       setEditingItem(null);
+      setSelectedIcon("");
       toast({ title: "Sparat!", description: "Objektet har skapats." });
     },
     onError: () => {
@@ -100,6 +102,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       setDialogOpen(false);
       setEditingItem(null);
+      setSelectedIcon("");
       toast({ title: "Uppdaterat!", description: "Objektet har uppdaterats." });
     },
     onError: () => {
@@ -300,7 +303,10 @@ export default function Admin() {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="text-sm font-medium text-gray-900">{checklist.name}</h4>
+                            <div className="flex items-center gap-2">
+                              {renderIcon(checklist.icon, "h-4 w-4 text-gray-600")}
+                              <h4 className="text-sm font-medium text-gray-900">{checklist.name}</h4>
+                            </div>
                             {checklist.description && (
                               <p className="text-sm text-gray-600">{checklist.description}</p>
                             )}

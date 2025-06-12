@@ -5,6 +5,7 @@ import { ClipboardList, Menu, X, CheckSquare } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Checklist } from "@shared/schema";
 import FormModal from "@/components/FormModal";
+import { renderIcon } from "@/lib/icon-utils";
 
 export default function Navigation() {
   const [location] = useLocation();
