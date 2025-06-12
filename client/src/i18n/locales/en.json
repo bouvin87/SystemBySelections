@@ -29,7 +29,10 @@
     "endTime": "End time",
     "hasStations": "Has stations",
     "workTask": "Work task",
-    "icon": "Icon"
+    "icon": "Icon",
+    "selectIcon": "Select icon",
+    "hasDashboard": "Has dashboard",
+    "basicData": "Basic data"
   },
   "dashboard": {
     "title": "Dashboard",

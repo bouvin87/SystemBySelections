@@ -29,7 +29,10 @@
     "endTime": "Sluttid",
     "hasStations": "Har stationer",
     "workTask": "Arbetsuppgift",
-    "icon": "Ikon"
+    "icon": "Ikon",
+    "selectIcon": "Välj ikon",
+    "hasDashboard": "Har egen dashboard",
+    "basicData": "Grunddata"
   },
   "dashboard": {
     "title": "Dashboard",

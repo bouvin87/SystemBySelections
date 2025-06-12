@@ -190,7 +190,7 @@ export default function Admin() {
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>
-                          {editingItem ? "Redigera checklista" : "Ny checklista"}
+                          {editingItem ? t('admin.edit') + " " + t('admin.checklists').toLowerCase() : t('admin.add') + " " + t('admin.checklists').toLowerCase()}
                         </DialogTitle>
                       </DialogHeader>
                       <form
@@ -214,7 +214,7 @@ export default function Admin() {
                         className="space-y-4"
                       >
                         <div>
-                          <Label htmlFor="name">Namn</Label>
+                          <Label htmlFor="name">{t('admin.name')}</Label>
                           <Input
                             id="name"
                             name="name"
@@ -223,7 +223,7 @@ export default function Admin() {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="description">Beskrivning</Label>
+                          <Label htmlFor="description">{t('admin.description')}</Label>
                           <Textarea
                             id="description"
                             name="description"
@@ -233,10 +233,10 @@ export default function Admin() {
                         <IconPicker
                           value={selectedIcon}
                           onChange={setSelectedIcon}
-                          placeholder="Välj ikon för checklistan"
+                          placeholder={t('admin.selectIcon')}
                         />
                         <div>
-                          <Label htmlFor="order">Ordning</Label>
+                          <Label htmlFor="order">{t('admin.order')}</Label>
                           <Input
                             id="order"
                             name="order"
@@ -250,7 +250,7 @@ export default function Admin() {
                             name="includeWorkTasks"
                             defaultChecked={editingItem?.includeWorkTasks ?? true}
                           />
-                          <Label htmlFor="includeWorkTasks">Inkludera arbetsmoment</Label>
+                          <Label htmlFor="includeWorkTasks">{t('admin.includeWorkTasks')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -258,7 +258,7 @@ export default function Admin() {
                             name="includeWorkStations"
                             defaultChecked={editingItem?.includeWorkStations ?? true}
                           />
-                          <Label htmlFor="includeWorkStations">Inkludera stationer</Label>
+                          <Label htmlFor="includeWorkStations">{t('admin.includeWorkStations')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -266,7 +266,7 @@ export default function Admin() {
                             name="includeShifts"
                             defaultChecked={editingItem?.includeShifts ?? true}
                           />
-                          <Label htmlFor="includeShifts">Inkludera skift</Label>
+                          <Label htmlFor="includeShifts">{t('admin.includeShifts')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -274,7 +274,7 @@ export default function Admin() {
                             name="isActive"
                             defaultChecked={editingItem?.isActive ?? true}
                           />
-                          <Label htmlFor="isActive">Aktiv</Label>
+                          <Label htmlFor="isActive">{t('admin.active')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -282,7 +282,7 @@ export default function Admin() {
                             name="showInMenu"
                             defaultChecked={editingItem?.showInMenu ?? false}
                           />
-                          <Label htmlFor="showInMenu">Visa som knapp i menyn</Label>
+                          <Label htmlFor="showInMenu">{t('admin.showInMenu')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -290,11 +290,11 @@ export default function Admin() {
                             name="hasDashboard"
                             defaultChecked={editingItem?.hasDashboard ?? false}
                           />
-                          <Label htmlFor="hasDashboard">Har egen dashboard</Label>
+                          <Label htmlFor="hasDashboard">{t('admin.hasDashboard')}</Label>
                         </div>
                         <Button type="submit" className="w-full">
                           <Save className="mr-2 h-4 w-4" />
-                          Spara
+                          {t('admin.save')}
                         </Button>
                       </form>
                     </DialogContent>
@@ -316,11 +316,11 @@ export default function Admin() {
                             )}
                             <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
                               <Badge variant={checklist.isActive ? "default" : "secondary"}>
-                                {checklist.isActive ? "Aktiv" : "Inaktiv"}
+                                {checklist.isActive ? t('admin.active') : t('admin.inactive')}
                               </Badge>
-                              {checklist.includeWorkTasks && <span>Arbetsmoment</span>}
-                              {checklist.includeWorkStations && <span>Stationer</span>}
-                              {checklist.includeShifts && <span>Skift</span>}
+                              {checklist.includeWorkTasks && <span>{t('admin.workTasks')}</span>}
+                              {checklist.includeWorkStations && <span>{t('admin.workStations')}</span>}
+                              {checklist.includeShifts && <span>{t('admin.shifts')}</span>}
                             </div>
                           </div>
                           <div className="flex space-x-2">
