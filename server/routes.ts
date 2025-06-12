@@ -3,6 +3,11 @@ import { createServer, type Server } from "http";
 import authRoutes from "./routes/auth";
 import checklistRoutes from "./modules/checklists/routes";
 import { resolveTenant } from "./middleware/tenant";
+import { authenticateToken } from "./middleware/auth";
+import {
+  insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
+  insertChecklistSchema
+} from "@shared/schema";
 
 /**
  * MULTI-TENANT SAAS ROUTE REGISTRATION
@@ -70,51 +75,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // === BACKWARD COMPATIBILITY ROUTES ===
-  // These routes provide backward compatibility with the old API structure
-  // while redirecting to the new modular endpoints
-
-  // Legacy checklist routes - redirect to module routes
-  app.use('/api/checklists*', (req, res, next) => {
-    // Redirect old checklist API calls to new module structure
-    const newPath = req.path.replace('/api/checklists', '/api/modules/checklists/checklists');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  // Direct routes using old storage for backward compatibility
+  
+  const { storage } = await import('./storage');
+  
+  // Work Tasks
+  app.get('/api/work-tasks', authenticateToken, async (req, res) => {
+    try {
+      const workTasks = await storage.getWorkTasks(req.tenantId!);
+      res.json(workTasks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch work tasks" });
+    }
   });
 
-  app.use('/api/work-tasks*', (req, res, next) => {
-    const newPath = req.path.replace('/api/work-tasks', '/api/modules/checklists/work-tasks');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  app.post('/api/work-tasks', authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertWorkTaskSchema.parse(req.body);
+      const workTask = await storage.createWorkTask({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(workTask);
+    } catch (error) {
+      console.error('Create work task error:', error);
+      res.status(400).json({ message: "Invalid work task data" });
+    }
   });
 
-  app.use('/api/work-stations*', (req, res, next) => {
-    const newPath = req.path.replace('/api/work-stations', '/api/modules/checklists/work-stations');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  // Work Stations  
+  app.get('/api/work-stations', authenticateToken, async (req, res) => {
+    try {
+      const workTaskId = req.query.workTaskId ? parseInt(req.query.workTaskId as string) : undefined;
+      const workStations = await storage.getWorkStations(req.tenantId!, workTaskId);
+      res.json(workStations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch work stations" });
+    }
   });
 
-  app.use('/api/shifts*', (req, res, next) => {
-    const newPath = req.path.replace('/api/shifts', '/api/modules/checklists/shifts');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  app.post('/api/work-stations', authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertWorkStationSchema.parse(req.body);
+      const workStation = await storage.createWorkStation({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(workStation);
+    } catch (error) {
+      console.error('Create work station error:', error);
+      res.status(400).json({ message: "Invalid work station data" });
+    }
   });
 
-  app.use('/api/categories*', (req, res, next) => {
-    const newPath = req.path.replace('/api/categories', '/api/modules/checklists/categories');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  // Shifts
+  app.get('/api/shifts', authenticateToken, async (req, res) => {
+    try {
+      const shifts = await storage.getShifts(req.tenantId!);
+      res.json(shifts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch shifts" });
+    }
   });
 
-  app.use('/api/questions*', (req, res, next) => {
-    const newPath = req.path.replace('/api/questions', '/api/modules/checklists/questions');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  app.post('/api/shifts', authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertShiftSchema.parse(req.body);
+      const shift = await storage.createShift({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(shift);
+    } catch (error) {
+      console.error('Create shift error:', error);
+      res.status(400).json({ message: "Invalid shift data" });
+    }
   });
 
-  app.use('/api/responses*', (req, res, next) => {
-    const newPath = req.path.replace('/api/responses', '/api/modules/checklists/responses');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  // Checklists
+  app.get('/api/checklists', authenticateToken, async (req, res) => {
+    try {
+      const checklists = await storage.getChecklists(req.tenantId!);
+      res.json(checklists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch checklists" });
+    }
+  });
+
+  app.get('/api/checklists/active', authenticateToken, async (req, res) => {
+    try {
+      const checklists = await storage.getActiveChecklists(req.tenantId!);
+      res.json(checklists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch active checklists" });
+    }
+  });
+
+  app.post('/api/checklists', authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertChecklistSchema.parse(req.body);
+      const checklist = await storage.createChecklist({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(checklist);
+    } catch (error) {
+      console.error('Create checklist error:', error);
+      res.status(400).json({ message: "Invalid checklist data" });
+    }
   });
 
   app.use('/api/dashboard*', (req, res, next) => {
