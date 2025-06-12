@@ -58,7 +58,11 @@
     "selectOption": "Select option",
     "selectDate": "Select date",
     "selectFile": "Select file",
-    "markAsCompleted": "Mark as completed"
+    "markAsCompleted": "Mark as completed",
+    "newControl": "New control",
+    "step": "Step",
+    "of": "of",
+    "complete": "complete"
   },
   "questions": {
     "types": {

@@ -58,7 +58,11 @@
     "selectOption": "Välj alternativ",
     "selectDate": "Välj datum",
     "selectFile": "Välj fil",
-    "markAsCompleted": "Markera som utförd"
+    "markAsCompleted": "Markera som utförd",
+    "newControl": "Ny kontroll",
+    "step": "Steg",
+    "of": "av",
+    "complete": "klart"
   },
   "questions": {
     "types": {

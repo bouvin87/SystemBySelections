@@ -203,8 +203,8 @@ export default function FormModal({
     questions.some((question) => question.categoryId === category.id),
   );
 
-  const totalSteps = 1 + categoriesWithQuestions.length; // Only identification step + category steps with questions
-  const progress = ((currentStep - 1) / totalSteps) * 100;
+  const totalSteps = categoriesWithQuestions.length; // Only category steps with questions (since we start at step 2)
+  const progress = ((currentStep - 2) / totalSteps) * 100;
 
   const handleNext = () => {
     if (currentStep < totalSteps + 1) {
@@ -709,8 +709,8 @@ export default function FormModal({
     (c) => c.id === formData.checklistId,
   );
   const modalTitle = selectedChecklist
-    ? `Ny ${selectedChecklist.name}`
-    : "Ny kontroll";
+    ? selectedChecklist.name
+    : t('form.newControl');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -723,10 +723,10 @@ export default function FormModal({
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 -mx-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              Steg {currentStep - 1} av {totalSteps}
+              {t('form.step')} {currentStep - 1} {t('form.of')} {totalSteps}
             </span>
             <span className="text-sm text-gray-500">
-              {Math.round(progress)}% klart
+              {Math.round(progress)}% {t('form.complete')}
             </span>
           </div>
           <Progress value={progress} className="w-full" />
