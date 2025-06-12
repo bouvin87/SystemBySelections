@@ -14,13 +14,13 @@ import { resolveTenant } from "./middleware/tenant";
  */
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // === GLOBAL MIDDLEWARE ===
-  // Tenant resolution middleware (extracts tenant from subdomain)
-  app.use('/api', resolveTenant);
-
   // === AUTHENTICATION ROUTES ===
-  // Public routes for login, register, and tenant management
+  // Public routes for login, register, and tenant management (handle their own tenant resolution)
   app.use('/api/auth', authRoutes);
+
+  // === GLOBAL MIDDLEWARE ===
+  // Tenant resolution middleware for protected routes only
+  app.use('/api/modules', resolveTenant);
 
   // === MODULE ROUTES ===
   // Checklist module - protected and tenant-scoped
