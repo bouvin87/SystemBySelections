@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp, BarChart3, Target, Hash } from "lucide-react";
+import { TrendingUp, BarChart3, Target, Hash, Star, Frown, Meh, Smile } from "lucide-react";
 import type { Question, ChecklistResponse } from "@shared/schema";
 
 interface DashboardQuestionCardProps {
@@ -97,27 +97,35 @@ export default function DashboardQuestionCard({
 
     const renderAverageDisplay = () => {
       if (question.type === "humör") {
-        const moodEmojis = ["😞", "😐", "🙂", "😊", "😄"];
-        const emoji = moodEmojis[Math.max(0, Math.min(4, roundedAverage - 1))];
+        const moodIcons = [
+          { icon: Frown, color: "text-red-500" },
+          { icon: Frown, color: "text-orange-500" },
+          { icon: Meh, color: "text-yellow-500" },
+          { icon: Smile, color: "text-green-500" },
+          { icon: Smile, color: "text-green-600" }
+        ];
+        const iconData = moodIcons[Math.max(0, Math.min(4, roundedAverage - 1))];
+        const IconComponent = iconData.icon;
         return (
           <div className="text-center">
-            <div className="text-4xl mb-2">{emoji}</div>
+            <div className="mb-2">
+              <IconComponent className={`h-12 w-12 mx-auto ${iconData.color}`} />
+            </div>
             <div className="text-2xl font-bold">{average.toFixed(1)}</div>
           </div>
         );
       } else if (question.type === "stjärnor") {
         return (
           <div className="text-center">
-            <div className="flex justify-center mb-2">
+            <div className="flex justify-center mb-2 space-x-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <span
+                <Star
                   key={star}
-                  className={`text-4xl ${
+                  className={`h-8 w-8 ${
                     star <= roundedAverage ? "text-yellow-400" : "text-gray-300"
                   }`}
-                >
-                  ★
-                </span>
+                  fill={star <= roundedAverage ? "currentColor" : "none"}
+                />
               ))}
             </div>
             <div className="text-2xl font-bold">{average.toFixed(1)}</div>
