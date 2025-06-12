@@ -18,8 +18,10 @@ import {
 import { Plus, Edit, Trash2, Save, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
 import IconPicker from "@/components/IconPicker";
 import { renderIcon } from "@/lib/icon-utils";
+import LanguageSelector from "@/components/LanguageSelector";
 import type {
   Checklist,
   InsertChecklist,
@@ -39,6 +41,7 @@ export default function Admin() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedIcon, setSelectedIcon] = useState<string>("");
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Queries
   const { data: checklists = [] } = useQuery<Checklist[]>({
@@ -163,13 +166,14 @@ export default function Admin() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Administration</CardTitle>
+            <CardTitle>{t('admin.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="checklists">Checklistor</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="checklists">{t('admin.checklists')}</TabsTrigger>
                 <TabsTrigger value="basic-data">Grunddata</TabsTrigger>
+                <TabsTrigger value="settings">{t('admin.settings')}</TabsTrigger>
               </TabsList>
 
               {/* Checklists Tab */}
@@ -665,6 +669,21 @@ export default function Admin() {
                     </div>
                   </TabsContent>
                 </Tabs>
+              </TabsContent>
+
+              {/* Settings Tab */}
+              <TabsContent value="settings">
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">{t('admin.settings')}</h3>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t('admin.language')}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <LanguageSelector />
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
