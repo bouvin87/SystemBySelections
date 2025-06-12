@@ -1,8 +1,29 @@
 import express from 'express';
 import { loginSchema, insertUserSchema, insertTenantSchema } from '@shared/schema';
 import { storage } from '../storage';
-import { generateToken, hashPassword, comparePassword } from '../middleware/auth';
-import { requireSuperAdmin } from '../middleware/auth';
+import { generateToken, hashPassword, comparePassword, requireSuperAdmin } from '../middleware/auth';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+// Simple authentication middleware for this route file
+const authenticateToken = (req: any, res: any, next: any) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    req.user = decoded;
+    req.tenantId = decoded.tenantId;
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
+};
 
 const router = express.Router();
 
@@ -65,6 +86,37 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Login failed' });
+  }
+});
+
+// Get current user info (protected route)
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const user = await storage.getUser(req.user!.userId);
+    const tenant = await storage.getTenant(req.user!.tenantId);
+    
+    if (!user || !tenant) {
+      return res.status(404).json({ message: 'User or tenant not found' });
+    }
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        subdomain: tenant.subdomain,
+        modules: tenant.modules,
+      },
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({ message: 'Failed to get user data' });
   }
 });
 
