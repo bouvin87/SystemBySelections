@@ -7,14 +7,23 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User, Building2, Settings } from 'lucide-react';
+import { LogOut, User, Building2, Settings, Languages, Check } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useTranslation } from 'react-i18next';
 
 export default function UserMenu() {
   const { user, tenant, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const { i18n, t } = useTranslation();
+
+  const changeLanguage = (language: string) => {
+    i18n.changeLanguage(language);
+  };
 
   if (!user || !tenant) {
     return null;
@@ -62,6 +71,27 @@ export default function UserMenu() {
           <User className="mr-2 h-4 w-4" />
           <span className="text-sm capitalize">{user.role}</span>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Languages className="mr-2 h-4 w-4" />
+            <span>Språk</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onClick={() => changeLanguage('sv')}>
+              <div className="flex items-center">
+                {i18n.language === 'sv' && <Check className="mr-2 h-4 w-4" />}
+                <span className={i18n.language !== 'sv' ? 'ml-6' : ''}>Svenska</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => changeLanguage('en')}>
+              <div className="flex items-center">
+                {i18n.language === 'en' && <Check className="mr-2 h-4 w-4" />}
+                <span className={i18n.language !== 'en' ? 'ml-6' : ''}>English</span>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         {user.role === 'admin' && (
           <>

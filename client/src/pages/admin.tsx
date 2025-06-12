@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1054,10 +1054,15 @@ export default function Admin() {
                   <h3 className="text-lg font-medium">{t('admin.settings')}</h3>
                   <Card>
                     <CardHeader>
-                      <CardTitle>{t('admin.language')}</CardTitle>
+                      <CardTitle>Systeminställningar</CardTitle>
+                      <CardDescription>
+                        Allmänna inställningar för systemet. Språkinställningar finns nu i användarmenyn.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <LanguageSelector />
+                      <p className="text-sm text-muted-foreground">
+                        Inga systemspecifika inställningar tillgängliga för närvarande.
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
