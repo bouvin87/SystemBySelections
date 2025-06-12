@@ -434,12 +434,14 @@ export default function FormModal({
         <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
         {categoryQuestions.map((question) => (
           <div key={question.id} className="space-y-3">
-            <Label className="text-sm font-medium text-gray-900">
-              {question.text}
-              {question.isRequired && (
-                <span className="text-destructive ml-1">*</span>
-              )}
-            </Label>
+            {question.type !== "check" && (
+              <Label className="text-sm font-medium text-gray-900">
+                {question.text}
+                {question.isRequired && (
+                  <span className="text-destructive ml-1">*</span>
+                )}
+              </Label>
+            )}
 
             {question.type === "text" && (
               <Textarea
@@ -649,6 +651,9 @@ export default function FormModal({
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     {question.text}
+                    {question.isRequired && (
+                      <span className="text-destructive ml-1">*</span>
+                    )}
                   </Label>
                 </div>
               )}
