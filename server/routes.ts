@@ -140,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/work-tasks/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/work-tasks/:id', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteWorkTask(id, req.tenantId!);
@@ -151,8 +151,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Work Stations  
-  app.get('/api/work-stations', authenticateToken, async (req, res) => {
+  // Work Stations - require checklists module
+  app.get('/api/work-stations', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const workTaskId = req.query.workTaskId ? parseInt(req.query.workTaskId as string) : undefined;
       const workStations = await storage.getWorkStations(req.tenantId!, workTaskId);
@@ -162,7 +162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/work-stations', authenticateToken, async (req, res) => {
+  app.post('/api/work-stations', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const validatedData = insertWorkStationSchema.parse(req.body);
       const workStation = await storage.createWorkStation({
@@ -176,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/work-stations/:id', authenticateToken, async (req, res) => {
+  app.patch('/api/work-stations/:id', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertWorkStationSchema.partial().parse(req.body);
@@ -188,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/work-stations/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/work-stations/:id', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteWorkStation(id, req.tenantId!);
