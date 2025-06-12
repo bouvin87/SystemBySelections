@@ -2,39 +2,51 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { 
-  Check, 
-  CheckSquare, 
-  ClipboardList, 
-  FileText, 
-  Settings, 
-  Users, 
-  Calendar, 
-  Clock, 
-  Target, 
-  TrendingUp, 
-  BarChart3, 
-  PieChart, 
-  Activity, 
-  Zap, 
-  Star, 
-  Heart, 
-  Smile, 
-  ThumbsUp, 
-  Award, 
-  Shield, 
-  Wrench, 
-  Cog, 
-  Factory, 
-  Building, 
-  Package, 
-  Truck, 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Check,
+  CheckSquare,
+  ClipboardList,
+  FileText,
+  Settings,
+  Users,
+  Calendar,
+  Clock,
+  Target,
+  TrendingUp,
+  BarChart3,
+  PieChart,
+  Activity,
+  Zap,
+  Star,
+  Heart,
+  Smile,
+  ThumbsUp,
+  Award,
+  Shield,
+  Wrench,
+  Cog,
+  Factory,
+  Building,
+  Package,
+  Truck,
   Clipboard,
   Search,
   Plus,
-  X
+  Forklift,
+  X,
 } from "lucide-react";
 
 const commonIcons = [
@@ -65,6 +77,7 @@ const commonIcons = [
   { name: "Building", icon: Building, value: "Building" },
   { name: "Package", icon: Package, value: "Package" },
   { name: "Truck", icon: Truck, value: "Truck" },
+  { name: "Forklift", icon: Forklift, value: "Forklift" },
 ];
 
 interface IconPickerProps {
@@ -73,14 +86,18 @@ interface IconPickerProps {
   placeholder?: string;
 }
 
-export default function IconPicker({ value, onChange, placeholder = "Välj ikon" }: IconPickerProps) {
+export default function IconPicker({
+  value,
+  onChange,
+  placeholder = "Välj ikon",
+}: IconPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const selectedIcon = commonIcons.find(icon => icon.value === value);
+  const selectedIcon = commonIcons.find((icon) => icon.value === value);
 
-  const filteredIcons = commonIcons.filter(icon =>
-    icon.name.toLowerCase().includes(search.toLowerCase())
+  const filteredIcons = commonIcons.filter((icon) =>
+    icon.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -109,8 +126,8 @@ export default function IconPicker({ value, onChange, placeholder = "Välj ikon"
         </PopoverTrigger>
         <PopoverContent className="w-[400px] p-0">
           <Command>
-            <CommandInput 
-              placeholder="Sök ikoner..." 
+            <CommandInput
+              placeholder="Sök ikoner..."
               value={search}
               onValueChange={setSearch}
             />

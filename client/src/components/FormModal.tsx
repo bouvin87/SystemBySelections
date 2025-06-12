@@ -648,7 +648,7 @@ export default function FormModal({
                     htmlFor={`check-${question.id}`}
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Markera som utförd
+                    {question.text}
                   </Label>
                 </div>
               )}
