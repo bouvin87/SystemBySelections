@@ -38,6 +38,7 @@ export const checklists = pgTable("checklists", {
   showInMenu: boolean("show_in_menu").notNull().default(false),
   hasDashboard: boolean("has_dashboard").notNull().default(false),
   order: integer("order").notNull().default(0),
+  icon: text("icon"), // Lucide icon name
 });
 
 // Categories (now belongs to specific checklists)
