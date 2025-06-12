@@ -61,25 +61,15 @@ router.post('/login', async (req, res) => {
       }
     }
 
-    console.log(`Login attempt - Email: ${email}, Host: ${host}, Initial subdomain: ${subdomain}`);
-    console.log(`Development check - localhost?: ${host.includes('localhost')}, replit.dev?: ${host.includes('replit.dev')}, replit.app?: ${host.includes('replit.app')}`);
-    console.log(`Final subdomain after processing: ${subdomain}`);
-
     const tenant = await storage.getTenantBySubdomain(subdomain);
     if (!tenant) {
-      console.log(`Tenant not found for subdomain: ${subdomain}`);
       return res.status(404).json({ message: 'Tenant not found' });
     }
 
-    console.log(`Found tenant: ${tenant.name} (ID: ${tenant.id})`);
-
     const user = await storage.getUserByEmail(email, tenant.id);
     if (!user || !user.isActive) {
-      console.log(`User not found or inactive: ${email} in tenant ${tenant.id}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    console.log(`Found user: ${user.email} (ID: ${user.id}) in tenant ${tenant.name}`);
 
     const isPasswordValid = await comparePassword(password, user.hashedPassword);
     if (!isPasswordValid) {
