@@ -63,7 +63,7 @@ export default function UserMenu() {
           <div className="flex flex-col">
             <span className="text-sm">{tenant.name}</span>
             <span className="text-xs text-muted-foreground">
-              {tenant.subdomain}.app.com
+              Tenant ID: {tenant.id}
             </span>
           </div>
         </DropdownMenuItem>
