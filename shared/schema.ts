@@ -15,17 +15,15 @@ export const tenants = pgTable("tenants", {
 // Users - Multi-tenant aware with roles
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
-  email: varchar("email", { length: 255 }).notNull(),
+  tenantId: integer("tenant_id").references(() => tenants.id), // Nullable for superadmin
+  email: varchar("email", { length: 255 }).notNull().unique(),
   hashedPassword: text("hashed_password").notNull(),
   role: text("role").notNull().default("user"), // superadmin, admin, underadmin, user
   firstName: text("first_name"),
   lastName: text("last_name"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
-  emailTenantUnique: unique().on(table.email, table.tenantId),
-}));
+});
 
 // === MODULE: CHECKLISTS ===
 

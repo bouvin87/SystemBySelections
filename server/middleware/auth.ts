@@ -35,9 +35,17 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     
     // Validate required fields in JWT payload
-    if (!decoded.userId || !decoded.tenantId || !decoded.role) {
+    if (!decoded.userId || !decoded.role) {
       return res.status(403).json({ 
         message: 'Invalid token payload',
+        error: 'INVALID_TOKEN_PAYLOAD'
+      });
+    }
+    
+    // Superadmin users don't need a tenant
+    if (decoded.role !== 'superadmin' && !decoded.tenantId) {
+      return res.status(403).json({ 
+        message: 'Invalid token payload - tenant required',
         error: 'INVALID_TOKEN_PAYLOAD'
       });
     }
@@ -94,10 +102,22 @@ export const requireModule = (moduleName: string) => {
       });
     }
 
+    // Superadmin has access to all modules
+    if (req.user.role === 'superadmin') {
+      return next();
+    }
+
     // Import storage here to avoid circular dependencies
     const { storage } = await import('../storage');
     
     try {
+      if (!req.user.tenantId) {
+        return res.status(403).json({ 
+          message: 'No tenant associated with user',
+          error: 'NO_TENANT'
+        });
+      }
+
       const tenant = await storage.getTenant(req.user.tenantId);
       if (!tenant || !tenant.modules.includes(moduleName)) {
         return res.status(403).json({ 
@@ -120,10 +140,22 @@ export const requireModule = (moduleName: string) => {
  * Ensures user can only access resources belonging to their tenant
  */
 export const validateTenantOwnership = async (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user || !req.tenantId) {
+  if (!req.user) {
     return res.status(401).json({ 
       message: 'Authentication required',
       error: 'AUTHENTICATION_REQUIRED'
+    });
+  }
+
+  // Superadmin can access all resources
+  if (req.user.role === 'superadmin') {
+    return next();
+  }
+
+  if (!req.tenantId) {
+    return res.status(401).json({ 
+      message: 'No tenant associated with user',
+      error: 'NO_TENANT'
     });
   }
 
@@ -188,10 +220,22 @@ export const validateTenantOwnership = async (req: Request, res: Response, next:
  * Prevents any cross-tenant data access by overriding tenantId in request body
  */
 export const enforceTenantIsolation = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user || !req.tenantId) {
+  if (!req.user) {
     return res.status(401).json({ 
       message: 'Authentication required',
       error: 'AUTHENTICATION_REQUIRED'
+    });
+  }
+
+  // Superadmin can work with any tenant data - no isolation needed
+  if (req.user.role === 'superadmin') {
+    return next();
+  }
+
+  if (!req.tenantId) {
+    return res.status(401).json({ 
+      message: 'No tenant associated with user',
+      error: 'NO_TENANT'
     });
   }
 
