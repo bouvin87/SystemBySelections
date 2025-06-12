@@ -3,7 +3,11 @@ import { createServer, type Server } from "http";
 import authRoutes from "./routes/auth";
 import checklistRoutes from "./modules/checklists/routes";
 import { resolveTenant } from "./middleware/tenant";
-import { authenticateToken } from "./middleware/auth";
+import { 
+  authenticateToken, 
+  validateTenantOwnership, 
+  enforceTenantIsolation 
+} from "./middleware/auth";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema
@@ -23,8 +27,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public routes for login, register, and tenant management (handle their own tenant resolution)
   app.use('/api/auth', authRoutes);
 
-  // === GLOBAL MIDDLEWARE ===
-  // Tenant resolution middleware for protected routes only
+  // === GLOBAL SECURITY MIDDLEWARE ===
+  // Apply comprehensive security to all protected routes
+  app.use('/api', (req, res, next) => {
+    // Skip security for public routes
+    if (req.path.startsWith('/auth') || req.path === '/health') {
+      return next();
+    }
+    
+    // Chain security middleware: authentication -> tenant isolation -> ownership validation
+    authenticateToken(req, res, () => {
+      enforceTenantIsolation(req, res, () => {
+        validateTenantOwnership(req, res, next);
+      });
+    });
+  });
+
+  // Tenant resolution middleware for module routes
   app.use('/api/modules', resolveTenant);
 
   // === MODULE ROUTES ===
