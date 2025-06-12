@@ -23,7 +23,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import { Star, ChevronLeft, ChevronRight, Check, X, Frown, Meh, Smile } from "lucide-react";
@@ -122,10 +122,7 @@ export default function FormModal({
     queryKey: ["/api/categories", formData.checklistId],
     queryFn: async () => {
       if (!formData.checklistId) return [];
-      const response = await fetch(
-        `/api/categories?checklistId=${formData.checklistId}`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch categories");
+      const response = await apiRequest("GET", `/api/categories?checklistId=${formData.checklistId}`);
       return response.json();
     },
     enabled: isOpen && formData.checklistId !== null,
@@ -138,13 +135,9 @@ export default function FormModal({
       const allQuestions: Question[] = [];
       for (const category of categories) {
         try {
-          const response = await fetch(
-            `/api/questions?categoryId=${category.id}`,
-          );
-          if (response.ok) {
-            const categoryQuestions = await response.json();
-            allQuestions.push(...categoryQuestions);
-          }
+          const response = await apiRequest("GET", `/api/questions?categoryId=${category.id}`);
+          const categoryQuestions = await response.json();
+          allQuestions.push(...categoryQuestions);
         } catch (error) {
           console.warn(
             `Failed to fetch questions for category ${category.id}:`,
@@ -159,13 +152,7 @@ export default function FormModal({
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/responses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error("Failed to submit form");
-      return response.json();
+      return apiRequest("POST", "/api/responses", data);
     },
     onSuccess: () => {
       toast({
