@@ -1,6 +1,7 @@
 import { 
-  workTasks, workStations, shifts, categories, questions, checklists, 
+  tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings,
+  type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
   type Question, type InsertQuestion, type Checklist, type InsertChecklist,
@@ -9,60 +10,78 @@ import {
   type AdminSetting, type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, and } from "drizzle-orm";
+import { eq, desc, sql, and, count } from "drizzle-orm";
 
 export interface IStorage {
-  // Work Tasks
-  getWorkTasks(): Promise<WorkTask[]>;
-  getWorkTask(id: number): Promise<WorkTask | undefined>;
+  // === MULTI-TENANT CORE ===
+  // Tenants
+  getTenants(): Promise<Tenant[]>;
+  getTenant(id: number): Promise<Tenant | undefined>;
+  getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined>;
+  createTenant(tenant: InsertTenant): Promise<Tenant>;
+  updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant>;
+  deleteTenant(id: number): Promise<void>;
+
+  // Users  
+  getUsers(tenantId: number): Promise<User[]>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByEmail(email: string, tenantId: number): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
+
+  // === MODULE: CHECKLISTS ===
+  // Work Tasks (tenant-scoped)
+  getWorkTasks(tenantId: number): Promise<WorkTask[]>;
+  getWorkTask(id: number, tenantId: number): Promise<WorkTask | undefined>;
   createWorkTask(workTask: InsertWorkTask): Promise<WorkTask>;
-  updateWorkTask(id: number, workTask: Partial<InsertWorkTask>): Promise<WorkTask>;
-  deleteWorkTask(id: number): Promise<void>;
+  updateWorkTask(id: number, workTask: Partial<InsertWorkTask>, tenantId: number): Promise<WorkTask>;
+  deleteWorkTask(id: number, tenantId: number): Promise<void>;
 
-  // Work Stations
-  getWorkStations(workTaskId?: number): Promise<WorkStation[]>;
-  getWorkStation(id: number): Promise<WorkStation | undefined>;
+  // Work Stations (tenant-scoped)
+  getWorkStations(tenantId: number, workTaskId?: number): Promise<WorkStation[]>;
+  getWorkStation(id: number, tenantId: number): Promise<WorkStation | undefined>;
   createWorkStation(workStation: InsertWorkStation): Promise<WorkStation>;
-  updateWorkStation(id: number, workStation: Partial<InsertWorkStation>): Promise<WorkStation>;
-  deleteWorkStation(id: number): Promise<void>;
+  updateWorkStation(id: number, workStation: Partial<InsertWorkStation>, tenantId: number): Promise<WorkStation>;
+  deleteWorkStation(id: number, tenantId: number): Promise<void>;
 
-  // Shifts
-  getShifts(): Promise<Shift[]>;
-  getShift(id: number): Promise<Shift | undefined>;
+  // Shifts (tenant-scoped)
+  getShifts(tenantId: number): Promise<Shift[]>;
+  getShift(id: number, tenantId: number): Promise<Shift | undefined>;
   createShift(shift: InsertShift): Promise<Shift>;
-  updateShift(id: number, shift: Partial<InsertShift>): Promise<Shift>;
-  deleteShift(id: number): Promise<void>;
+  updateShift(id: number, shift: Partial<InsertShift>, tenantId: number): Promise<Shift>;
+  deleteShift(id: number, tenantId: number): Promise<void>;
 
-  // Categories (now belonging to checklists)
-  getCategories(checklistId: number): Promise<Category[]>;
-  getCategory(id: number): Promise<Category | undefined>;
+  // Categories (tenant-scoped, belonging to checklists)
+  getCategories(checklistId: number, tenantId: number): Promise<Category[]>;
+  getCategory(id: number, tenantId: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
-  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category>;
-  deleteCategory(id: number): Promise<void>;
+  updateCategory(id: number, category: Partial<InsertCategory>, tenantId: number): Promise<Category>;
+  deleteCategory(id: number, tenantId: number): Promise<void>;
 
-  // Questions (now belonging to categories)
-  getQuestions(categoryId: number): Promise<Question[]>;
-  getQuestion(id: number): Promise<Question | undefined>;
+  // Questions (tenant-scoped, belonging to categories)
+  getQuestions(categoryId: number, tenantId: number): Promise<Question[]>;
+  getQuestion(id: number, tenantId: number): Promise<Question | undefined>;
   createQuestion(question: InsertQuestion): Promise<Question>;
-  updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question>;
-  deleteQuestion(id: number): Promise<void>;
+  updateQuestion(id: number, question: Partial<InsertQuestion>, tenantId: number): Promise<Question>;
+  deleteQuestion(id: number, tenantId: number): Promise<void>;
 
-  // Checklists
-  getChecklists(): Promise<Checklist[]>;
-  getActiveChecklists(): Promise<Checklist[]>;
-  getAllActiveChecklists(): Promise<Checklist[]>;
-  getChecklist(id: number): Promise<Checklist | undefined>;
+  // Checklists (tenant-scoped)
+  getChecklists(tenantId: number): Promise<Checklist[]>;
+  getActiveChecklists(tenantId: number): Promise<Checklist[]>;
+  getAllActiveChecklists(tenantId: number): Promise<Checklist[]>;
+  getChecklist(id: number, tenantId: number): Promise<Checklist | undefined>;
   createChecklist(checklist: InsertChecklist): Promise<Checklist>;
-  updateChecklist(id: number, checklist: Partial<InsertChecklist>): Promise<Checklist>;
-  deleteChecklist(id: number): Promise<void>;
+  updateChecklist(id: number, checklist: Partial<InsertChecklist>, tenantId: number): Promise<Checklist>;
+  deleteChecklist(id: number, tenantId: number): Promise<void>;
 
-  // Checklist Work Tasks
-  getChecklistWorkTasks(checklistId: number): Promise<ChecklistWorkTask[]>;
+  // Checklist Work Tasks (tenant-scoped)
+  getChecklistWorkTasks(checklistId: number, tenantId: number): Promise<ChecklistWorkTask[]>;
   createChecklistWorkTask(checklistWorkTask: InsertChecklistWorkTask): Promise<ChecklistWorkTask>;
-  deleteChecklistWorkTask(checklistId: number, workTaskId: number): Promise<void>;
+  deleteChecklistWorkTask(checklistId: number, workTaskId: number, tenantId: number): Promise<void>;
 
-  // Checklist Responses
-  getChecklistResponses(filters?: { 
+  // Checklist Responses (tenant-scoped)
+  getChecklistResponses(tenantId: number, filters?: { 
     limit?: number; 
     offset?: number; 
     checklistId?: number;
@@ -73,13 +92,13 @@ export interface IStorage {
     endDate?: string;
     search?: string;
   }): Promise<ChecklistResponse[]>;
-  getChecklistResponse(id: number): Promise<ChecklistResponse | undefined>;
+  getChecklistResponse(id: number, tenantId: number): Promise<ChecklistResponse | undefined>;
   createChecklistResponse(response: InsertChecklistResponse): Promise<ChecklistResponse>;
-  updateChecklistResponse(id: number, response: Partial<InsertChecklistResponse>): Promise<ChecklistResponse>;
-  deleteChecklistResponse(id: number): Promise<void>;
+  updateChecklistResponse(id: number, response: Partial<InsertChecklistResponse>, tenantId: number): Promise<ChecklistResponse>;
+  deleteChecklistResponse(id: number, tenantId: number): Promise<void>;
 
-  // Dashboard Statistics
-  getDashboardStats(filters?: { 
+  // Dashboard Statistics (tenant-scoped)
+  getDashboardStats(tenantId: number, filters?: { 
     checklistId?: number;
     workTaskId?: number;
     workStationId?: number;
@@ -89,23 +108,89 @@ export interface IStorage {
     search?: string;
   }): Promise<any>;
 
-  // Dashboard Questions
-  getDashboardQuestions(checklistId: number): Promise<Question[]>;
+  // Dashboard Questions (tenant-scoped)
+  getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]>;
 
-  // Admin Settings
-  getAdminSettings(): Promise<AdminSetting[]>;
-  getAdminSetting(key: string): Promise<AdminSetting | undefined>;
+  // Admin Settings (tenant-scoped)
+  getAdminSettings(tenantId: number): Promise<AdminSetting[]>;
+  getAdminSetting(key: string, tenantId: number): Promise<AdminSetting | undefined>;
   setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Work Tasks
-  async getWorkTasks(): Promise<WorkTask[]> {
-    return await db.select().from(workTasks).orderBy(workTasks.name);
+  // === MULTI-TENANT CORE IMPLEMENTATION ===
+  
+  // Tenants
+  async getTenants(): Promise<Tenant[]> {
+    return await db.select().from(tenants);
   }
 
-  async getWorkTask(id: number): Promise<WorkTask | undefined> {
-    const [workTask] = await db.select().from(workTasks).where(eq(workTasks.id, id));
+  async getTenant(id: number): Promise<Tenant | undefined> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
+    return tenant || undefined;
+  }
+
+  async getTenantBySubdomain(subdomain: string): Promise<Tenant | undefined> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.subdomain, subdomain));
+    return tenant || undefined;
+  }
+
+  async createTenant(tenant: InsertTenant): Promise<Tenant> {
+    const [created] = await db.insert(tenants).values(tenant).returning();
+    return created;
+  }
+
+  async updateTenant(id: number, tenant: Partial<InsertTenant>): Promise<Tenant> {
+    const [updated] = await db.update(tenants).set(tenant).where(eq(tenants.id, id)).returning();
+    return updated;
+  }
+
+  async deleteTenant(id: number): Promise<void> {
+    await db.delete(tenants).where(eq(tenants.id, id));
+  }
+
+  // Users
+  async getUsers(tenantId: number): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.tenantId, tenantId));
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string, tenantId: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(
+      and(eq(users.email, email), eq(users.tenantId, tenantId))
+    );
+    return user || undefined;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [created] = await db.insert(users).values(user).returning();
+    return created;
+  }
+
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User> {
+    const [updated] = await db.update(users).set(user).where(eq(users.id, id)).returning();
+    return updated;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  // === MODULE: CHECKLISTS IMPLEMENTATION ===
+
+  // Work Tasks
+  async getWorkTasks(tenantId: number): Promise<WorkTask[]> {
+    return await db.select().from(workTasks).where(eq(workTasks.tenantId, tenantId));
+  }
+
+  async getWorkTask(id: number, tenantId: number): Promise<WorkTask | undefined> {
+    const [workTask] = await db.select().from(workTasks).where(
+      and(eq(workTasks.id, id), eq(workTasks.tenantId, tenantId))
+    );
     return workTask || undefined;
   }
 
@@ -114,25 +199,33 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateWorkTask(id: number, workTask: Partial<InsertWorkTask>): Promise<WorkTask> {
-    const [updated] = await db.update(workTasks).set(workTask).where(eq(workTasks.id, id)).returning();
+  async updateWorkTask(id: number, workTask: Partial<InsertWorkTask>, tenantId: number): Promise<WorkTask> {
+    const [updated] = await db.update(workTasks)
+      .set(workTask)
+      .where(and(eq(workTasks.id, id), eq(workTasks.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteWorkTask(id: number): Promise<void> {
-    await db.delete(workTasks).where(eq(workTasks.id, id));
+  async deleteWorkTask(id: number, tenantId: number): Promise<void> {
+    await db.delete(workTasks).where(and(eq(workTasks.id, id), eq(workTasks.tenantId, tenantId)));
   }
 
   // Work Stations
-  async getWorkStations(workTaskId?: number): Promise<WorkStation[]> {
+  async getWorkStations(tenantId: number, workTaskId?: number): Promise<WorkStation[]> {
+    let query = db.select().from(workStations).where(eq(workStations.tenantId, tenantId));
+    
     if (workTaskId) {
-      return await db.select().from(workStations).where(eq(workStations.workTaskId, workTaskId)).orderBy(workStations.name);
+      query = query.where(and(eq(workStations.tenantId, tenantId), eq(workStations.workTaskId, workTaskId)));
     }
-    return await db.select().from(workStations).orderBy(workStations.name);
+    
+    return await query;
   }
 
-  async getWorkStation(id: number): Promise<WorkStation | undefined> {
-    const [workStation] = await db.select().from(workStations).where(eq(workStations.id, id));
+  async getWorkStation(id: number, tenantId: number): Promise<WorkStation | undefined> {
+    const [workStation] = await db.select().from(workStations).where(
+      and(eq(workStations.id, id), eq(workStations.tenantId, tenantId))
+    );
     return workStation || undefined;
   }
 
@@ -141,22 +234,29 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateWorkStation(id: number, workStation: Partial<InsertWorkStation>): Promise<WorkStation> {
-    const [updated] = await db.update(workStations).set(workStation).where(eq(workStations.id, id)).returning();
+  async updateWorkStation(id: number, workStation: Partial<InsertWorkStation>, tenantId: number): Promise<WorkStation> {
+    const [updated] = await db.update(workStations)
+      .set(workStation)
+      .where(and(eq(workStations.id, id), eq(workStations.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteWorkStation(id: number): Promise<void> {
-    await db.delete(workStations).where(eq(workStations.id, id));
+  async deleteWorkStation(id: number, tenantId: number): Promise<void> {
+    await db.delete(workStations).where(and(eq(workStations.id, id), eq(workStations.tenantId, tenantId)));
   }
 
   // Shifts
-  async getShifts(): Promise<Shift[]> {
-    return await db.select().from(shifts).where(eq(shifts.isActive, true)).orderBy(shifts.order);
+  async getShifts(tenantId: number): Promise<Shift[]> {
+    return await db.select().from(shifts)
+      .where(and(eq(shifts.tenantId, tenantId), eq(shifts.isActive, true)))
+      .orderBy(shifts.order);
   }
 
-  async getShift(id: number): Promise<Shift | undefined> {
-    const [shift] = await db.select().from(shifts).where(eq(shifts.id, id));
+  async getShift(id: number, tenantId: number): Promise<Shift | undefined> {
+    const [shift] = await db.select().from(shifts).where(
+      and(eq(shifts.id, id), eq(shifts.tenantId, tenantId))
+    );
     return shift || undefined;
   }
 
@@ -165,27 +265,33 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateShift(id: number, shift: Partial<InsertShift>): Promise<Shift> {
-    const [updated] = await db.update(shifts).set(shift).where(eq(shifts.id, id)).returning();
+  async updateShift(id: number, shift: Partial<InsertShift>, tenantId: number): Promise<Shift> {
+    const [updated] = await db.update(shifts)
+      .set(shift)
+      .where(and(eq(shifts.id, id), eq(shifts.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteShift(id: number): Promise<void> {
-    await db.delete(shifts).where(eq(shifts.id, id));
+  async deleteShift(id: number, tenantId: number): Promise<void> {
+    await db.delete(shifts).where(and(eq(shifts.id, id), eq(shifts.tenantId, tenantId)));
   }
 
   // Categories
-  async getCategories(checklistId: number): Promise<Category[]> {
+  async getCategories(checklistId: number, tenantId: number): Promise<Category[]> {
     return await db.select().from(categories).where(
       and(
         eq(categories.checklistId, checklistId),
+        eq(categories.tenantId, tenantId),
         eq(categories.isActive, true)
       )
     ).orderBy(categories.order);
   }
 
-  async getCategory(id: number): Promise<Category | undefined> {
-    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+  async getCategory(id: number, tenantId: number): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(
+      and(eq(categories.id, id), eq(categories.tenantId, tenantId))
+    );
     return category || undefined;
   }
 
@@ -194,107 +300,75 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category> {
-    const [updated] = await db.update(categories).set(category).where(eq(categories.id, id)).returning();
+  async updateCategory(id: number, category: Partial<InsertCategory>, tenantId: number): Promise<Category> {
+    const [updated] = await db.update(categories)
+      .set(category)
+      .where(and(eq(categories.id, id), eq(categories.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteCategory(id: number): Promise<void> {
+  async deleteCategory(id: number, tenantId: number): Promise<void> {
     // First delete all questions that belong to this category
-    await db.delete(questions).where(eq(questions.categoryId, id));
+    await db.delete(questions).where(and(eq(questions.categoryId, id), eq(questions.tenantId, tenantId)));
     // Then delete the category
-    await db.delete(categories).where(eq(categories.id, id));
+    await db.delete(categories).where(and(eq(categories.id, id), eq(categories.tenantId, tenantId)));
   }
 
   // Questions
-  async getQuestions(categoryId: number): Promise<Question[]> {
-    return await db.select().from(questions).where(eq(questions.categoryId, categoryId)).orderBy(questions.order);
+  async getQuestions(categoryId: number, tenantId: number): Promise<Question[]> {
+    return await db.select().from(questions).where(
+      and(eq(questions.categoryId, categoryId), eq(questions.tenantId, tenantId))
+    ).orderBy(questions.order);
   }
 
-  async getQuestion(id: number): Promise<Question | undefined> {
-    const [question] = await db.select().from(questions).where(eq(questions.id, id));
+  async getQuestion(id: number, tenantId: number): Promise<Question | undefined> {
+    const [question] = await db.select().from(questions).where(
+      and(eq(questions.id, id), eq(questions.tenantId, tenantId))
+    );
     return question || undefined;
   }
 
   async createQuestion(question: InsertQuestion): Promise<Question> {
     const [created] = await db.insert(questions).values(question).returning();
-    
-    // Update checklist hasDashboard if showInDashboard is true
-    if (question.showInDashboard) {
-      await this.updateChecklistDashboardStatus(created.categoryId);
-    }
-    
     return created;
   }
 
-  async updateQuestion(id: number, question: Partial<InsertQuestion>): Promise<Question> {
-    const [updated] = await db.update(questions).set(question).where(eq(questions.id, id)).returning();
-    
-    // Update checklist hasDashboard if showInDashboard changed
-    if (question.showInDashboard !== undefined) {
-      await this.updateChecklistDashboardStatus(updated.categoryId);
-    }
-    
+  async updateQuestion(id: number, question: Partial<InsertQuestion>, tenantId: number): Promise<Question> {
+    const [updated] = await db.update(questions)
+      .set(question)
+      .where(and(eq(questions.id, id), eq(questions.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteQuestion(id: number): Promise<void> {
-    // Get the question before deleting to know which checklist to update
-    const [question] = await db.select().from(questions).where(eq(questions.id, id));
-    await db.delete(questions).where(eq(questions.id, id));
-    
-    // Update checklist hasDashboard if the deleted question had showInDashboard
-    if (question?.showInDashboard) {
-      await this.updateChecklistDashboardStatus(question.categoryId);
-    }
-  }
-
-  // Helper function to update checklist hasDashboard based on questions
-  private async updateChecklistDashboardStatus(categoryId: number): Promise<void> {
-    // Get the checklist ID from the category
-    const [category] = await db.select().from(categories).where(eq(categories.id, categoryId));
-    if (!category) return;
-
-    // Check if any questions in this checklist have showInDashboard = true
-    const dashboardQuestions = await db.select()
-      .from(questions)
-      .innerJoin(categories, eq(questions.categoryId, categories.id))
-      .where(and(
-        eq(categories.checklistId, category.checklistId),
-        eq(questions.showInDashboard, true)
-      ))
-      .limit(1);
-
-    const hasDashboard = dashboardQuestions.length > 0;
-    
-    // Update the checklist
-    await db.update(checklists)
-      .set({ hasDashboard })
-      .where(eq(checklists.id, category.checklistId));
+  async deleteQuestion(id: number, tenantId: number): Promise<void> {
+    await db.delete(questions).where(and(eq(questions.id, id), eq(questions.tenantId, tenantId)));
   }
 
   // Checklists
-  async getChecklists(): Promise<Checklist[]> {
-    return await db.select().from(checklists).orderBy(checklists.order);
+  async getChecklists(tenantId: number): Promise<Checklist[]> {
+    return await db.select().from(checklists)
+      .where(eq(checklists.tenantId, tenantId))
+      .orderBy(checklists.order);
   }
 
-  async getActiveChecklists(): Promise<Checklist[]> {
+  async getActiveChecklists(tenantId: number): Promise<Checklist[]> {
     return await db.select().from(checklists).where(
-      and(
-        eq(checklists.isActive, true),
-        eq(checklists.showInMenu, true)
-      )
-    ).orderBy(checklists.order, checklists.id);
+      and(eq(checklists.tenantId, tenantId), eq(checklists.isActive, true))
+    ).orderBy(checklists.order);
   }
 
-  async getAllActiveChecklists(): Promise<Checklist[]> {
+  async getAllActiveChecklists(tenantId: number): Promise<Checklist[]> {
     return await db.select().from(checklists).where(
-      eq(checklists.isActive, true)
-    ).orderBy(checklists.order, checklists.id);
+      and(eq(checklists.tenantId, tenantId), eq(checklists.isActive, true))
+    ).orderBy(checklists.order);
   }
 
-  async getChecklist(id: number): Promise<Checklist | undefined> {
-    const [checklist] = await db.select().from(checklists).where(eq(checklists.id, id));
+  async getChecklist(id: number, tenantId: number): Promise<Checklist | undefined> {
+    const [checklist] = await db.select().from(checklists).where(
+      and(eq(checklists.id, id), eq(checklists.tenantId, tenantId))
+    );
     return checklist || undefined;
   }
 
@@ -303,18 +377,23 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateChecklist(id: number, checklist: Partial<InsertChecklist>): Promise<Checklist> {
-    const [updated] = await db.update(checklists).set(checklist).where(eq(checklists.id, id)).returning();
+  async updateChecklist(id: number, checklist: Partial<InsertChecklist>, tenantId: number): Promise<Checklist> {
+    const [updated] = await db.update(checklists)
+      .set(checklist)
+      .where(and(eq(checklists.id, id), eq(checklists.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteChecklist(id: number): Promise<void> {
-    await db.delete(checklists).where(eq(checklists.id, id));
+  async deleteChecklist(id: number, tenantId: number): Promise<void> {
+    await db.delete(checklists).where(and(eq(checklists.id, id), eq(checklists.tenantId, tenantId)));
   }
 
   // Checklist Work Tasks
-  async getChecklistWorkTasks(checklistId: number): Promise<ChecklistWorkTask[]> {
-    return await db.select().from(checklistWorkTasks).where(eq(checklistWorkTasks.checklistId, checklistId));
+  async getChecklistWorkTasks(checklistId: number, tenantId: number): Promise<ChecklistWorkTask[]> {
+    return await db.select().from(checklistWorkTasks).where(
+      and(eq(checklistWorkTasks.checklistId, checklistId), eq(checklistWorkTasks.tenantId, tenantId))
+    );
   }
 
   async createChecklistWorkTask(checklistWorkTask: InsertChecklistWorkTask): Promise<ChecklistWorkTask> {
@@ -322,19 +401,18 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async deleteChecklistWorkTask(checklistId: number, workTaskId: number): Promise<void> {
+  async deleteChecklistWorkTask(checklistId: number, workTaskId: number, tenantId: number): Promise<void> {
     await db.delete(checklistWorkTasks).where(
       and(
         eq(checklistWorkTasks.checklistId, checklistId),
-        eq(checklistWorkTasks.workTaskId, workTaskId)
+        eq(checklistWorkTasks.workTaskId, workTaskId),
+        eq(checklistWorkTasks.tenantId, tenantId)
       )
     );
   }
 
-
-
   // Checklist Responses
-  async getChecklistResponses(filters: { 
+  async getChecklistResponses(tenantId: number, filters: { 
     limit?: number; 
     offset?: number; 
     checklistId?: number;
@@ -345,54 +423,34 @@ export class DatabaseStorage implements IStorage {
     endDate?: string;
     search?: string;
   } = {}): Promise<ChecklistResponse[]> {
-    const { limit = 50, offset = 0, checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
+    const { limit = 50, offset = 0, checklistId, workTaskId, workStationId, shiftId, search } = filters;
     
-    const conditions = [];
+    let query = db.select().from(checklistResponses)
+      .where(eq(checklistResponses.tenantId, tenantId));
 
     if (checklistId) {
-      conditions.push(eq(checklistResponses.checklistId, checklistId));
+      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.checklistId, checklistId)));
     }
-    
     if (workTaskId) {
-      conditions.push(eq(checklistResponses.workTaskId, workTaskId));
+      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.workTaskId, workTaskId)));
     }
-    
     if (workStationId) {
-      conditions.push(eq(checklistResponses.workStationId, workStationId));
+      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.workStationId, workStationId)));
     }
-    
     if (shiftId) {
-      conditions.push(eq(checklistResponses.shiftId, shiftId));
-    }
-    
-    if (search) {
-      conditions.push(sql`${checklistResponses.operatorName} ILIKE ${`%${search}%`}`);
-    }
-    
-    if (startDate) {
-      conditions.push(sql`DATE(${checklistResponses.createdAt}) >= ${startDate}`);
-    }
-    
-    if (endDate) {
-      conditions.push(sql`DATE(${checklistResponses.createdAt}) <= ${endDate}`);
+      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.shiftId, shiftId)));
     }
 
-    if (conditions.length > 0) {
-      return await db.select().from(checklistResponses)
-        .where(and(...conditions))
-        .orderBy(desc(checklistResponses.createdAt))
-        .limit(limit)
-        .offset(offset);
-    }
-    
-    return await db.select().from(checklistResponses)
+    return await query
       .orderBy(desc(checklistResponses.createdAt))
       .limit(limit)
       .offset(offset);
   }
 
-  async getChecklistResponse(id: number): Promise<ChecklistResponse | undefined> {
-    const [response] = await db.select().from(checklistResponses).where(eq(checklistResponses.id, id));
+  async getChecklistResponse(id: number, tenantId: number): Promise<ChecklistResponse | undefined> {
+    const [response] = await db.select().from(checklistResponses).where(
+      and(eq(checklistResponses.id, id), eq(checklistResponses.tenantId, tenantId))
+    );
     return response || undefined;
   }
 
@@ -401,17 +459,22 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateChecklistResponse(id: number, response: Partial<InsertChecklistResponse>): Promise<ChecklistResponse> {
-    const [updated] = await db.update(checklistResponses).set(response).where(eq(checklistResponses.id, id)).returning();
+  async updateChecklistResponse(id: number, response: Partial<InsertChecklistResponse>, tenantId: number): Promise<ChecklistResponse> {
+    const [updated] = await db.update(checklistResponses)
+      .set(response)
+      .where(and(eq(checklistResponses.id, id), eq(checklistResponses.tenantId, tenantId)))
+      .returning();
     return updated;
   }
 
-  async deleteChecklistResponse(id: number): Promise<void> {
-    await db.delete(checklistResponses).where(eq(checklistResponses.id, id));
+  async deleteChecklistResponse(id: number, tenantId: number): Promise<void> {
+    await db.delete(checklistResponses).where(
+      and(eq(checklistResponses.id, id), eq(checklistResponses.tenantId, tenantId))
+    );
   }
 
   // Dashboard Statistics
-  async getDashboardStats(filters: {
+  async getDashboardStats(tenantId: number, filters: {
     checklistId?: number;
     workTaskId?: number;
     workStationId?: number;
@@ -420,97 +483,71 @@ export class DatabaseStorage implements IStorage {
     endDate?: string;
     search?: string;
   } = {}): Promise<any> {
-    const { checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
-    const conditions = [];
+    const { checklistId } = filters;
+    
+    // Build base where condition with tenant filtering
+    let whereCondition = eq(checklistResponses.tenantId, tenantId);
     
     if (checklistId) {
-      conditions.push(eq(checklistResponses.checklistId, checklistId));
-    }
-    
-    if (workTaskId) {
-      conditions.push(eq(checklistResponses.workTaskId, workTaskId));
-    }
-    
-    if (workStationId) {
-      conditions.push(eq(checklistResponses.workStationId, workStationId));
-    }
-    
-    if (shiftId) {
-      conditions.push(eq(checklistResponses.shiftId, shiftId));
-    }
-    
-    if (search) {
-      conditions.push(sql`${checklistResponses.operatorName} ILIKE ${`%${search}%`}`);
-    }
-    
-    if (startDate) {
-      conditions.push(sql`DATE(${checklistResponses.createdAt}) >= ${startDate}`);
-    }
-    
-    if (endDate) {
-      conditions.push(sql`DATE(${checklistResponses.createdAt}) <= ${endDate}`);
+      whereCondition = and(whereCondition, eq(checklistResponses.checklistId, checklistId));
     }
 
-    const whereCondition = conditions.length > 0 ? and(...conditions) : undefined;
+    // Get total responses count
+    const totalQuery = await db.select({ count: count() })
+      .from(checklistResponses)
+      .where(whereCondition);
     
-    let totalQuery = db.select({ count: sql<number>`count(*)` }).from(checklistResponses);
-    let recentQuery = db.select().from(checklistResponses);
+    const totalResponses = totalQuery[0]?.count || 0;
 
-    if (whereCondition) {
-      totalQuery = totalQuery.where(whereCondition);
-      recentQuery = recentQuery.where(whereCondition);
-    }
-
-    const totalResponses = await totalQuery.execute();
-    const recentResponses = await recentQuery
+    // Get recent responses
+    const recentResponses = await db.select()
+      .from(checklistResponses)
+      .where(whereCondition)
       .orderBy(desc(checklistResponses.createdAt))
-      .limit(10)
-      .execute();
+      .limit(10);
 
     return {
-      totalResponses: totalResponses[0]?.count || 0,
-      recentResponses
+      totalResponses,
+      recentResponses,
     };
   }
 
   // Dashboard Questions
-  async getDashboardQuestions(checklistId: number): Promise<Question[]> {
-    return await db.select({
-      id: questions.id,
-      categoryId: questions.categoryId,
-      text: questions.text,
-      type: questions.type,
-      options: questions.options,
-      validation: questions.validation,
-      showInDashboard: questions.showInDashboard,
-      dashboardDisplayType: questions.dashboardDisplayType,
-      hideInView: questions.hideInView,
-      order: questions.order,
-      isRequired: questions.isRequired,
-    })
-      .from(questions)
+  async getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]> {
+    return await db.select().from(questions)
       .innerJoin(categories, eq(questions.categoryId, categories.id))
-      .where(and(
-        eq(categories.checklistId, checklistId),
-        eq(questions.showInDashboard, true)
-      ))
+      .where(
+        and(
+          eq(categories.checklistId, checklistId),
+          eq(categories.tenantId, tenantId),
+          eq(questions.tenantId, tenantId),
+          eq(questions.showInDashboard, true)
+        )
+      )
       .orderBy(questions.order);
   }
 
   // Admin Settings
-  async getAdminSettings(): Promise<AdminSetting[]> {
-    return await db.select().from(adminSettings);
+  async getAdminSettings(tenantId: number): Promise<AdminSetting[]> {
+    return await db.select().from(adminSettings).where(eq(adminSettings.tenantId, tenantId));
   }
 
-  async getAdminSetting(key: string): Promise<AdminSetting | undefined> {
-    const [setting] = await db.select().from(adminSettings).where(eq(adminSettings.key, key));
+  async getAdminSetting(key: string, tenantId: number): Promise<AdminSetting | undefined> {
+    const [setting] = await db.select().from(adminSettings).where(
+      and(eq(adminSettings.key, key), eq(adminSettings.tenantId, tenantId))
+    );
     return setting || undefined;
   }
 
   async setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting> {
-    const existing = await this.getAdminSetting(setting.key);
+    // Upsert logic - insert or update if exists
+    const existing = await this.getAdminSetting(setting.key, setting.tenantId);
+    
     if (existing) {
-      const [updated] = await db.update(adminSettings).set({ value: setting.value }).where(eq(adminSettings.key, setting.key)).returning();
+      const [updated] = await db.update(adminSettings)
+        .set({ value: setting.value })
+        .where(and(eq(adminSettings.key, setting.key), eq(adminSettings.tenantId, setting.tenantId)))
+        .returning();
       return updated;
     } else {
       const [created] = await db.insert(adminSettings).values(setting).returning();
