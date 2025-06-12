@@ -375,7 +375,7 @@ export default function FormModal({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj station" />
+                    <SelectValue placeholder={t('form.selectWorkStation')} />
                   </SelectTrigger>
                   <SelectContent>
                     {workStations
@@ -398,7 +398,7 @@ export default function FormModal({
             {currentChecklist?.includeShifts && (
               <div>
                 <Label>
-                  Skift <span className="text-destructive ml-1">*</span>
+                  {t('admin.shifts')} <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Select
                   value={formData.shiftId?.toString() || ""}
@@ -407,7 +407,7 @@ export default function FormModal({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj skift" />
+                    <SelectValue placeholder={t('form.selectShift')} />
                   </SelectTrigger>
                   <SelectContent>
                     {shifts.map((shift) => (
@@ -447,7 +447,7 @@ export default function FormModal({
 
             {question.type === "text" && (
               <Textarea
-                placeholder="Skriv dina kommentarer här..."
+                placeholder={t('form.writeComments')}
                 value={formData.responses[question.id] || ""}
                 onChange={(e) => {
                   setFormData((prev) => ({
@@ -745,12 +745,12 @@ export default function FormModal({
             className={currentStep === 2 ? "invisible" : ""}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
-            Föregående
+            {t('form.previous')}
           </Button>
 
           <div className="flex space-x-3">
             <Button variant="outline" onClick={onClose}>
-              Avbryt
+              {t('admin.cancel')}
             </Button>
             <Button
               onClick={handleNext}
@@ -759,11 +759,11 @@ export default function FormModal({
               {currentStep === totalSteps + 1 ? (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  Slutför
+                  {t('form.submit')}
                 </>
               ) : (
                 <>
-                  Nästa
+                  {t('form.next')}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </>
               )}
