@@ -105,6 +105,7 @@ export default function ChecklistEditor() {
       setQuestionDialogOpen(false);
       setEditingItem(null);
       setEditingQuestion(null);
+      setSelectedCategoryIcon("");
       toast({ title: "Sparat!", description: "Objektet har skapats." });
     },
     onError: () => {
@@ -130,6 +131,7 @@ export default function ChecklistEditor() {
       setQuestionDialogOpen(false);
       setEditingItem(null);
       setEditingQuestion(null);
+      setSelectedCategoryIcon("");
       toast({ title: "Uppdaterat!", description: "Objektet har uppdaterats." });
     },
     onError: () => {
@@ -295,6 +297,11 @@ export default function ChecklistEditor() {
                         defaultValue={editingItem?.description || ""}
                       />
                     </div>
+                    <IconPicker
+                      value={selectedCategoryIcon}
+                      onChange={setSelectedCategoryIcon}
+                      placeholder="Välj ikon för kategorin"
+                    />
                     <div>
                       <Label htmlFor="order">Ordning</Label>
                       <Input
@@ -343,7 +350,10 @@ export default function ChecklistEditor() {
                                   <ChevronRight className="h-4 w-4" />
                                 )}
                                 <div className="flex-1">
-                                  <h4 className="text-sm font-medium text-gray-900">{category.name}</h4>
+                                  <div className="flex items-center gap-2">
+                                    {renderIcon(category.icon, "h-4 w-4 text-gray-600")}
+                                    <h4 className="text-sm font-medium text-gray-900">{category.name}</h4>
+                                  </div>
                                   <p className="text-xs text-gray-500">Nyckel: {category.key}</p>
                                   {category.description && (
                                     <p className="text-sm text-gray-600 mt-1">{category.description}</p>
