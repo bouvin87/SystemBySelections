@@ -7,7 +7,8 @@ import { resolveTenant } from "./middleware/tenant";
 import { 
   authenticateToken, 
   validateTenantOwnership, 
-  enforceTenantIsolation 
+  enforceTenantIsolation,
+  requireModule 
 } from "./middleware/auth";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
@@ -53,7 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === MODULE ROUTES ===
   // Checklist module - protected and tenant-scoped
-  app.use('/api/modules/checklists', checklistRoutes);
+  app.use('/api/modules/checklists', requireModule('checklists'), checklistRoutes);
 
   // === HEALTH CHECK ===
   app.get('/api/health', (req, res) => {
@@ -103,8 +104,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   const { storage } = await import('./storage');
   
-  // Work Tasks
-  app.get('/api/work-tasks', authenticateToken, async (req, res) => {
+  // Work Tasks - require checklists module
+  app.get('/api/work-tasks', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const workTasks = await storage.getWorkTasks(req.tenantId!);
       res.json(workTasks);
@@ -113,7 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/work-tasks', authenticateToken, async (req, res) => {
+  app.post('/api/work-tasks', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const validatedData = insertWorkTaskSchema.parse(req.body);
       const workTask = await storage.createWorkTask({
@@ -127,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/work-tasks/:id', authenticateToken, async (req, res) => {
+  app.patch('/api/work-tasks/:id', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertWorkTaskSchema.partial().parse(req.body);
