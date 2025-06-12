@@ -675,12 +675,19 @@ export default function FormModal({
       return true;
     }
     
-    if (currentStep === 3) {
-      // Check that all required questions are answered
-      for (const question of questions) {
+    // For question steps (step 3 and above)
+    if (currentStep >= 3) {
+      const categoryIndex = currentStep - 3;
+      const category = categoriesWithQuestions[categoryIndex];
+      
+      if (!category) return true; // If no category, allow proceed
+      
+      // Check that all required questions in current category are answered
+      const categoryQuestions = questions.filter(q => q.categoryId === category.id);
+      for (const question of categoryQuestions) {
         if (question.isRequired) {
           const response = formData.responses[question.id];
-          if (!response || response === "" || response === null || response === undefined) {
+          if (response === undefined || response === null || response === "") {
             return false;
           }
         }
