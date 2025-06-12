@@ -15,12 +15,13 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
     
-    // Extract tenant info from subdomain or header
+    // Extract tenant info from subdomain or use default for development
     const host = req.get('host') || '';
-    const subdomain = host.split('.')[0];
+    let subdomain = host.split('.')[0];
     
-    if (!subdomain || subdomain === 'localhost') {
-      return res.status(400).json({ message: 'Invalid subdomain' });
+    // For development/replit environment, default to 'demo' tenant
+    if (!subdomain || subdomain === 'localhost' || host.includes('replit.dev') || host.includes('replit.app')) {
+      subdomain = 'demo';
     }
 
     const tenant = await storage.getTenantBySubdomain(subdomain);
@@ -72,12 +73,13 @@ router.post('/register', async (req, res) => {
   try {
     const userData = insertUserSchema.parse(req.body);
     
-    // Extract tenant info
+    // Extract tenant info from subdomain or use default for development
     const host = req.get('host') || '';
-    const subdomain = host.split('.')[0];
+    let subdomain = host.split('.')[0];
     
-    if (!subdomain || subdomain === 'localhost') {
-      return res.status(400).json({ message: 'Invalid subdomain' });
+    // For development/replit environment, default to 'demo' tenant
+    if (!subdomain || subdomain === 'localhost' || host.includes('replit.dev') || host.includes('replit.app')) {
+      subdomain = 'demo';
     }
 
     const tenant = await storage.getTenantBySubdomain(subdomain);
