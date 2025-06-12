@@ -36,24 +36,48 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
     
-    // Extract tenant info from subdomain or use default for development
+    // Extract tenant info from subdomain or determine from email domain
     const host = req.get('host') || '';
     let subdomain = host.split('.')[0];
     
-    // For development/replit environment, default to 'demo' tenant
+    // For development/replit environment, determine tenant from email domain
     if (!subdomain || subdomain === 'localhost' || host.includes('replit.dev') || host.includes('replit.app')) {
-      subdomain = 'demo';
+      const emailDomain = email.split('@')[1];
+      
+      // Map email domains to tenant subdomains
+      switch (emailDomain) {
+        case 'demo.se':
+          subdomain = 'demo';
+          break;
+        case 'volvo.se':
+          subdomain = 'volvo';
+          break;
+        case 'ikea.se':
+          subdomain = 'ikea';
+          break;
+        default:
+          subdomain = 'demo'; // fallback to demo
+          break;
+      }
     }
+
+    console.log(`Login attempt - Email: ${email}, Host: ${host}, Resolved subdomain: ${subdomain}`);
 
     const tenant = await storage.getTenantBySubdomain(subdomain);
     if (!tenant) {
+      console.log(`Tenant not found for subdomain: ${subdomain}`);
       return res.status(404).json({ message: 'Tenant not found' });
     }
 
+    console.log(`Found tenant: ${tenant.name} (ID: ${tenant.id})`);
+
     const user = await storage.getUserByEmail(email, tenant.id);
     if (!user || !user.isActive) {
+      console.log(`User not found or inactive: ${email} in tenant ${tenant.id}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    console.log(`Found user: ${user.email} (ID: ${user.id}) in tenant ${tenant.name}`);
 
     const isPasswordValid = await comparePassword(password, user.hashedPassword);
     if (!isPasswordValid) {
