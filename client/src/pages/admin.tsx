@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import { Plus, Edit, Trash2, Save, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import IconPicker from "@/components/IconPicker";
 import { renderIcon } from "@/lib/icon-utils";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -42,6 +44,25 @@ export default function Admin() {
   const [selectedIcon, setSelectedIcon] = useState<string>("");
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // Redirect non-admin users to dashboard
+  useEffect(() => {
+    if (!isLoading && (!user || user.role !== 'admin')) {
+      toast({
+        title: "Åtkomst nekad",
+        description: "Du har inte behörighet att komma åt administratörspanelen.",
+        variant: "destructive",
+      });
+      setLocation('/dashboard');
+    }
+  }, [user, isLoading, setLocation, toast]);
+
+  // Show loading or nothing while checking authorization
+  if (isLoading || !user || user.role !== 'admin') {
+    return null;
+  }
 
   // Queries
   const { data: checklists = [] } = useQuery<Checklist[]>({

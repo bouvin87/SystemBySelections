@@ -9,10 +9,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User, Building2 } from 'lucide-react';
+import { LogOut, User, Building2, Settings } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 export default function UserMenu() {
   const { user, tenant, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (!user || !tenant) {
     return null;
@@ -61,6 +63,15 @@ export default function UserMenu() {
           <span className="text-sm capitalize">{user.role}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        {user.role === 'admin' && (
+          <>
+            <DropdownMenuItem onClick={() => setLocation('/admin')}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Administration</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem 
           onClick={logout}
           className="text-red-600 focus:text-red-600"

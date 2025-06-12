@@ -40,7 +40,6 @@ export default function Navigation() {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
-    { href: "/admin", label: "Administration" },
   ];
 
   const openModal = (checklistId: number) => {
