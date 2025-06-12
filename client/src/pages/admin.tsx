@@ -428,7 +428,7 @@ export default function Admin() {
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-gray-900">{task.name}</h4>
                                 <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
-                                  {task.hasStations && <Badge variant="outline">Har stationer</Badge>}
+                                  {task.hasStations && <Badge variant="outline">{t('admin.hasStations')}</Badge>}
                                 </div>
                               </div>
                               <div className="flex space-x-2">
@@ -525,7 +525,7 @@ export default function Admin() {
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-gray-900">{station.name}</h4>
                                 <p className="text-xs text-gray-500">
-                                  Arbetsmoment: {workTasks.find(t => t.id === station.workTaskId)?.name || 'Okänt'}
+                                  {t('admin.workTask')}: {workTasks.find(t => t.id === station.workTaskId)?.name || t('common.unknown')}
                                 </p>
                               </div>
                               <div className="flex space-x-2">

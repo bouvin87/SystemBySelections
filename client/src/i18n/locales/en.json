@@ -115,6 +115,7 @@
     "filter": "Filter",
     "clear": "Clear",
     "close": "Close",
-    "open": "Open"
+    "open": "Open",
+    "unknown": "Unknown"
   }
 }

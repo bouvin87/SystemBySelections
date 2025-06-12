@@ -115,6 +115,7 @@
     "filter": "Filter",
     "clear": "Rensa",
     "close": "Stäng",
-    "open": "Öppna"
+    "open": "Öppna",
+    "unknown": "Okänt"
   }
 }
