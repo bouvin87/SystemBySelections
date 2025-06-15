@@ -22,8 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Save, Settings, Sparkles, Users, Database } from "lucide-react";
-import ModernNavigation from "@/components/ModernNavigation";
+import { Plus, Edit, Trash2, Save, Settings } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
