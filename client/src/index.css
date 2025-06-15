@@ -9,14 +9,14 @@
   --card-foreground: hsl(240, 10%, 3.9%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(240, 10%, 3.9%);
-  --primary: hsl(207, 90%, 54%);
+  --primary: hsl(263, 70%, 50%);
   --primary-foreground: hsl(0, 0%, 98%);
-  --secondary: hsl(210, 40%, 98%);
-  --secondary-foreground: hsl(222.2, 84%, 4.9%);
-  --muted: hsl(210, 40%, 98%);
+  --secondary: hsl(270, 3%, 11%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --muted: hsl(264, 6%, 95%);
   --muted-foreground: hsl(215.4, 16.3%, 46.9%);
-  --accent: hsl(29, 100%, 50%);
-  --accent-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(0, 0%, 98%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(210, 40%, 98%);
   --border: hsl(214.3, 31.8%, 91.4%);
@@ -83,31 +83,48 @@
 }
 
 @layer components {
-  .material-shadow-1 {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-xl;
   }
   
-  .material-shadow-2 {
-    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  .dark .glass-card {
+    @apply bg-black/40 backdrop-blur-sm border border-white/10;
   }
   
-  .material-shadow-3 {
-    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(263, 70%, 50%) 0%, hsl(142, 76%, 36%) 100%);
   }
   
-  .star-rating {
-    transition: color 0.2s ease;
+  .dark .gradient-bg {
+    background: linear-gradient(135deg, hsl(263, 70%, 30%) 0%, hsl(142, 76%, 20%) 100%);
   }
   
-  .star-rating:hover {
-    color: hsl(var(--accent));
+  .modern-card {
+    @apply bg-white dark:bg-gray-900 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700;
   }
   
-  .mood-rating {
-    transition: all 0.2s ease;
+  .modern-button {
+    @apply relative overflow-hidden transition-all duration-300 transform hover:scale-105 active:scale-95;
   }
   
-  .mood-rating:hover {
-    transform: scale(1.1);
+  .floating-action {
+    @apply fixed bottom-6 right-6 z-50 rounded-full shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  .animated-border {
+    @apply relative;
+  }
+  
+  .animated-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-lg bg-gradient-to-r from-primary to-accent opacity-0 transition-opacity duration-300;
+  }
+  
+  .animated-border:hover::before {
+    @apply opacity-20;
+  }
+  
+  .stat-card {
+    @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300;
   }
 }
