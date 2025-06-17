@@ -54,7 +54,7 @@ export default function SuperAdmin() {
     lastName: '',
     password: '',
     role: 'user',
-    isRoleEditable: true
+    lockRole: false
   });
 
   // Fetch all tenants
@@ -182,7 +182,7 @@ export default function SuperAdmin() {
       password: string; 
       role: string; 
       tenantId: number;
-      isRoleEditable: boolean;
+      lockRole: boolean;
     }) => {
       return await apiRequest({
         endpoint: '/api/super-admin/users',
@@ -199,7 +199,7 @@ export default function SuperAdmin() {
         lastName: '',
         password: '',
         role: 'user',
-        isRoleEditable: true
+        lockRole: false
       });
       toast({
         title: "Användare skapad",

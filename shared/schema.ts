@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   firstName: text("first_name"),
   lastName: text("last_name"),
   isActive: boolean("is_active").notNull().default(true),
+  lockRole: boolean("lock_role").notNull().default(false), // When true, user cannot change their role
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
