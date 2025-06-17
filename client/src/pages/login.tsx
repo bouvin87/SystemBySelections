@@ -55,6 +55,7 @@ export default function Login() {
         const data = await response.json();
         
         if (data.requireTenantSelection && data.tenants) {
+          console.log('Available tenants:', data.tenants);
           setAvailableTenants(data.tenants);
           setShowTenantSelection(true);
           setError('');
@@ -131,31 +132,38 @@ export default function Login() {
               <>
                 <div className="space-y-2">
                   <Label>E-post: {email}</Label>
+                  <div className="text-sm text-muted-foreground">
+                    Hittade {availableTenants.length} organisationer
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="tenant">Välj organisation</Label>
-                  <Select value={selectedTenantId} onValueChange={setSelectedTenantId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Välj organisation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTenants.map((tenant) => (
-                        <SelectItem key={tenant.id} value={tenant.id.toString()}>
-                          <div className="flex items-center space-x-2">
-                            <Building2 className="h-4 w-4" />
-                            <div>
-                              <div className="font-medium">{tenant.name}</div>
-                              <div className="text-sm text-muted-foreground capitalize">
-                                {tenant.userRole}
-                              </div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {availableTenants.length > 0 ? (
+                    <Select value={selectedTenantId} onValueChange={setSelectedTenantId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Välj organisation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTenants.map((tenant) => (
+                          <SelectItem key={tenant.id} value={tenant.id.toString()}>
+                            {tenant.name} ({tenant.userRole})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="text-sm text-red-600">
+                      Inga organisationer hittades för denna e-post
+                    </div>
+                  )}
                 </div>
+
+                {availableTenants.length > 0 && (
+                  <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                    <strong>Debug:</strong> {JSON.stringify(availableTenants, null, 2)}
+                  </div>
+                )}
               </>
             )}
             
