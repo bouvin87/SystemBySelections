@@ -254,12 +254,8 @@ export default function Navigation() {
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       location === item.href
                         ? "bg-blue-700 text-white"
-                        : "hover:bg-[var(--color-accent)]/50"
+                        : "text-blue-100 hover:text-white hover:bg-blue-600"
                     }`}
-                    style={{
-                      color: location === item.href ? 'white' : 'var(--color-link)',
-                      '--tw-text-opacity': '1'
-                    } as React.CSSProperties}
                   >
                     {item.label}
                   </Link>
@@ -269,16 +265,7 @@ export default function Navigation() {
                   <button
                     key={`checklist-${checklist.id}`}
                     onClick={() => openModal(checklist.id)}
-                    className="px-3 py-2 text-sm hover:bg-[var(--color-accent)]/50 rounded-md flex items-center gap-2 transition-colors"
-                    style={{
-                      color: 'var(--color-link)'
-                    } as React.CSSProperties}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--color-link-hover)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--color-link)';
-                    }}
+                    className="px-3 py-2 text-sm text-blue-100 hover:text-white hover:bg-blue-600 rounded-md flex items-center gap-2 transition-colors"
                   >
                     {renderIcon(checklist.icon, "h-4 w-4") || (
                       <CheckSquare className="h-4 w-4" />
@@ -290,16 +277,7 @@ export default function Navigation() {
                 {hasChecklistsModule && (
                   <button
                     onClick={() => setChecklistSelectionOpen(true)}
-                    className="px-3 py-2 text-sm hover:bg-[var(--color-accent)]/50 rounded-md flex items-center gap-2 transition-colors"
-                    style={{
-                      color: 'var(--color-link)'
-                    } as React.CSSProperties}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--color-link-hover)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--color-link)';
-                    }}
+                    className="px-3 py-2 text-sm text-blue-100 hover:text-white hover:bg-blue-600 rounded-md flex items-center gap-2 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
                     {t("navigation.startNewChecklist")}
@@ -328,7 +306,7 @@ export default function Navigation() {
 
           {/* Mobile slide-down menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden border-t" style={{ backgroundColor: 'var(--color-secondary)', borderColor: 'var(--color-secondary)' }}>
+            <div className="lg:hidden border-t bg-slate-800 border-slate-800">
               <div className="px-4 py-3 space-y-1">
                 {/* Navigation links */}
                 <div className="space-y-1 mb-4">

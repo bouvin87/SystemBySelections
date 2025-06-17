@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { JWTPayload, Tenant } from '@shared/schema';
 import { queryClient } from '@/lib/queryClient';
-import { applyTheme, defaultTheme } from '@/lib/theme-manager';
+
 
 interface AuthState {
   isAuthenticated: boolean;
