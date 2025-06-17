@@ -683,57 +683,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // === TENANT THEME MANAGEMENT ===
-  
-  // Get tenant color theme
-  app.get('/api/tenant/theme', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.tenantId!;
-      const theme = await storage.getTenantTheme(tenantId);
-      res.json(theme || {});
-    } catch (error) {
-      console.error('Failed to fetch tenant theme:', error);
-      res.status(500).json({ message: "Failed to fetch tenant theme" });
-    }
-  });
 
-  // Update tenant color theme (admin only)
-  app.patch('/api/tenant/theme', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-      const tenantId = req.tenantId!;
-      const user = req.user;
-
-      // Only admins can update theme
-      if (user.role !== 'admin' && user.role !== 'superadmin') {
-        return res.status(403).json({ message: "Endast administratörer kan ändra färgteman" });
-      }
-
-      const {
-        colorPrimary,
-        colorSecondary,
-        colorAccent,
-        colorWarning,
-        colorBackground,
-        colorText
-      } = req.body;
-
-      // Validate hex colors
-      const hexColorRegex = /^#[0-9A-F]{6}$/i;
-      const colors = { colorPrimary, colorSecondary, colorAccent, colorWarning, colorBackground, colorText };
-      
-      for (const [key, value] of Object.entries(colors)) {
-        if (value && !hexColorRegex.test(value)) {
-          return res.status(400).json({ message: `Invalid color format for ${key}. Use hex format like #FF0000` });
-        }
-      }
-
-      const updatedTenant = await storage.updateTenantTheme(tenantId, colors);
-      res.json(updatedTenant);
-    } catch (error) {
-      console.error('Failed to update tenant theme:', error);
-      res.status(500).json({ message: "Failed to update tenant theme" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

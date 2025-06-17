@@ -57,7 +57,6 @@ import type {
   CreateUserRequest,
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
-import TenantThemeSettings from "@/components/TenantThemeSettings";
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("users");
@@ -1377,10 +1376,7 @@ export default function Admin() {
                 </Tabs>
               </TabsContent>
 
-              {/* Theme Tab */}
-              <TabsContent value="theme">
-                <TenantThemeSettings />
-              </TabsContent>
+
 
               {/* Settings Tab */}
               <TabsContent value="settings">
