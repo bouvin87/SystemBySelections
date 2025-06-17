@@ -174,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         tenant: {
           name: req.tenant.name,
-          subdomain: req.tenant.subdomain,
+          id: req.tenant.id,
         },
         modules: req.tenant.modules,
         availableModules: [
@@ -214,7 +214,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/work-tasks', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
-      const validatedData = insertWorkTaskSchema.parse(req.body);
+      const { tenantId, ...validatedData } = insertWorkTaskSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
       const workTask = await storage.createWorkTask({
         ...validatedData,
         tenantId: req.tenantId!
@@ -262,7 +265,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/work-stations', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
-      const validatedData = insertWorkStationSchema.parse(req.body);
+      const { tenantId, ...validatedData } = insertWorkStationSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
       const workStation = await storage.createWorkStation({
         ...validatedData,
         tenantId: req.tenantId!
@@ -309,7 +315,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/shifts', authenticateToken, async (req, res) => {
     try {
-      const validatedData = insertShiftSchema.parse(req.body);
+      const { tenantId, ...validatedData } = insertShiftSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
       const shift = await storage.createShift({
         ...validatedData,
         tenantId: req.tenantId!
@@ -365,7 +374,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/checklists', authenticateToken, async (req, res) => {
     try {
-      const validatedData = insertChecklistSchema.parse(req.body);
+      const { tenantId, ...validatedData } = insertChecklistSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
       const checklist = await storage.createChecklist({
         ...validatedData,
         tenantId: req.tenantId!
@@ -417,7 +429,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/categories", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const validatedData = insertCategorySchema.parse(req.body);
+      const { tenantId, ...validatedData } = insertCategorySchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
       const category = await storage.createCategory({
         ...validatedData,
         tenantId: req.tenantId!
@@ -469,9 +484,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/questions", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const validatedData = insertQuestionSchema.omit({ tenantId: true }).parse(req.body);
-      const questionData = { ...validatedData, tenantId: req.tenantId! };
-      const question = await storage.createQuestion(questionData);
+      const { tenantId, ...validatedData } = insertQuestionSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
+      const question = await storage.createQuestion({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
       res.status(201).json(question);
     } catch (error) {
       console.error('Create question error:', error);
@@ -482,7 +502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/questions/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      const validatedData = insertQuestionSchema.omit({ tenantId: true }).partial().parse(req.body);
+      const validatedData = insertQuestionSchema.partial().parse(req.body);
       const question = await storage.updateQuestion(id, validatedData, req.tenantId!);
       res.json(question);
     } catch (error) {

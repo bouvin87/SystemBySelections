@@ -137,12 +137,12 @@ export const insertTenantSchema = createInsertSchema(tenants).omit({ id: true, c
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 
 // Checklist module schemas
-export const insertWorkTaskSchema = createInsertSchema(workTasks).omit({ id: true, tenantId: true });
-export const insertWorkStationSchema = createInsertSchema(workStations).omit({ id: true, tenantId: true });
-export const insertShiftSchema = createInsertSchema(shifts).omit({ id: true, tenantId: true });
-export const insertCategorySchema = createInsertSchema(categories).omit({ id: true, tenantId: true });
-export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true, tenantId: true });
-export const insertChecklistSchema = createInsertSchema(checklists).omit({ id: true, tenantId: true });
+export const insertWorkTaskSchema = createInsertSchema(workTasks).omit({ id: true });
+export const insertWorkStationSchema = createInsertSchema(workStations).omit({ id: true });
+export const insertShiftSchema = createInsertSchema(shifts).omit({ id: true });
+export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
+export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true });
+export const insertChecklistSchema = createInsertSchema(checklists).omit({ id: true });
 export const insertChecklistWorkTaskSchema = createInsertSchema(checklistWorkTasks).omit({ id: true });
 export const insertChecklistResponseSchema = createInsertSchema(checklistResponses).omit({ id: true, createdAt: true });
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true });
