@@ -61,7 +61,7 @@ export default function SuperAdmin() {
   const { data: users = [] } = useQuery({
     queryKey: ['/api/super-admin/users', selectedTenantForUser],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/super-admin/users/${selectedTenantForUser}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -757,6 +757,124 @@ export default function SuperAdmin() {
                 disabled={updateTenantMutation.isPending}
               >
                 {updateTenantMutation.isPending ? "Uppdaterar..." : "Uppdatera"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit User Dialog */}
+        <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Redigera användare</DialogTitle>
+              <DialogDescription>
+                Uppdatera användarens information och behörigheter.
+              </DialogDescription>
+            </DialogHeader>
+            {editingUser && (
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-email" className="text-right">
+                    E-post
+                  </Label>
+                  <Input
+                    id="edit-email"
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-firstName" className="text-right">
+                    Förnamn
+                  </Label>
+                  <Input
+                    id="edit-firstName"
+                    value={editingUser.firstName}
+                    onChange={(e) => setEditingUser({...editingUser, firstName: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-lastName" className="text-right">
+                    Efternamn
+                  </Label>
+                  <Input
+                    id="edit-lastName"
+                    value={editingUser.lastName}
+                    onChange={(e) => setEditingUser({...editingUser, lastName: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-password" className="text-right">
+                    Nytt lösenord
+                  </Label>
+                  <Input
+                    id="edit-password"
+                    type="password"
+                    value={editingUser.password || ''}
+                    onChange={(e) => setEditingUser({...editingUser, password: e.target.value})}
+                    className="col-span-3"
+                    placeholder="Lämna tomt för att behålla nuvarande"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-role" className="text-right">
+                    Roll
+                  </Label>
+                  <Select value={editingUser.role} onValueChange={(value) => setEditingUser({...editingUser, role: value})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Välj roll" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">Användare</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="superadmin">Superadmin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">
+                    Redigerbar roll
+                  </Label>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-isRoleEditable"
+                      checked={editingUser.isRoleEditable}
+                      onCheckedChange={(checked) => setEditingUser({...editingUser, isRoleEditable: checked as boolean})}
+                    />
+                    <Label htmlFor="edit-isRoleEditable" className="text-sm">
+                      Användaren kan ändra sin roll
+                    </Label>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">
+                    Aktiv
+                  </Label>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    <Checkbox
+                      id="edit-isActive"
+                      checked={editingUser.isActive}
+                      onCheckedChange={(checked) => setEditingUser({...editingUser, isActive: checked as boolean})}
+                    />
+                    <Label htmlFor="edit-isActive" className="text-sm">
+                      Användaren är aktiv
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditUserDialogOpen(false)}>
+                Avbryt
+              </Button>
+              <Button 
+                onClick={handleUpdateUser}
+                disabled={updateUserMutation.isPending}
+              >
+                {updateUserMutation.isPending ? "Uppdaterar..." : "Uppdatera användare"}
               </Button>
             </DialogFooter>
           </DialogContent>
