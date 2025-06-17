@@ -117,23 +117,7 @@ export interface IStorage {
   getAdminSetting(key: string, tenantId: number): Promise<AdminSetting | undefined>;
   setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting>;
 
-  // Tenant Theme Management
-  getTenantTheme(tenantId: number): Promise<{ 
-    colorPrimary?: string | null;
-    colorSecondary?: string | null;
-    colorAccent?: string | null;
-    colorWarning?: string | null;
-    colorBackground?: string | null;
-    colorText?: string | null;
-  } | undefined>;
-  updateTenantTheme(tenantId: number, theme: {
-    colorPrimary?: string;
-    colorSecondary?: string;
-    colorAccent?: string;
-    colorWarning?: string;
-    colorBackground?: string;
-    colorText?: string;
-  }): Promise<Tenant>;
+
 }
 
 export class DatabaseStorage implements IStorage {

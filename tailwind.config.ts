@@ -11,15 +11,6 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        // Tenant-specific dynamic colors
-        'tenant-primary': "var(--color-primary)",
-        'tenant-secondary': "var(--color-secondary)",
-        'tenant-accent': "var(--color-accent)",
-        'tenant-warning': "var(--color-warning)",
-        'tenant-background': "var(--color-background)",
-        'tenant-text': "var(--color-text)",
-        
-        // Original shadcn colors for UI components
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {

@@ -39,35 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuthStatus();
   }, []);
 
-  const loadTenantTheme = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) return;
 
-      const response = await fetch('/api/tenant/theme', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const themeData = await response.json();
-        const theme = {
-          colorPrimary: themeData.colorPrimary || defaultTheme.colorPrimary,
-          colorSecondary: themeData.colorSecondary || defaultTheme.colorSecondary,
-          colorAccent: themeData.colorAccent || defaultTheme.colorAccent,
-          colorWarning: themeData.colorWarning || defaultTheme.colorWarning,
-          colorBackground: themeData.colorBackground || defaultTheme.colorBackground,
-          colorText: themeData.colorText || defaultTheme.colorText,
-        };
-        applyTheme(theme);
-      }
-    } catch (error) {
-      console.error('Failed to load tenant theme:', error);
-      // Apply default theme on error
-      applyTheme(defaultTheme);
-    }
-  };
 
   const checkAuthStatus = async () => {
     try {
@@ -91,9 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           user: data.user,
           tenant: data.tenant,
         });
-        
-        // Load tenant theme automatically
-        await loadTenantTheme();
+
       } else {
         localStorage.removeItem('authToken');
         setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -134,9 +104,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user: data.user,
         tenant: data.tenant,
       });
-      
-      // Load tenant theme automatically after login
-      await loadTenantTheme();
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;
