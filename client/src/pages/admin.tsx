@@ -27,7 +27,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import IconPicker from "@/components/IconPicker";
 import { renderIcon } from "@/lib/icon-utils";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -563,14 +563,15 @@ export default function Admin() {
                             </div>
                           </div>
                           <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedChecklistId(checklist.id)}
-                            >
-                              <Settings className="mr-1 h-3 w-3" />
-                              Hantera kategorier
-                            </Button>
+                            <Link href={`/checklist-editor/${checklist.id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Settings className="mr-1 h-3 w-3" />
+                                Hantera kategorier
+                              </Button>
+                            </Link>
                             <Button
                               variant="ghost"
                               size="sm"
