@@ -283,7 +283,7 @@ export default function Navigation() {
               </div>
 
               {/* User menu - always visible */}
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <UserMenu />
               </div>
 
@@ -363,7 +363,7 @@ export default function Navigation() {
                   <div className="px-3 py-1 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-3">
                     Konto
                   </div>
-                  <div className="block md:hidden space-y-2">
+                  <div className="block lg:hidden space-y-2">
                     <MobileUserSection
                       onClose={() => setMobileMenuOpen(false)}
                     />
