@@ -210,9 +210,25 @@ router.post('/login', async (req, res) => {
     
     // If user has multiple tenants, require tenant selection
     if (tenantUsers.length > 1) {
+      const tenants = [];
+      for (const user of tenantUsers) {
+        if (user.tenantId) {
+          const tenant = await storage.getTenant(user.tenantId);
+          if (tenant) {
+            tenants.push({
+              id: tenant.id,
+              name: tenant.name,
+              modules: tenant.modules,
+              userRole: user.role.trim(),
+            });
+          }
+        }
+      }
+
       return res.status(200).json({ 
         requireTenantSelection: true,
-        message: 'Multiple tenants available, please select one' 
+        message: 'Multiple tenants available, please select one',
+        tenants: tenants
       });
     }
 
