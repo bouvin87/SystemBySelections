@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Building2, Settings, Trash2, Edit, Users } from "lucide-react";
+import { Plus, Building2, Settings, Trash2, Edit, Users, UserPlus, Mail, Shield } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
 import type { Tenant } from "@shared/schema";
 
@@ -19,6 +20,12 @@ const AVAILABLE_MODULES = [
   { id: 'maintenance', name: 'Underhåll', description: 'Underhållsplanering och -uppföljning' },
   { id: 'analytics', name: 'Analys', description: 'Rapporter och dataanalys' },
   { id: 'inventory', name: 'Lager', description: 'Lagerhantering och inventering' }
+];
+
+const AVAILABLE_ROLES = [
+  { id: 'admin', name: 'Admin', description: 'Administratörsrättigheter för tenant' },
+  { id: 'user', name: 'Användare', description: 'Standardanvändare med begränsade rättigheter' },
+  { id: 'viewer', name: 'Läsare', description: 'Endast läsrättigheter' }
 ];
 
 export default function SuperAdmin() {
@@ -30,9 +37,28 @@ export default function SuperAdmin() {
     modules: [] as string[]
   });
 
+  // User management state
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
+  const [selectedTenantForUser, setSelectedTenantForUser] = useState<number | null>(null);
+  const [newUser, setNewUser] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    password: '',
+    role: 'user',
+    isRoleEditable: true
+  });
+
   // Fetch all tenants
   const { data: tenants = [], isLoading } = useQuery({
     queryKey: ['/api/super-admin/tenants'],
+    retry: false,
+  });
+
+  // Fetch users for selected tenant
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/super-admin/users', selectedTenantForUser],
+    enabled: !!selectedTenantForUser,
     retry: false,
   });
 
@@ -113,6 +139,48 @@ export default function SuperAdmin() {
     },
   });
 
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (userData: { 
+      email: string; 
+      firstName: string; 
+      lastName: string; 
+      password: string; 
+      role: string; 
+      tenantId: number;
+      isRoleEditable: boolean;
+    }) => {
+      return await apiRequest({
+        endpoint: '/api/super-admin/users',
+        method: 'POST',
+        data: userData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users', selectedTenantForUser] });
+      setIsCreateUserDialogOpen(false);
+      setNewUser({
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
+        role: 'user',
+        isRoleEditable: true
+      });
+      toast({
+        title: "Användare skapad",
+        description: "Den nya användaren har skapats framgångsrikt.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fel",
+        description: "Kunde inte skapa användare: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateTenant = () => {
     if (!newTenant.name.trim()) {
       toast({
@@ -133,6 +201,31 @@ export default function SuperAdmin() {
         name: editingTenant.name,
         modules: editingTenant.modules
       }
+    });
+  };
+
+  const handleCreateUser = () => {
+    if (!selectedTenantForUser) {
+      toast({
+        title: "Fel",
+        description: "Välj en tenant för användaren.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!newUser.email.trim() || !newUser.firstName.trim() || !newUser.lastName.trim() || !newUser.password.trim()) {
+      toast({
+        title: "Fel",
+        description: "Fyll i alla obligatoriska fält.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createUserMutation.mutate({
+      ...newUser,
+      tenantId: selectedTenantForUser
     });
   };
 
@@ -183,19 +276,33 @@ export default function SuperAdmin() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Tenants ({tenants.length})</h2>
-            <p className="text-sm text-gray-500">Hantera alla tenants i systemet</p>
-          </div>
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Skapa Tenant
-              </Button>
-            </DialogTrigger>
+        <Tabs defaultValue="tenants" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="tenants" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Tenants
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Användarhantering
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tenants Tab */}
+          <TabsContent value="tenants" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Tenants ({(tenants as any[]).length})</h2>
+                <p className="text-sm text-gray-500">Hantera alla tenants i systemet</p>
+              </div>
+              
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Skapa Tenant
+                  </Button>
+                </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Skapa ny tenant</DialogTitle>
@@ -320,6 +427,180 @@ export default function SuperAdmin() {
             </Card>
           ))}
         </div>
+
+          </TabsContent>
+
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Användarhantering</h2>
+                <p className="text-sm text-gray-500">Skapa användare för tenants</p>
+              </div>
+              
+              <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Skapa Användare
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Skapa ny användare</DialogTitle>
+                    <DialogDescription>
+                      Skapa en ny användare och koppla till en tenant.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="user-tenant">Tenant</Label>
+                      <Select value={selectedTenantForUser?.toString() || ""} onValueChange={(value) => setSelectedTenantForUser(Number(value))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Välj tenant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(tenants as any[]).map((tenant: Tenant) => (
+                            <SelectItem key={tenant.id} value={tenant.id.toString()}>
+                              {tenant.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="user-firstName">Förnamn</Label>
+                        <Input
+                          id="user-firstName"
+                          value={newUser.firstName}
+                          onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                          placeholder="John"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="user-lastName">Efternamn</Label>
+                        <Input
+                          id="user-lastName"
+                          value={newUser.lastName}
+                          onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                          placeholder="Doe"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="user-email">E-post</Label>
+                      <Input
+                        id="user-email"
+                        type="email"
+                        value={newUser.email}
+                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                        placeholder="john.doe@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="user-password">Lösenord</Label>
+                      <Input
+                        id="user-password"
+                        type="password"
+                        value={newUser.password}
+                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                        placeholder="Ange lösenord"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="user-role">Roll</Label>
+                      <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {AVAILABLE_ROLES.map((role) => (
+                            <SelectItem key={role.id} value={role.id}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="user-roleEditable"
+                        checked={newUser.isRoleEditable}
+                        onCheckedChange={(checked) => setNewUser({ ...newUser, isRoleEditable: checked as boolean })}
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor="user-roleEditable"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Rollen kan ändras
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          Tillåt att användarens roll kan ändras senare
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
+                      Avbryt
+                    </Button>
+                    <Button 
+                      onClick={handleCreateUser}
+                      disabled={createUserMutation.isPending}
+                    >
+                      {createUserMutation.isPending ? "Skapar..." : "Skapa Användare"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Users List */}
+            {selectedTenantForUser && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Användare för {(tenants as any[]).find(t => t.id === selectedTenantForUser)?.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(users as any[]).map((user: any) => (
+                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                            {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-medium">{user.firstName} {user.lastName}</p>
+                            <p className="text-sm text-gray-500">{user.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="secondary">{user.role}</Badge>
+                          {user.isRoleEditable && <Shield className="h-4 w-4 text-green-500" />}
+                        </div>
+                      </div>
+                    ))}
+                    {(users as any[]).length === 0 && (
+                      <p className="text-center text-gray-500 py-4">Inga användare hittades för denna tenant.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Edit Tenant Dialog */}
         <Dialog open={!!editingTenant} onOpenChange={() => setEditingTenant(null)}>
