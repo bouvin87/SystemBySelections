@@ -92,11 +92,36 @@ router.post('/users', authenticateToken, requireSuperAdmin, async (req, res) => 
     const user = await storage.createUser(userToCreate);
     
     // Remove password from response
-    const { hashedPassword: _, ...userResponse } = user;
+    const { password: _, ...userResponse } = user as any;
     res.status(201).json(userResponse);
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Failed to create user' });
+  }
+});
+
+// Update user (superadmin only)
+router.patch('/users/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { password, ...userData } = req.body;
+    
+    let updateData = userData;
+    
+    // Hash password if provided
+    if (password && password.trim()) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData = { ...userData, password: hashedPassword };
+    }
+    
+    const user = await storage.updateUser(id, updateData);
+    
+    // Remove password from response
+    const { password: _, ...userResponse } = user as any;
+    res.json(userResponse);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Failed to update user' });
   }
 });
 

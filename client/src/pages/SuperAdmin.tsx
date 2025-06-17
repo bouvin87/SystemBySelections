@@ -39,7 +39,9 @@ export default function SuperAdmin() {
 
   // User management state
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [selectedTenantForUser, setSelectedTenantForUser] = useState<number | null>(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
   const [newUser, setNewUser] = useState({
     email: '',
     firstName: '',
@@ -58,7 +60,19 @@ export default function SuperAdmin() {
   // Fetch users for selected tenant
   const { data: users = [] } = useQuery({
     queryKey: ['/api/super-admin/users', selectedTenantForUser],
-    queryFn: () => fetch(`/api/super-admin/users/${selectedTenantForUser}`).then(res => res.json()),
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/super-admin/users/${selectedTenantForUser}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      return response.json();
+    },
     enabled: !!selectedTenantForUser,
     retry: false,
   });
@@ -182,6 +196,41 @@ export default function SuperAdmin() {
     },
   });
 
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (userData: { 
+      id: number;
+      email?: string; 
+      firstName?: string; 
+      lastName?: string; 
+      role?: string; 
+      isRoleEditable?: boolean;
+      isActive?: boolean;
+    }) => {
+      return await apiRequest({
+        endpoint: `/api/super-admin/users/${userData.id}`,
+        method: 'PATCH',
+        data: userData
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users', selectedTenantForUser] });
+      setIsEditUserDialogOpen(false);
+      setEditingUser(null);
+      toast({
+        title: "Användare uppdaterad",
+        description: "Användarens information har uppdaterats framgångsrikt.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fel",
+        description: "Kunde inte uppdatera användare: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateTenant = () => {
     if (!newTenant.name.trim()) {
       toast({
@@ -228,6 +277,44 @@ export default function SuperAdmin() {
       ...newUser,
       tenantId: selectedTenantForUser
     });
+  };
+
+  const handleEditUser = (user: any) => {
+    setEditingUser({
+      ...user,
+      password: '' // Don't pre-fill password for security
+    });
+    setIsEditUserDialogOpen(true);
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+
+    if (!editingUser.email.trim() || !editingUser.firstName.trim() || !editingUser.lastName.trim()) {
+      toast({
+        title: "Fel",
+        description: "Fyll i alla obligatoriska fält.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updateData: any = {
+      id: editingUser.id,
+      email: editingUser.email,
+      firstName: editingUser.firstName,
+      lastName: editingUser.lastName,
+      role: editingUser.role,
+      isRoleEditable: editingUser.isRoleEditable,
+      isActive: editingUser.isActive
+    };
+
+    // Only include password if it's provided
+    if (editingUser.password && editingUser.password.trim()) {
+      updateData.password = editingUser.password;
+    }
+
+    updateUserMutation.mutate(updateData);
   };
 
   const handleModuleToggle = (moduleId: string, isChecked: boolean, tenant?: Tenant) => {
@@ -575,7 +662,7 @@ export default function SuperAdmin() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {(users as any[]).map((user: any) => (
+                    {Array.isArray(users) && users.map((user: any) => (
                       <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
@@ -589,6 +676,14 @@ export default function SuperAdmin() {
                         <div className="flex items-center space-x-2">
                           <Badge variant="secondary">{user.role}</Badge>
                           {user.isRoleEditable && <Shield className="h-4 w-4 text-green-500" />}
+                          {!user.isActive && <Badge variant="destructive">Inaktiv</Badge>}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
