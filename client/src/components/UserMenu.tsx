@@ -25,7 +25,7 @@ export default function UserMenu() {
     i18n.changeLanguage(language);
   };
 
-  if (!user || !tenant) {
+  if (!user) {
     return null;
   }
 
@@ -58,10 +58,12 @@ export default function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
-          <Building2 className="mr-2 h-4 w-4" />
-          <span className="text-sm">{tenant.name}</span>
-        </DropdownMenuItem>
+        {tenant && (
+          <DropdownMenuItem disabled>
+            <Building2 className="mr-2 h-4 w-4" />
+            <span className="text-sm">{tenant.name}</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem disabled>
           <User className="mr-2 h-4 w-4" />
           <span className="text-sm capitalize">{user.role}</span>

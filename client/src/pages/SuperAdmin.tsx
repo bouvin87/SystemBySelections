@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Building2, Settings, Trash2, Edit, Users, UserPlus, Mail, Shield, Filter } from "lucide-react";
-import UserMenu from "@/components/UserMenu";
+import { Plus, Building2, Settings, Trash2, Edit, Users, UserPlus, Mail, Shield, Filter, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import type { Tenant } from "@shared/schema";
 
 const AVAILABLE_MODULES = [
@@ -30,6 +30,7 @@ const AVAILABLE_ROLES = [
 
 export default function SuperAdmin() {
   const { toast } = useToast();
+  const { user, logout } = useAuth();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [newTenant, setNewTenant] = useState({
