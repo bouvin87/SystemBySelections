@@ -90,7 +90,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               className={`flex items-center justify-start w-full px-3 py-2 text-sm rounded-md transition-colors ${
                 i18n.language === 'sv' 
                   ? 'bg-blue-600 text-white' 
-                  : 'text-blue-200 hover:text-white hover:bg-blue-700/50'
+                  : 'text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50'
               }`}
             >
               {i18n.language === 'sv' && <Check className="mr-2 h-4 w-4" />}
@@ -101,7 +101,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               className={`flex items-center justify-start w-full px-3 py-2 text-sm rounded-md transition-colors ${
                 i18n.language === 'en' 
                   ? 'bg-blue-600 text-white' 
-                  : 'text-blue-200 hover:text-white hover:bg-blue-700/50'
+                  : 'text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50'
               }`}
             >
               {i18n.language === 'en' && <Check className="mr-2 h-4 w-4" />}
@@ -117,7 +117,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               setLocation('/admin');
               onClose();
             }}
-            className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-blue-700/50 transition-colors rounded-md"
+            className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
           >
             <Settings className="mr-3 h-5 w-5" />
             Administration
@@ -130,7 +130,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               setLocation('/super-admin');
               onClose();
             }}
-            className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-blue-700/50 transition-colors rounded-md"
+            className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
           >
             <Crown className="mr-3 h-5 w-5" />
             Super Admin
@@ -143,7 +143,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
             logout();
             onClose();
           }}
-          className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-red-600/80 transition-colors rounded-md font-medium"
+          className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-warning)]/80 transition-colors rounded-md font-medium"
         >
           <LogOut className="mr-3 h-5 w-5" />
           Logga ut
@@ -234,7 +234,7 @@ export default function Navigation() {
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       location === item.href 
                         ? "bg-blue-700 text-white" 
-                        : "text-blue-100 hover:bg-blue-600 hover:text-white"
+                        : "text-blue-100 hover:bg-[var(--color-accent)]/50 hover:text-white"
                     }`}
                   >
                     {item.label}
@@ -245,7 +245,7 @@ export default function Navigation() {
                   <button
                     key={`checklist-${checklist.id}`}
                     onClick={() => openModal(checklist.id)}
-                    className="px-3 py-2 text-sm text-blue-100 hover:text-white hover:bg-blue-600/50 rounded-md flex items-center gap-2 transition-colors"
+                    className="px-3 py-2 text-sm text-blue-100 hover:text-white hover:bg-[var(--color-accent)]/50 rounded-md flex items-center gap-2 transition-colors"
                   >
                     {renderIcon(checklist.icon, "h-4 w-4") || (
                       <CheckSquare className="h-4 w-4" />
@@ -257,7 +257,7 @@ export default function Navigation() {
                 {hasChecklistsModule && (
                   <button
                     onClick={() => setChecklistSelectionOpen(true)}
-                    className="px-3 py-2 text-sm text-blue-100 hover:text-white hover:bg-blue-600/50 rounded-md flex items-center gap-2 transition-colors"
+                    className="px-3 py-2 text-sm text-blue-100 hover:text-white hover:bg-[var(--color-accent)]/50 rounded-md flex items-center gap-2 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
                     {t("navigation.startNewChecklist")}
@@ -272,7 +272,7 @@ export default function Navigation() {
 
               {/* Mobile menu button */}
               <button
-                className="lg:hidden p-2 text-blue-100 hover:text-white hover:bg-blue-600/50 transition-colors rounded-md"
+                className="lg:hidden p-2 text-blue-100 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -293,7 +293,7 @@ export default function Navigation() {
                       className={`block px-3 py-3 rounded-lg text-base font-medium transition-colors ${
                         location === item.href 
                           ? "bg-blue-600 text-white" 
-                          : "text-blue-100 hover:bg-blue-700 hover:text-white"
+                          : "text-blue-100 hover:bg-[var(--color-accent)]/50 hover:text-white"
                       }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -313,7 +313,7 @@ export default function Navigation() {
                       <button
                         key={`mobile-checklist-${checklist.id}`}
                         onClick={() => openModal(checklist.id)}
-                        className="w-full flex items-center justify-start px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-blue-700/50 transition-colors rounded-lg gap-3"
+                        className="w-full flex items-center justify-start px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-lg gap-3"
                       >
                         {renderIcon(checklist.icon, "h-5 w-5") || (
                           <CheckSquare className="h-5 w-5" />
@@ -328,7 +328,7 @@ export default function Navigation() {
                           setChecklistSelectionOpen(true);
                           setMobileMenuOpen(false);
                         }}
-                        className="w-full flex items-center justify-start px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-blue-700/50 transition-colors rounded-lg gap-3"
+                        className="w-full flex items-center justify-start px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-lg gap-3"
                       >
                         <Plus className="h-5 w-5" />
                         {t("navigation.startNewChecklist")}
