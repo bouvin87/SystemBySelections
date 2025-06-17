@@ -126,20 +126,24 @@ export default function Admin() {
   });
 
   // Hämta arbetsmoment för en specifik checklista
-  const { data: checklistWorkTasks = [] } = useQuery({
+  const { data: checklistWorkTasks = [], refetch: refetchWorkTasks } = useQuery({
     queryKey: [`/api/checklists/${editingItem?.id}/work-tasks`],
     enabled: !!editingItem?.id,
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache (TanStack Query v5)
   });
 
   // Update selected work task IDs when editing a checklist
   useEffect(() => {
-    if (editingItem && Array.isArray(checklistWorkTasks) && checklistWorkTasks.length > 0) {
+    console.log('useEffect triggered:', { editingItem: editingItem?.id, checklistWorkTasks, isArray: Array.isArray(checklistWorkTasks) });
+    if (editingItem && Array.isArray(checklistWorkTasks)) {
       const workTaskIds = checklistWorkTasks.map((wt: any) => wt.workTaskId);
+      console.log('Setting selected work task IDs:', workTaskIds);
       setSelectedWorkTaskIds(workTaskIds);
     } else if (!editingItem) {
       setSelectedWorkTaskIds([]);
     }
-  }, [editingItem?.id]);
+  }, [editingItem?.id, checklistWorkTasks]);
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
@@ -241,10 +245,18 @@ export default function Admin() {
     },
   });
 
-  const openDialog = (item?: any) => {
+  const openDialog = async (item?: any) => {
     setEditingItem(item);
     setSelectedIcon(item?.icon || "");
+    setSelectedWorkTaskIds([]); // Reset first, will be loaded by useEffect
     setDialogOpen(true);
+    
+    // Force refetch of work tasks if editing an item
+    if (item?.id) {
+      setTimeout(() => {
+        refetchWorkTasks();
+      }, 100);
+    }
   };
 
   const handleSubmit = (endpoint: string, data: any) => {
