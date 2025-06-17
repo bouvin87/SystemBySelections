@@ -324,7 +324,7 @@ export default function SuperAdmin() {
       firstName: editingUser.firstName,
       lastName: editingUser.lastName,
       role: editingUser.role,
-      isRoleEditable: editingUser.isRoleEditable,
+      lockRole: editingUser.lockRole,
       isActive: editingUser.isActive
     };
 

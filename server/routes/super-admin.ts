@@ -125,7 +125,9 @@ router.patch('/users/:id', authenticateToken, requireSuperAdmin, async (req, res
       updateData = { ...userData, password: hashedPassword };
     }
     
+    console.log('Updating user with data:', updateData);
     const user = await storage.updateUser(id, updateData);
+    console.log('Updated user result:', user);
     
     // Remove password from response
     const { password: _, ...userResponse } = user as any;
