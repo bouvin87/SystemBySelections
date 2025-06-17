@@ -54,7 +54,7 @@ import type {
   Question,
   InsertQuestion,
   User,
-  InsertUser,
+  CreateUserRequest,
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
 
@@ -311,7 +311,7 @@ export default function Admin() {
                         onSubmit={(e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
-                          const data: InsertUser = {
+                          const data: CreateUserRequest = {
                             email: formData.get("email") as string,
                             firstName: formData.get("firstName") as string,
                             lastName: formData.get("lastName") as string,

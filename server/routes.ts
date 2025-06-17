@@ -89,11 +89,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Admin access required' });
       }
 
-      const validatedData = insertUserSchema.parse(req.body);
-      const user = await storage.createUser({
-        ...validatedData,
+      // Handle password hashing for new users
+      const { password, ...userData } = req.body;
+      if (!password) {
+        return res.status(400).json({ message: 'Password is required' });
+      }
+
+      // Hash the password and prepare user data
+      const { hashPassword } = await import('./middleware/auth');
+      const hashedPassword = await hashPassword(password);
+      
+      const validatedData = insertUserSchema.parse({
+        ...userData,
+        hashedPassword,
         tenantId: req.tenantId!
       });
+
+      const user = await storage.createUser(validatedData);
       res.status(201).json(user);
     } catch (error) {
       console.error('Create user error:', error);

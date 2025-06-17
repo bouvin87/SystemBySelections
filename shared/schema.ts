@@ -153,6 +153,15 @@ export const loginSchema = z.object({
   password: z.string().min(6),
 });
 
+// Frontend user creation schema (with password instead of hashedPassword)
+export const createUserSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  role: z.enum(['admin', 'user']).default('user'),
+  password: z.string().min(6),
+});
+
 // === TYPES ===
 
 // Core multi-tenant types
@@ -183,6 +192,7 @@ export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;
+export type CreateUserRequest = z.infer<typeof createUserSchema>;
 
 // JWT payload type
 export interface JWTPayload {
