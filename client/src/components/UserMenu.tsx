@@ -12,7 +12,7 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User, Building2, Settings, Languages, Check, Switch } from 'lucide-react';
+import { LogOut, User, Building2, Settings, Languages, Check, ArrowRightLeft } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
@@ -55,15 +55,21 @@ export default function UserMenu() {
 
   const switchTenant = async (tenantId: number) => {
     try {
-      const response = await apiRequest({
-        endpoint: '/api/auth/switch-tenant',
+      const response = await fetch('/api/auth/switch-tenant', {
         method: 'POST',
-        data: { tenantId },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        body: JSON.stringify({ tenantId }),
       });
 
-      if (response.token) {
-        localStorage.setItem('authToken', response.token);
-        window.location.reload();
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
+          window.location.reload();
+        }
       }
     } catch (error) {
       console.error('Failed to switch tenant:', error);
@@ -109,15 +115,38 @@ export default function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
-          <Building2 className="mr-2 h-4 w-4" />
-          <div className="flex flex-col">
-            <span className="text-sm">{tenant.name}</span>
-            <span className="text-xs text-muted-foreground">
-              Tenant ID: {tenant.id}
-            </span>
-          </div>
-        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Building2 className="mr-2 h-4 w-4" />
+            <div className="flex flex-col">
+              <span className="text-sm">{tenant.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {availableTenants.length > 1 ? `${availableTenants.length} organisationer tillgängliga` : 'Aktuell organisation'}
+              </span>
+            </div>
+          </DropdownMenuSubTrigger>
+          {availableTenants.length > 1 && (
+            <DropdownMenuSubContent>
+              {availableTenants.map((availableTenant) => (
+                <DropdownMenuItem 
+                  key={availableTenant.id}
+                  onClick={() => switchTenant(availableTenant.id)}
+                  disabled={availableTenant.id === tenant.id}
+                >
+                  <div className="flex items-center">
+                    {availableTenant.id === tenant.id && <Check className="mr-2 h-4 w-4" />}
+                    <div className={`flex flex-col ${availableTenant.id !== tenant.id ? 'ml-6' : ''}`}>
+                      <span className="text-sm">{availableTenant.name}</span>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {availableTenant.userRole}
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          )}
+        </DropdownMenuSub>
         <DropdownMenuItem disabled>
           <User className="mr-2 h-4 w-4" />
           <span className="text-sm capitalize">{user.role}</span>
