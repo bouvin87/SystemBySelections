@@ -302,10 +302,10 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">{t('dashboard.questionStatistics')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {dashboardQuestions.map((question) => (
+              {dashboardQuestions.map((item: any) => (
                 <DashboardQuestionCard
-                  key={question.id}
-                  question={question}
+                  key={item.questions.id}
+                  question={item.questions}
                   responses={responses}
                   filters={filters}
                 />
