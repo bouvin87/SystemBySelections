@@ -1377,6 +1377,11 @@ export default function Admin() {
                 </Tabs>
               </TabsContent>
 
+              {/* Theme Tab */}
+              <TabsContent value="theme">
+                <TenantThemeSettings />
+              </TabsContent>
+
               {/* Settings Tab */}
               <TabsContent value="settings">
                 <div className="space-y-6">
