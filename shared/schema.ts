@@ -9,6 +9,13 @@ export const tenants = pgTable("tenants", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   modules: json("modules").$type<string[]>().notNull().default([]), // Active modules: ['checklists', 'maintenance']
+  // Theme colors (hex codes)
+  colorPrimary: varchar("color_primary", { length: 7 }).default("#3b82f6"), // Default blue
+  colorSecondary: varchar("color_secondary", { length: 7 }).default("#6b7280"), // Default gray
+  colorAccent: varchar("color_accent", { length: 7 }).default("#10b981"), // Default green
+  colorWarning: varchar("color_warning", { length: 7 }).default("#f59e0b"), // Default amber
+  colorBackground: varchar("color_background", { length: 7 }).default("#ffffff"), // Default white
+  colorText: varchar("color_text", { length: 7 }).default("#111827"), // Default dark gray
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

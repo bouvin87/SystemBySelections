@@ -3,6 +3,15 @@
 @tailwind utilities;
 
 :root {
+  /* Tenant-specific dynamic colors - defaults */
+  --color-primary: #3b82f6;
+  --color-secondary: #6b7280;
+  --color-accent: #10b981;
+  --color-warning: #f59e0b;
+  --color-background: #ffffff;
+  --color-text: #111827;
+
+  /* shadcn UI system colors */
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(240, 10%, 3.9%);
   --card: hsl(0, 0%, 100%);

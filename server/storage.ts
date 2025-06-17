@@ -116,6 +116,24 @@ export interface IStorage {
   getAdminSettings(tenantId: number): Promise<AdminSetting[]>;
   getAdminSetting(key: string, tenantId: number): Promise<AdminSetting | undefined>;
   setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting>;
+
+  // Tenant Theme Management
+  getTenantTheme(tenantId: number): Promise<{ 
+    colorPrimary?: string | null;
+    colorSecondary?: string | null;
+    colorAccent?: string | null;
+    colorWarning?: string | null;
+    colorBackground?: string | null;
+    colorText?: string | null;
+  } | undefined>;
+  updateTenantTheme(tenantId: number, theme: {
+    colorPrimary?: string;
+    colorSecondary?: string;
+    colorAccent?: string;
+    colorWarning?: string;
+    colorBackground?: string;
+    colorText?: string;
+  }): Promise<Tenant>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -573,6 +591,43 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db.insert(adminSettings).values(setting).returning();
       return created;
     }
+  }
+
+  // === TENANT THEME MANAGEMENT ===
+  
+  async getTenantTheme(tenantId: number): Promise<{ 
+    colorPrimary?: string | null;
+    colorSecondary?: string | null;
+    colorAccent?: string | null;
+    colorWarning?: string | null;
+    colorBackground?: string | null;
+    colorText?: string | null;
+  } | undefined> {
+    const [tenant] = await db.select({
+      colorPrimary: tenants.colorPrimary,
+      colorSecondary: tenants.colorSecondary,
+      colorAccent: tenants.colorAccent,
+      colorWarning: tenants.colorWarning,
+      colorBackground: tenants.colorBackground,
+      colorText: tenants.colorText,
+    }).from(tenants).where(eq(tenants.id, tenantId));
+    
+    return tenant || undefined;
+  }
+
+  async updateTenantTheme(tenantId: number, theme: {
+    colorPrimary?: string;
+    colorSecondary?: string;
+    colorAccent?: string;
+    colorWarning?: string;
+    colorBackground?: string;
+    colorText?: string;
+  }): Promise<Tenant> {
+    const [updated] = await db.update(tenants)
+      .set(theme)
+      .where(eq(tenants.id, tenantId))
+      .returning();
+    return updated;
   }
 }
 
