@@ -42,6 +42,12 @@ export default function SuperAdmin() {
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [selectedTenantForUser, setSelectedTenantForUser] = useState<number | null>(null);
   const [editingUser, setEditingUser] = useState<any>(null);
+  const [userFilters, setUserFilters] = useState({
+    tenant: '',
+    email: '',
+    name: '',
+    role: ''
+  });
   const [newUser, setNewUser] = useState({
     email: '',
     firstName: '',
@@ -57,12 +63,12 @@ export default function SuperAdmin() {
     retry: false,
   });
 
-  // Fetch users for selected tenant
-  const { data: users = [] } = useQuery({
-    queryKey: ['/api/super-admin/users', selectedTenantForUser],
+  // Fetch all users
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['/api/super-admin/users'],
     queryFn: async () => {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`/api/super-admin/users/${selectedTenantForUser}`, {
+      const response = await fetch('/api/super-admin/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -73,8 +79,21 @@ export default function SuperAdmin() {
       }
       return response.json();
     },
-    enabled: !!selectedTenantForUser,
     retry: false,
+  });
+
+  // Filter users based on current filters
+  const filteredUsers = allUsers.filter((user: any) => {
+    const tenant = (tenants as any[]).find((t: any) => t.id === user.tenantId);
+    const tenantName = tenant?.name || '';
+    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+    
+    return (
+      (!userFilters.tenant || tenantName.toLowerCase().includes(userFilters.tenant.toLowerCase())) &&
+      (!userFilters.email || user.email.toLowerCase().includes(userFilters.email.toLowerCase())) &&
+      (!userFilters.name || fullName.includes(userFilters.name.toLowerCase())) &&
+      (!userFilters.role || user.role.toLowerCase().includes(userFilters.role.toLowerCase()))
+    );
   });
 
   // Create tenant mutation
@@ -172,7 +191,7 @@ export default function SuperAdmin() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users', selectedTenantForUser] });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users'] });
       setIsCreateUserDialogOpen(false);
       setNewUser({
         email: '',
@@ -214,7 +233,7 @@ export default function SuperAdmin() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users', selectedTenantForUser] });
+      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users'] });
       setIsEditUserDialogOpen(false);
       setEditingUser(null);
       toast({

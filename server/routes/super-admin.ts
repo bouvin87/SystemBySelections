@@ -63,6 +63,17 @@ router.delete('/tenants/:id', authenticateToken, requireSuperAdmin, async (req, 
   }
 });
 
+// Get all users across all tenants (superadmin only)
+router.get('/users', authenticateToken, requireSuperAdmin, async (req, res) => {
+  try {
+    const allUsers = await storage.getAllUsers();
+    res.json(allUsers);
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+});
+
 // Get users for a specific tenant (superadmin only)
 router.get('/users/:tenantId', authenticateToken, requireSuperAdmin, async (req, res) => {
   try {

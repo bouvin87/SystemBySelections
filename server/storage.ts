@@ -22,6 +22,7 @@ export interface IStorage {
   deleteTenant(id: number): Promise<void>;
 
   // Users  
+  getAllUsers(): Promise<User[]>;
   getUsers(tenantId: number): Promise<User[]>;
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string, tenantId: number): Promise<User | undefined>;
@@ -147,6 +148,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Users
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
   async getUsers(tenantId: number): Promise<User[]> {
     return await db.select().from(users).where(eq(users.tenantId, tenantId));
   }
