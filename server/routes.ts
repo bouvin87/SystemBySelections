@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import authRoutes from "./routes/auth";
 import checklistRoutes from "./modules/checklists/routes";
@@ -8,13 +8,20 @@ import {
   authenticateToken, 
   validateTenantOwnership, 
   enforceTenantIsolation,
-  requireModule 
+  requireModule
 } from "./middleware/auth";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
-  insertUserSchema
+  insertUserSchema, insertChecklistResponseSchema
 } from "@shared/schema";
+
+// Extend Request type for authenticated routes
+interface AuthenticatedRequest extends Request {
+  user?: any;
+  tenantId?: number;
+  tenant?: any;
+}
 
 /**
  * MULTI-TENANT SAAS ROUTE REGISTRATION
@@ -410,9 +417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/categories", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      const validatedData = insertCategorySchema.omit({ tenantId: true }).parse(req.body);
-      const categoryData = { ...validatedData, tenantId: req.tenantId! };
-      const category = await storage.createCategory(categoryData);
+      const validatedData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
       res.status(201).json(category);
     } catch (error) {
       console.error('Create category error:', error);
@@ -423,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/categories/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       const id = parseInt(req.params.id);
-      const validatedData = insertCategorySchema.omit({ tenantId: true }).partial().parse(req.body);
+      const validatedData = insertCategorySchema.partial().parse(req.body);
       const category = await storage.updateCategory(id, validatedData, req.tenantId!);
       res.json(category);
     } catch (error) {
@@ -493,10 +502,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.use('/api/dashboard*', (req, res, next) => {
-    const newPath = req.path.replace('/api/dashboard', '/api/modules/checklists/dashboard');
-    req.url = newPath + (req.url.includes('?') ? '&' : '?') + 'legacy=true';
-    next();
+  // === MISSING BACKWARD COMPATIBILITY ROUTES ===
+  
+  // Individual checklist access
+  app.get('/api/checklists/:id', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const checklist = await storage.getChecklist(id, req.tenantId!);
+      if (!checklist) {
+        return res.status(404).json({ message: "Checklist not found" });
+      }
+      res.json(checklist);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch checklist" });
+    }
+  });
+
+  // All active checklists
+  app.get('/api/checklists/all-active', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const checklists = await storage.getAllActiveChecklists(req.tenantId!);
+      res.json(checklists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch all active checklists" });
+    }
+  });
+
+  // Checklist responses
+  app.get('/api/responses', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const filters = {
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+        checklistId: req.query.checklistId ? parseInt(req.query.checklistId as string) : undefined,
+        workTaskId: req.query.workTaskId ? parseInt(req.query.workTaskId as string) : undefined,
+        workStationId: req.query.workStationId ? parseInt(req.query.workStationId as string) : undefined,
+        shiftId: req.query.shiftId ? parseInt(req.query.shiftId as string) : undefined,
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        search: req.query.search as string,
+      };
+      
+      const responses = await storage.getChecklistResponses(req.tenantId!, filters);
+      res.json(responses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch responses" });
+    }
+  });
+
+  app.post('/api/responses', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const validatedData = insertChecklistResponseSchema.parse(req.body);
+      const response = await storage.createChecklistResponse({
+        ...validatedData,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(response);
+    } catch (error) {
+      console.error('Create response error:', error);
+      res.status(400).json({ message: "Invalid response data" });
+    }
+  });
+
+  // Dashboard routes
+  app.get('/api/dashboard/stats', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const filters = {
+        checklistId: req.query.checklistId ? parseInt(req.query.checklistId as string) : undefined,
+        workTaskId: req.query.workTaskId ? parseInt(req.query.workTaskId as string) : undefined,
+        workStationId: req.query.workStationId ? parseInt(req.query.workStationId as string) : undefined,
+        shiftId: req.query.shiftId ? parseInt(req.query.shiftId as string) : undefined,
+        startDate: req.query.startDate as string,
+        endDate: req.query.endDate as string,
+        search: req.query.search as string,
+      };
+      
+      const stats = await storage.getDashboardStats(req.tenantId!, filters);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  app.get('/api/dashboard/questions', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const checklistId = req.query.checklistId ? parseInt(req.query.checklistId as string) : undefined;
+      if (!checklistId) {
+        return res.status(400).json({ message: "checklistId is required" });
+      }
+      const questions = await storage.getDashboardQuestions(checklistId, req.tenantId!);
+      res.json(questions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard questions" });
+    }
   });
 
   const httpServer = createServer(app);
