@@ -58,6 +58,7 @@ export default function SuperAdmin() {
   // Fetch users for selected tenant
   const { data: users = [] } = useQuery({
     queryKey: ['/api/super-admin/users', selectedTenantForUser],
+    queryFn: () => fetch(`/api/super-admin/users/${selectedTenantForUser}`).then(res => res.json()),
     enabled: !!selectedTenantForUser,
     retry: false,
   });
@@ -364,13 +365,13 @@ export default function SuperAdmin() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
+          </div>
 
-        {/* Tenants Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {tenants.map((tenant: Tenant) => (
-            <Card key={tenant.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+          {/* Tenants Grid */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {(tenants as any[]).map((tenant: Tenant) => (
+              <Card key={tenant.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                 <div className="flex items-center space-x-2">
                   <Building2 className="h-5 w-5 text-blue-600" />
                   <CardTitle className="text-lg">{tenant.name}</CardTitle>
@@ -426,8 +427,7 @@ export default function SuperAdmin() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
+          </div>
           </TabsContent>
 
           {/* Users Tab */}
