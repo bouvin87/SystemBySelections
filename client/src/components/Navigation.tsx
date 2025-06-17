@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Menu, X, CheckSquare, Plus } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ClipboardList, Menu, X, CheckSquare, Plus, User, Building2, Settings, Crown, LogOut, Languages, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
@@ -9,6 +10,153 @@ import FormModal from "@/components/FormModal";
 import ChecklistSelectionModal from "@/components/ChecklistSelectionModal";
 import UserMenu from "@/components/UserMenu";
 import { renderIcon } from "@/lib/icon-utils";
+import { useAuth } from "@/hooks/useAuth";
+
+// Mobile User Section Component - embedded directly in mobile menu
+function MobileUserSection({ onClose }: { onClose: () => void }) {
+  const { user, logout } = useAuth();
+  const { i18n } = useTranslation();
+  const [, setLocation] = useLocation();
+
+  if (!user) return null;
+
+  const authData = useQuery({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  }).data;
+
+  const tenant = authData?.tenant;
+  
+  const displayName = (user as any).firstName && (user as any).lastName 
+    ? `${(user as any).firstName} ${(user as any).lastName}`
+    : user.email;
+
+  const initials = displayName
+    .split(' ')
+    .map((name: string) => name.charAt(0))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* User info card */}
+      <div className="bg-blue-700 rounded-lg p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <p className="text-white font-medium text-base">{displayName}</p>
+            <p className="text-blue-200 text-sm">{user.email}</p>
+          </div>
+        </div>
+        
+        {/* User details */}
+        <div className="space-y-2 text-sm">
+          {tenant && (
+            <div className="flex items-center gap-2 text-blue-100">
+              <Building2 className="h-4 w-4" />
+              <span>{tenant.name}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-blue-100">
+            <User className="h-4 w-4" />
+            <span className="capitalize">
+              {user.role === 'superadmin' ? 'Super Admin' : 
+               user.role === 'admin' ? 'Administrator' : 'Användare'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="space-y-2">
+        {/* Language selection */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-3 py-2 text-blue-300 text-sm">
+            <Languages className="h-4 w-4" />
+            <span>Språk</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => changeLanguage('sv')}
+              className={`justify-start text-sm ${
+                i18n.language === 'sv' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-blue-800 text-blue-200 hover:bg-blue-700'
+              }`}
+              variant="ghost"
+            >
+              {i18n.language === 'sv' && <Check className="mr-2 h-4 w-4" />}
+              Svenska
+            </Button>
+            <Button
+              onClick={() => changeLanguage('en')}
+              className={`justify-start text-sm ${
+                i18n.language === 'en' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-blue-800 text-blue-200 hover:bg-blue-700'
+              }`}
+              variant="ghost"
+            >
+              {i18n.language === 'en' && <Check className="mr-2 h-4 w-4" />}
+              English
+            </Button>
+          </div>
+        </div>
+
+        {/* Admin links */}
+        {user.role === 'admin' && (
+          <Button
+            onClick={() => {
+              setLocation('/admin');
+              onClose();
+            }}
+            className="w-full justify-start text-base bg-gray-700 hover:bg-gray-600 text-white"
+            variant="ghost"
+          >
+            <Settings className="mr-3 h-5 w-5" />
+            Administration
+          </Button>
+        )}
+
+        {user.role === 'superadmin' && (
+          <Button
+            onClick={() => {
+              setLocation('/super-admin');
+              onClose();
+            }}
+            className="w-full justify-start text-base bg-yellow-700 hover:bg-yellow-600 text-white"
+            variant="ghost"
+          >
+            <Crown className="mr-3 h-5 w-5" />
+            Super Admin
+          </Button>
+        )}
+
+        {/* Logout button */}
+        <Button
+          onClick={() => {
+            logout();
+            onClose();
+          }}
+          className="w-full justify-start text-base bg-red-700 hover:bg-red-600 text-white font-medium"
+          variant="ghost"
+        >
+          <LogOut className="mr-3 h-5 w-5" />
+          Logga ut
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function Navigation() {
   const { t } = useTranslation();
@@ -200,13 +348,13 @@ export default function Navigation() {
                   </div>
                 )}
 
-                {/* User section */}
+                {/* User section - embedded directly in mobile menu */}
                 <div className="border-t border-blue-600 pt-4">
-                  <div className="px-3 py-1 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">
+                  <div className="px-3 py-1 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-3">
                     Konto
                   </div>
-                  <div className="block md:hidden">
-                    <UserMenu />
+                  <div className="block md:hidden space-y-2">
+                    <MobileUserSection onClose={() => setMobileMenuOpen(false)} />
                   </div>
                 </div>
               </div>
