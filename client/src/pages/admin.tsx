@@ -135,15 +135,13 @@ export default function Admin() {
 
   // Update selected work task IDs when editing a checklist
   useEffect(() => {
-    console.log('useEffect triggered:', { editingItem: editingItem?.id, checklistWorkTasks, isArray: Array.isArray(checklistWorkTasks) });
-    if (editingItem && Array.isArray(checklistWorkTasks)) {
+    if (editingItem?.id && Array.isArray(checklistWorkTasks) && checklistWorkTasks.length > 0) {
       const workTaskIds = checklistWorkTasks.map((wt: any) => wt.workTaskId);
-      console.log('Setting selected work task IDs:', workTaskIds);
       setSelectedWorkTaskIds(workTaskIds);
     } else if (!editingItem) {
       setSelectedWorkTaskIds([]);
     }
-  }, [editingItem?.id, checklistWorkTasks]);
+  }, [editingItem?.id, JSON.stringify(checklistWorkTasks)]);
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
