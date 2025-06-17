@@ -133,12 +133,13 @@ export default function Admin() {
 
   // Update selected work task IDs when editing a checklist
   useEffect(() => {
-    if (checklistWorkTasks.length > 0) {
-      setSelectedWorkTaskIds(checklistWorkTasks.map((wt: any) => wt.workTaskId));
+    if (editingItem && Array.isArray(checklistWorkTasks) && checklistWorkTasks.length > 0) {
+      const workTaskIds = checklistWorkTasks.map((wt: any) => wt.workTaskId);
+      setSelectedWorkTaskIds(workTaskIds);
     } else if (!editingItem) {
       setSelectedWorkTaskIds([]);
     }
-  }, [checklistWorkTasks, editingItem]);
+  }, [editingItem?.id]);
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
@@ -546,27 +547,62 @@ export default function Admin() {
                         </div>
                         <div>
                           <Label className="text-base font-medium">Välj arbetsmoment</Label>
-                          <div className="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
-                            {workTasks.map((workTask) => (
-                              <div key={workTask.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`workTask-${workTask.id}`}
-                                  checked={selectedWorkTaskIds.includes(workTask.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setSelectedWorkTaskIds([...selectedWorkTaskIds, workTask.id]);
-                                    } else {
-                                      setSelectedWorkTaskIds(selectedWorkTaskIds.filter(id => id !== workTask.id));
-                                    }
-                                  }}
-                                />
-                                <Label htmlFor={`workTask-${workTask.id}`} className="text-sm">
-                                  {workTask.name}
-                                </Label>
+                          <div className="mt-2">
+                            <Select
+                              value=""
+                              onValueChange={(value) => {
+                                const workTaskId = parseInt(value);
+                                if (!selectedWorkTaskIds.includes(workTaskId)) {
+                                  setSelectedWorkTaskIds([...selectedWorkTaskIds, workTaskId]);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Välj arbetsmoment att lägga till..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {workTasks
+                                  .filter(workTask => !selectedWorkTaskIds.includes(workTask.id))
+                                  .map((workTask) => (
+                                    <SelectItem key={workTask.id} value={workTask.id.toString()}>
+                                      {workTask.name}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                            
+                            {/* Visa valda arbetsmoment som badges */}
+                            {selectedWorkTaskIds.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">Valda arbetsmoment:</Label>
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedWorkTaskIds.map((workTaskId) => {
+                                    const workTask = workTasks.find(wt => wt.id === workTaskId);
+                                    return workTask ? (
+                                      <Badge
+                                        key={workTaskId}
+                                        variant="secondary"
+                                        className="flex items-center gap-1 px-2 py-1"
+                                      >
+                                        {workTask.name}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setSelectedWorkTaskIds(selectedWorkTaskIds.filter(id => id !== workTaskId));
+                                          }}
+                                          className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                                        >
+                                          ×
+                                        </button>
+                                      </Badge>
+                                    ) : null;
+                                  })}
+                                </div>
                               </div>
-                            ))}
+                            )}
+                            
                             {workTasks.length === 0 && (
-                              <p className="text-sm text-gray-500">Inga arbetsmoment tillgängliga</p>
+                              <p className="text-sm text-gray-500 mt-2">Inga arbetsmoment tillgängliga</p>
                             )}
                           </div>
                         </div>
