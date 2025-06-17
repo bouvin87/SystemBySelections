@@ -377,7 +377,22 @@ export default function SuperAdmin() {
                 <p className="text-sm text-gray-500">Hantera tenants och systemmoduler</p>
               </div>
             </div>
-            <UserMenu />
+            <div className="flex items-center gap-4">
+              {user && (
+                <div className="text-sm text-gray-600">
+                  Inloggad som: <span className="font-medium">{user.email}</span>
+                </div>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={logout}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logga ut
+              </Button>
+            </div>
           </div>
         </div>
       </header>
