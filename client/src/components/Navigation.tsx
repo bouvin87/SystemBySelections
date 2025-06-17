@@ -45,28 +45,28 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
   return (
     <div className="space-y-3">
       {/* User info card */}
-      <div className="bg-blue-700 rounded-lg p-4">
+      <div className="bg-gray-800 rounded-lg p-4">
         <div className="flex items-center gap-3 mb-3">
           <Avatar className="h-12 w-12">
-            <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
+            <AvatarFallback className="bg-gray-600 text-white text-sm font-medium">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <p className="text-white font-medium text-base">{displayName}</p>
-            <p className="text-blue-200 text-sm">{user.email}</p>
+            <p className="text-gray-300 text-sm">{user.email}</p>
           </div>
         </div>
         
         {/* User details */}
         <div className="space-y-2 text-sm">
           {tenant && (
-            <div className="flex items-center gap-2 text-blue-100">
+            <div className="flex items-center gap-2 text-gray-300">
               <Building2 className="h-4 w-4" />
               <span>{tenant.name}</span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-blue-100">
+          <div className="flex items-center gap-2 text-gray-300">
             <User className="h-4 w-4" />
             <span className="capitalize">
               {user.role === 'superadmin' ? 'Super Admin' : 
@@ -80,7 +80,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
       <div className="space-y-2">
         {/* Language selection */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-3 py-2 text-blue-300 text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 text-gray-400 text-sm">
             <Languages className="h-4 w-4" />
             <span>Språk</span>
           </div>
@@ -89,8 +89,8 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               onClick={() => changeLanguage('sv')}
               className={`justify-start text-sm ${
                 i18n.language === 'sv' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-blue-800 text-blue-200 hover:bg-blue-700'
+                  ? 'bg-gray-600 text-white' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
               variant="ghost"
             >
@@ -101,8 +101,8 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               onClick={() => changeLanguage('en')}
               className={`justify-start text-sm ${
                 i18n.language === 'en' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-blue-800 text-blue-200 hover:bg-blue-700'
+                  ? 'bg-gray-600 text-white' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
               variant="ghost"
             >
@@ -119,7 +119,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               setLocation('/admin');
               onClose();
             }}
-            className="w-full justify-start text-base bg-gray-700 hover:bg-gray-600 text-white"
+            className="w-full justify-start text-base bg-gray-700 hover:bg-gray-600 text-gray-200"
             variant="ghost"
           >
             <Settings className="mr-3 h-5 w-5" />
@@ -133,7 +133,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
               setLocation('/super-admin');
               onClose();
             }}
-            className="w-full justify-start text-base bg-yellow-700 hover:bg-yellow-600 text-white"
+            className="w-full justify-start text-base bg-gray-700 hover:bg-gray-600 text-gray-200"
             variant="ghost"
           >
             <Crown className="mr-3 h-5 w-5" />
@@ -147,7 +147,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
             logout();
             onClose();
           }}
-          className="w-full justify-start text-base bg-red-700 hover:bg-red-600 text-white font-medium"
+          className="w-full justify-start text-base bg-gray-700 hover:bg-gray-600 text-gray-200 font-medium"
           variant="ghost"
         >
           <LogOut className="mr-3 h-5 w-5" />
