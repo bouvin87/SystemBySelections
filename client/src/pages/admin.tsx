@@ -352,8 +352,8 @@ export default function Admin() {
                         </div>
                         <div>
                           <Label htmlFor="role">Roll</Label>
-                          <Select name="role" defaultValue={editingItem?.role || "user"}>
-                            <SelectTrigger>
+                          <Select name="role" defaultValue={editingItem?.role || "user"} disabled={editingItem?.lockRole}>
+                            <SelectTrigger className={editingItem?.lockRole ? "opacity-50 cursor-not-allowed" : ""}>
                               <SelectValue placeholder="Välj roll" />
                             </SelectTrigger>
                             <SelectContent>
@@ -361,6 +361,11 @@ export default function Admin() {
                               <SelectItem value="admin">Administratör</SelectItem>
                             </SelectContent>
                           </Select>
+                          {editingItem?.lockRole && (
+                            <p className="text-xs text-red-600 mt-1">
+                              Rollen är låst och kan inte ändras
+                            </p>
+                          )}
                         </div>
                         {!editingItem && (
                           <div>
