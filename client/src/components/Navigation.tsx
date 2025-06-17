@@ -179,6 +179,11 @@ export default function Navigation() {
                   {t("navigation.startNewChecklist")}
                 </Button>
               )}
+              
+              {/* Mobile User Menu */}
+              <div className="px-3 py-2 border-t border-blue-600 mt-2 pt-4">
+                <UserMenu />
+              </div>
             </div>
           </div>
         )}

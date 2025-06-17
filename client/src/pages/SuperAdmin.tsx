@@ -2,30 +2,82 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Building2, Settings, Trash2, Edit, Users, UserPlus, Mail, Shield, Filter, LogOut } from "lucide-react";
+import {
+  Plus,
+  Building2,
+  Settings,
+  Trash2,
+  Edit,
+  Users,
+  UserPlus,
+  Mail,
+  Shield,
+  Filter,
+  LogOut,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { Tenant } from "@shared/schema";
 
 const AVAILABLE_MODULES = [
-  { id: 'checklists', name: 'Checklistor', description: 'Hantera checklistor och kontroller' },
-  { id: 'maintenance', name: 'Underhåll', description: 'Underhållsplanering och -uppföljning' },
-  { id: 'analytics', name: 'Analys', description: 'Rapporter och dataanalys' },
-  { id: 'inventory', name: 'Lager', description: 'Lagerhantering och inventering' }
+  {
+    id: "checklists",
+    name: "Checklistor",
+    description: "Hantera checklistor och kontroller",
+  },
+  {
+    id: "maintenance",
+    name: "Underhåll",
+    description: "Underhållsplanering och -uppföljning",
+  },
+  { id: "analytics", name: "Analys", description: "Rapporter och dataanalys" },
+  {
+    id: "inventory",
+    name: "Lager",
+    description: "Lagerhantering och inventering",
+  },
 ];
 
 const AVAILABLE_ROLES = [
-  { id: 'admin', name: 'Admin', description: 'Administratörsrättigheter för tenant' },
-  { id: 'user', name: 'Användare', description: 'Standardanvändare med begränsade rättigheter' },
-  { id: 'viewer', name: 'Läsare', description: 'Endast läsrättigheter' }
+  {
+    id: "admin",
+    name: "Admin",
+    description: "Administratörsrättigheter för tenant",
+  },
+  {
+    id: "user",
+    name: "Användare",
+    description: "Standardanvändare med begränsade rättigheter",
+  },
+  { id: "viewer", name: "Läsare", description: "Endast läsrättigheter" },
 ];
 
 export default function SuperAdmin() {
@@ -34,49 +86,51 @@ export default function SuperAdmin() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [newTenant, setNewTenant] = useState({
-    name: '',
-    modules: [] as string[]
+    name: "",
+    modules: [] as string[],
   });
 
   // User management state
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
-  const [selectedTenantForUser, setSelectedTenantForUser] = useState<number | null>(null);
+  const [selectedTenantForUser, setSelectedTenantForUser] = useState<
+    number | null
+  >(null);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userFilters, setUserFilters] = useState({
-    tenant: '',
-    email: '',
-    name: '',
-    role: ''
+    tenant: "",
+    email: "",
+    name: "",
+    role: "",
   });
   const [newUser, setNewUser] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    password: '',
-    role: 'user',
-    lockRole: false
+    email: "",
+    firstName: "",
+    lastName: "",
+    password: "",
+    role: "user",
+    lockRole: false,
   });
 
   // Fetch all tenants
   const { data: tenants = [], isLoading } = useQuery({
-    queryKey: ['/api/super-admin/tenants'],
+    queryKey: ["/api/super-admin/tenants"],
     retry: false,
   });
 
   // Fetch all users
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['/api/super-admin/users'],
+    queryKey: ["/api/super-admin/users"],
     queryFn: async () => {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('/api/super-admin/users', {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("/api/super-admin/users", {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error("Failed to fetch users");
       }
       return response.json();
     },
@@ -86,14 +140,18 @@ export default function SuperAdmin() {
   // Filter users based on current filters
   const filteredUsers = allUsers.filter((user: any) => {
     const tenant = (tenants as any[]).find((t: any) => t.id === user.tenantId);
-    const tenantName = tenant?.name || '';
+    const tenantName = tenant?.name || "";
     const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-    
+
     return (
-      (!userFilters.tenant || tenantName.toLowerCase().includes(userFilters.tenant.toLowerCase())) &&
-      (!userFilters.email || user.email.toLowerCase().includes(userFilters.email.toLowerCase())) &&
-      (!userFilters.name || fullName.includes(userFilters.name.toLowerCase())) &&
-      (!userFilters.role || user.role.toLowerCase().includes(userFilters.role.toLowerCase()))
+      (!userFilters.tenant ||
+        tenantName.toLowerCase().includes(userFilters.tenant.toLowerCase())) &&
+      (!userFilters.email ||
+        user.email.toLowerCase().includes(userFilters.email.toLowerCase())) &&
+      (!userFilters.name ||
+        fullName.includes(userFilters.name.toLowerCase())) &&
+      (!userFilters.role ||
+        user.role.toLowerCase().includes(userFilters.role.toLowerCase()))
     );
   });
 
@@ -101,15 +159,15 @@ export default function SuperAdmin() {
   const createTenantMutation = useMutation({
     mutationFn: async (tenantData: { name: string; modules: string[] }) => {
       return await apiRequest({
-        endpoint: '/api/super-admin/tenants',
-        method: 'POST',
-        data: tenantData
+        endpoint: "/api/super-admin/tenants",
+        method: "POST",
+        data: tenantData,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/tenants'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/tenants"] });
       setIsCreateDialogOpen(false);
-      setNewTenant({ name: '', modules: [] });
+      setNewTenant({ name: "", modules: [] });
       toast({
         title: "Tenant skapad",
         description: "Den nya tenanten har skapats framgångsrikt.",
@@ -126,15 +184,21 @@ export default function SuperAdmin() {
 
   // Update tenant mutation
   const updateTenantMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: { name: string; modules: string[] } }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { name: string; modules: string[] };
+    }) => {
       return await apiRequest({
         endpoint: `/api/super-admin/tenants/${id}`,
-        method: 'PATCH',
-        data
+        method: "PATCH",
+        data,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/tenants'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/tenants"] });
       setEditingTenant(null);
       toast({
         title: "Tenant uppdaterad",
@@ -155,11 +219,11 @@ export default function SuperAdmin() {
     mutationFn: async (id: number) => {
       return await apiRequest({
         endpoint: `/api/super-admin/tenants/${id}`,
-        method: 'DELETE'
+        method: "DELETE",
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/tenants'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/tenants"] });
       toast({
         title: "Tenant borttagen",
         description: "Tenanten har tagits bort framgångsrikt.",
@@ -176,31 +240,31 @@ export default function SuperAdmin() {
 
   // Create user mutation
   const createUserMutation = useMutation({
-    mutationFn: async (userData: { 
-      email: string; 
-      firstName: string; 
-      lastName: string; 
-      password: string; 
-      role: string; 
+    mutationFn: async (userData: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      password: string;
+      role: string;
       tenantId: number;
       lockRole: boolean;
     }) => {
       return await apiRequest({
-        endpoint: '/api/super-admin/users',
-        method: 'POST',
-        data: userData
+        endpoint: "/api/super-admin/users",
+        method: "POST",
+        data: userData,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/users"] });
       setIsCreateUserDialogOpen(false);
       setNewUser({
-        email: '',
-        firstName: '',
-        lastName: '',
-        password: '',
-        role: 'user',
-        lockRole: false
+        email: "",
+        firstName: "",
+        lastName: "",
+        password: "",
+        role: "user",
+        lockRole: false,
       });
       toast({
         title: "Användare skapad",
@@ -218,23 +282,23 @@ export default function SuperAdmin() {
 
   // Update user mutation
   const updateUserMutation = useMutation({
-    mutationFn: async (userData: { 
+    mutationFn: async (userData: {
       id: number;
-      email?: string; 
-      firstName?: string; 
-      lastName?: string; 
-      role?: string; 
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      role?: string;
       lockRole?: boolean;
       isActive?: boolean;
     }) => {
       return await apiRequest({
         endpoint: `/api/super-admin/users/${userData.id}`,
-        method: 'PATCH',
-        data: userData
+        method: "PATCH",
+        data: userData,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/super-admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/super-admin/users"] });
       setIsEditUserDialogOpen(false);
       setEditingUser(null);
       toast({
@@ -269,8 +333,8 @@ export default function SuperAdmin() {
       id: editingTenant.id,
       data: {
         name: editingTenant.name,
-        modules: editingTenant.modules
-      }
+        modules: editingTenant.modules,
+      },
     });
   };
 
@@ -284,7 +348,12 @@ export default function SuperAdmin() {
       return;
     }
 
-    if (!newUser.email.trim() || !newUser.firstName.trim() || !newUser.lastName.trim() || !newUser.password.trim()) {
+    if (
+      !newUser.email.trim() ||
+      !newUser.firstName.trim() ||
+      !newUser.lastName.trim() ||
+      !newUser.password.trim()
+    ) {
       toast({
         title: "Fel",
         description: "Fyll i alla obligatoriska fält.",
@@ -295,14 +364,14 @@ export default function SuperAdmin() {
 
     createUserMutation.mutate({
       ...newUser,
-      tenantId: selectedTenantForUser
+      tenantId: selectedTenantForUser,
     });
   };
 
   const handleEditUser = (user: any) => {
     setEditingUser({
       ...user,
-      password: '' // Don't pre-fill password for security
+      password: "", // Don't pre-fill password for security
     });
     setIsEditUserDialogOpen(true);
   };
@@ -310,7 +379,11 @@ export default function SuperAdmin() {
   const handleUpdateUser = () => {
     if (!editingUser) return;
 
-    if (!editingUser.email.trim() || !editingUser.firstName.trim() || !editingUser.lastName.trim()) {
+    if (
+      !editingUser.email.trim() ||
+      !editingUser.firstName.trim() ||
+      !editingUser.lastName.trim()
+    ) {
       toast({
         title: "Fel",
         description: "Fyll i alla obligatoriska fält.",
@@ -326,7 +399,7 @@ export default function SuperAdmin() {
       lastName: editingUser.lastName,
       role: editingUser.role,
       lockRole: editingUser.lockRole,
-      isActive: editingUser.isActive
+      isActive: editingUser.isActive,
     };
 
     // Only include password if it's provided
@@ -337,18 +410,22 @@ export default function SuperAdmin() {
     updateUserMutation.mutate(updateData);
   };
 
-  const handleModuleToggle = (moduleId: string, isChecked: boolean, tenant?: Tenant) => {
+  const handleModuleToggle = (
+    moduleId: string,
+    isChecked: boolean,
+    tenant?: Tenant,
+  ) => {
     if (tenant) {
       // Editing existing tenant
       const updatedModules = isChecked
         ? [...tenant.modules, moduleId]
-        : tenant.modules.filter(m => m !== moduleId);
+        : tenant.modules.filter((m) => m !== moduleId);
       setEditingTenant({ ...tenant, modules: updatedModules });
     } else {
       // Creating new tenant
       const updatedModules = isChecked
         ? [...newTenant.modules, moduleId]
-        : newTenant.modules.filter(m => m !== moduleId);
+        : newTenant.modules.filter((m) => m !== moduleId);
       setNewTenant({ ...newTenant, modules: updatedModules });
     }
   };
@@ -373,19 +450,24 @@ export default function SuperAdmin() {
             <div className="flex items-center">
               <Settings className="h-8 w-8 text-blue-600 mr-3" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">SuperAdmin Panel</h1>
-                <p className="text-sm text-gray-500">Hantera tenants och systemmoduler</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  SuperAdmin Panel
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Hantera tenants och systemmoduler
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               {user && (
                 <div className="text-sm text-gray-600">
-                  Inloggad som: <span className="font-medium">{user.email}</span>
+                  Inloggad som:{" "}
+                  <span className="font-medium">{user.email}</span>
                 </div>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={logout}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
@@ -415,152 +497,196 @@ export default function SuperAdmin() {
           <TabsContent value="tenants" className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Tenants ({(tenants as any[]).length})</h2>
-                <p className="text-sm text-gray-500">Hantera alla tenants i systemet</p>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Tenants ({(tenants as any[]).length})
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Hantera alla tenants i systemet
+                </p>
               </div>
-              
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Skapa Tenant
                   </Button>
                 </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Skapa ny tenant</DialogTitle>
-                <DialogDescription>
-                  Skapa en ny tenant och välj vilka moduler som ska vara tillgängliga.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="tenant-name">Tenant-namn</Label>
-                  <Input
-                    id="tenant-name"
-                    value={newTenant.name}
-                    onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
-                    placeholder="T.ex. Volvo Manufacturing"
-                  />
-                </div>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Skapa ny tenant</DialogTitle>
+                    <DialogDescription>
+                      Skapa en ny tenant och välj vilka moduler som ska vara
+                      tillgängliga.
+                    </DialogDescription>
+                  </DialogHeader>
 
-                <div>
-                  <Label>Moduler</Label>
-                  <div className="space-y-3 mt-2">
-                    {AVAILABLE_MODULES.map((module) => (
-                      <div key={module.id} className="flex items-start space-x-3">
-                        <Checkbox
-                          id={`module-${module.id}`}
-                          checked={newTenant.modules.includes(module.id)}
-                          onCheckedChange={(checked) => 
-                            handleModuleToggle(module.id, checked as boolean)
-                          }
-                        />
-                        <div className="grid gap-1.5 leading-none">
-                          <label
-                            htmlFor={`module-${module.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="tenant-name">Tenant-namn</Label>
+                      <Input
+                        id="tenant-name"
+                        value={newTenant.name}
+                        onChange={(e) =>
+                          setNewTenant({ ...newTenant, name: e.target.value })
+                        }
+                        placeholder="T.ex. Volvo Manufacturing"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Moduler</Label>
+                      <div className="space-y-3 mt-2">
+                        {AVAILABLE_MODULES.map((module) => (
+                          <div
+                            key={module.id}
+                            className="flex items-start space-x-3"
                           >
-                            {module.name}
-                          </label>
-                          <p className="text-xs text-muted-foreground">
-                            {module.description}
-                          </p>
-                        </div>
+                            <Checkbox
+                              id={`module-${module.id}`}
+                              checked={newTenant.modules.includes(module.id)}
+                              onCheckedChange={(checked) =>
+                                handleModuleToggle(
+                                  module.id,
+                                  checked as boolean,
+                                )
+                              }
+                            />
+                            <div className="grid gap-1.5 leading-none">
+                              <label
+                                htmlFor={`module-${module.id}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {module.name}
+                              </label>
+                              <p className="text-xs text-muted-foreground">
+                                {module.description}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Avbryt
-                </Button>
-                <Button 
-                  onClick={handleCreateTenant}
-                  disabled={createTenantMutation.isPending}
-                >
-                  {createTenantMutation.isPending ? "Skapar..." : "Skapa Tenant"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          </div>
-
-          {/* Tenants Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {(tenants as any[]).map((tenant: Tenant) => (
-              <Card key={tenant.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                <div className="flex items-center space-x-2">
-                  <Building2 className="h-5 w-5 text-blue-600" />
-                  <CardTitle className="text-lg">{tenant.name}</CardTitle>
-                </div>
-                <div className="flex space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingTenant(tenant)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (confirm('Är du säker på att du vill ta bort denna tenant?')) {
-                        deleteTenantMutation.mutate(tenant.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-500">ID: {tenant.id}</p>
-                    <p className="text-sm text-gray-500">
-                      Skapad: {new Date(tenant.createdAt).toLocaleDateString('sv-SE')}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Aktiva moduler:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {tenant.modules.length > 0 ? (
-                        tenant.modules.map((moduleId) => {
-                          const module = AVAILABLE_MODULES.find(m => m.id === moduleId);
-                          return (
-                            <Badge key={moduleId} variant="secondary">
-                              {module?.name || moduleId}
-                            </Badge>
-                          );
-                        })
-                      ) : (
-                        <span className="text-sm text-gray-400">Inga moduler</span>
-                      )}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCreateDialogOpen(false)}
+                    >
+                      Avbryt
+                    </Button>
+                    <Button
+                      onClick={handleCreateTenant}
+                      disabled={createTenantMutation.isPending}
+                    >
+                      {createTenantMutation.isPending
+                        ? "Skapar..."
+                        : "Skapa Tenant"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Tenants Grid */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {(tenants as any[]).map((tenant: Tenant) => (
+                <Card
+                  key={tenant.id}
+                  className="hover:shadow-md transition-shadow"
+                >
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <div className="flex items-center space-x-2">
+                      <Building2 className="h-5 w-5 text-blue-600" />
+                      <CardTitle className="text-lg">{tenant.name}</CardTitle>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingTenant(tenant)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              "Är du säker på att du vill ta bort denna tenant?",
+                            )
+                          ) {
+                            deleteTenantMutation.mutate(tenant.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-500">ID: {tenant.id}</p>
+                        <p className="text-sm text-gray-500">
+                          Skapad:{" "}
+                          {new Date(tenant.createdAt).toLocaleDateString(
+                            "sv-SE",
+                          )}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 mb-2">
+                          Aktiva moduler:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {tenant.modules.length > 0 ? (
+                            tenant.modules.map((moduleId) => {
+                              const module = AVAILABLE_MODULES.find(
+                                (m) => m.id === moduleId,
+                              );
+                              return (
+                                <Badge key={moduleId} variant="secondary">
+                                  {module?.name || moduleId}
+                                </Badge>
+                              );
+                            })
+                          ) : (
+                            <span className="text-sm text-gray-400">
+                              Inga moduler
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Användarhantering</h2>
-                <p className="text-sm text-gray-500">Hantera alla användare över alla tenants</p>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Användarhantering
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Hantera alla användare över alla tenants
+                </p>
               </div>
-              
-              <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
+
+              <Dialog
+                open={isCreateUserDialogOpen}
+                onOpenChange={setIsCreateUserDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button>
                     <UserPlus className="h-4 w-4 mr-2" />
@@ -574,17 +700,25 @@ export default function SuperAdmin() {
                       Skapa en ny användare och koppla till en tenant.
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="user-tenant">Tenant</Label>
-                      <Select value={selectedTenantForUser?.toString() || ""} onValueChange={(value) => setSelectedTenantForUser(Number(value))}>
+                      <Select
+                        value={selectedTenantForUser?.toString() || ""}
+                        onValueChange={(value) =>
+                          setSelectedTenantForUser(Number(value))
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Välj tenant" />
                         </SelectTrigger>
                         <SelectContent>
                           {(tenants as any[]).map((tenant: Tenant) => (
-                            <SelectItem key={tenant.id} value={tenant.id.toString()}>
+                            <SelectItem
+                              key={tenant.id}
+                              value={tenant.id.toString()}
+                            >
                               {tenant.name}
                             </SelectItem>
                           ))}
@@ -598,7 +732,12 @@ export default function SuperAdmin() {
                         <Input
                           id="user-firstName"
                           value={newUser.firstName}
-                          onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                          onChange={(e) =>
+                            setNewUser({
+                              ...newUser,
+                              firstName: e.target.value,
+                            })
+                          }
                           placeholder="John"
                         />
                       </div>
@@ -607,7 +746,9 @@ export default function SuperAdmin() {
                         <Input
                           id="user-lastName"
                           value={newUser.lastName}
-                          onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                          onChange={(e) =>
+                            setNewUser({ ...newUser, lastName: e.target.value })
+                          }
                           placeholder="Doe"
                         />
                       </div>
@@ -619,7 +760,9 @@ export default function SuperAdmin() {
                         id="user-email"
                         type="email"
                         value={newUser.email}
-                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, email: e.target.value })
+                        }
                         placeholder="john.doe@example.com"
                       />
                     </div>
@@ -630,14 +773,21 @@ export default function SuperAdmin() {
                         id="user-password"
                         type="password"
                         value={newUser.password}
-                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, password: e.target.value })
+                        }
                         placeholder="Ange lösenord"
                       />
                     </div>
 
                     <div>
                       <Label htmlFor="user-role">Roll</Label>
-                      <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                      <Select
+                        value={newUser.role}
+                        onValueChange={(value) =>
+                          setNewUser({ ...newUser, role: value })
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -655,7 +805,12 @@ export default function SuperAdmin() {
                       <Checkbox
                         id="user-lockRole"
                         checked={newUser.lockRole}
-                        onCheckedChange={(checked) => setNewUser({ ...newUser, lockRole: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setNewUser({
+                            ...newUser,
+                            lockRole: checked as boolean,
+                          })
+                        }
                       />
                       <div className="grid gap-1.5 leading-none">
                         <label
@@ -665,21 +820,26 @@ export default function SuperAdmin() {
                           Lås roll
                         </label>
                         <p className="text-xs text-muted-foreground">
-                          Hindra användaren från att ändra sin roll
+                          Hindra att rollen kan ändras
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCreateUserDialogOpen(false)}
+                    >
                       Avbryt
                     </Button>
-                    <Button 
+                    <Button
                       onClick={handleCreateUser}
                       disabled={createUserMutation.isPending}
                     >
-                      {createUserMutation.isPending ? "Skapar..." : "Skapa Användare"}
+                      {createUserMutation.isPending
+                        ? "Skapar..."
+                        : "Skapa Användare"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -702,7 +862,12 @@ export default function SuperAdmin() {
                       id="filter-tenant"
                       placeholder="Filtrera efter tenant..."
                       value={userFilters.tenant}
-                      onChange={(e) => setUserFilters({ ...userFilters, tenant: e.target.value })}
+                      onChange={(e) =>
+                        setUserFilters({
+                          ...userFilters,
+                          tenant: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
@@ -711,7 +876,12 @@ export default function SuperAdmin() {
                       id="filter-email"
                       placeholder="Filtrera efter e-post..."
                       value={userFilters.email}
-                      onChange={(e) => setUserFilters({ ...userFilters, email: e.target.value })}
+                      onChange={(e) =>
+                        setUserFilters({
+                          ...userFilters,
+                          email: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
@@ -720,7 +890,9 @@ export default function SuperAdmin() {
                       id="filter-name"
                       placeholder="Filtrera efter namn..."
                       value={userFilters.name}
-                      onChange={(e) => setUserFilters({ ...userFilters, name: e.target.value })}
+                      onChange={(e) =>
+                        setUserFilters({ ...userFilters, name: e.target.value })
+                      }
                     />
                   </div>
                   <div>
@@ -729,14 +901,23 @@ export default function SuperAdmin() {
                       id="filter-role"
                       placeholder="Filtrera efter roll..."
                       value={userFilters.role}
-                      onChange={(e) => setUserFilters({ ...userFilters, role: e.target.value })}
+                      onChange={(e) =>
+                        setUserFilters({ ...userFilters, role: e.target.value })
+                      }
                     />
                   </div>
                 </div>
                 <div className="flex justify-end mt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setUserFilters({ tenant: '', email: '', name: '', role: '' })}
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      setUserFilters({
+                        tenant: "",
+                        email: "",
+                        name: "",
+                        role: "",
+                      })
+                    }
                   >
                     Rensa filter
                   </Button>
@@ -754,40 +935,62 @@ export default function SuperAdmin() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {Array.isArray(filteredUsers) && filteredUsers.map((user: any) => {
-                    const tenant = (tenants as any[]).find((t: any) => t.id === user.tenantId);
-                    return (
-                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                            {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                  {Array.isArray(filteredUsers) &&
+                    filteredUsers.map((user: any) => {
+                      const tenant = (tenants as any[]).find(
+                        (t: any) => t.id === user.tenantId,
+                      );
+                      return (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                              {user.firstName?.charAt(0)}
+                              {user.lastName?.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {user.firstName} {user.lastName}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {user.email}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                Tenant: {tenant?.name || "Okänd"}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{user.firstName} {user.lastName}</p>
-                            <p className="text-sm text-gray-500">{user.email}</p>
-                            <p className="text-xs text-gray-400">Tenant: {tenant?.name || 'Okänd'}</p>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="outline" className="text-xs">
+                              {tenant?.name || "Okänd tenant"}
+                            </Badge>
+                            <Badge variant="secondary">{user.role}</Badge>
+                            {user.lockRole && (
+                              <Shield
+                                className="h-4 w-4 text-red-500"
+                                title="Roll låst"
+                              />
+                            )}
+                            {!user.isActive && (
+                              <Badge variant="destructive">Inaktiv</Badge>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className="text-xs">
-                            {tenant?.name || 'Okänd tenant'}
-                          </Badge>
-                          <Badge variant="secondary">{user.role}</Badge>
-                          {user.lockRole && <Shield className="h-4 w-4 text-red-500" title="Roll låst" />}
-                          {!user.isActive && <Badge variant="destructive">Inaktiv</Badge>}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                   {(filteredUsers as any[]).length === 0 && (
-                    <p className="text-center text-gray-500 py-4">Inga användare hittades med de aktuella filtren.</p>
+                    <p className="text-center text-gray-500 py-4">
+                      Inga användare hittades med de aktuella filtren.
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -796,7 +999,10 @@ export default function SuperAdmin() {
         </Tabs>
 
         {/* Edit Tenant Dialog */}
-        <Dialog open={!!editingTenant} onOpenChange={() => setEditingTenant(null)}>
+        <Dialog
+          open={!!editingTenant}
+          onOpenChange={() => setEditingTenant(null)}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Redigera tenant</DialogTitle>
@@ -804,7 +1010,7 @@ export default function SuperAdmin() {
                 Uppdatera tenant-information och moduler.
               </DialogDescription>
             </DialogHeader>
-            
+
             {editingTenant && (
               <div className="space-y-4">
                 <div>
@@ -812,7 +1018,12 @@ export default function SuperAdmin() {
                   <Input
                     id="edit-tenant-name"
                     value={editingTenant.name}
-                    onChange={(e) => setEditingTenant({ ...editingTenant, name: e.target.value })}
+                    onChange={(e) =>
+                      setEditingTenant({
+                        ...editingTenant,
+                        name: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
@@ -820,12 +1031,19 @@ export default function SuperAdmin() {
                   <Label>Moduler</Label>
                   <div className="space-y-3 mt-2">
                     {AVAILABLE_MODULES.map((module) => (
-                      <div key={module.id} className="flex items-start space-x-3">
+                      <div
+                        key={module.id}
+                        className="flex items-start space-x-3"
+                      >
                         <Checkbox
                           id={`edit-module-${module.id}`}
                           checked={editingTenant.modules.includes(module.id)}
-                          onCheckedChange={(checked) => 
-                            handleModuleToggle(module.id, checked as boolean, editingTenant)
+                          onCheckedChange={(checked) =>
+                            handleModuleToggle(
+                              module.id,
+                              checked as boolean,
+                              editingTenant,
+                            )
                           }
                         />
                         <div className="grid gap-1.5 leading-none">
@@ -850,7 +1068,7 @@ export default function SuperAdmin() {
               <Button variant="outline" onClick={() => setEditingTenant(null)}>
                 Avbryt
               </Button>
-              <Button 
+              <Button
                 onClick={handleUpdateTenant}
                 disabled={updateTenantMutation.isPending}
               >
@@ -861,7 +1079,10 @@ export default function SuperAdmin() {
         </Dialog>
 
         {/* Edit User Dialog */}
-        <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <Dialog
+          open={isEditUserDialogOpen}
+          onOpenChange={setIsEditUserDialogOpen}
+        >
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Redigera användare</DialogTitle>
@@ -878,7 +1099,9 @@ export default function SuperAdmin() {
                   <Input
                     id="edit-email"
                     value={editingUser.email}
-                    onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, email: e.target.value })
+                    }
                     className="col-span-3"
                   />
                 </div>
@@ -889,7 +1112,12 @@ export default function SuperAdmin() {
                   <Input
                     id="edit-firstName"
                     value={editingUser.firstName}
-                    onChange={(e) => setEditingUser({...editingUser, firstName: e.target.value})}
+                    onChange={(e) =>
+                      setEditingUser({
+                        ...editingUser,
+                        firstName: e.target.value,
+                      })
+                    }
                     className="col-span-3"
                   />
                 </div>
@@ -900,7 +1128,12 @@ export default function SuperAdmin() {
                   <Input
                     id="edit-lastName"
                     value={editingUser.lastName}
-                    onChange={(e) => setEditingUser({...editingUser, lastName: e.target.value})}
+                    onChange={(e) =>
+                      setEditingUser({
+                        ...editingUser,
+                        lastName: e.target.value,
+                      })
+                    }
                     className="col-span-3"
                   />
                 </div>
@@ -911,8 +1144,13 @@ export default function SuperAdmin() {
                   <Input
                     id="edit-password"
                     type="password"
-                    value={editingUser.password || ''}
-                    onChange={(e) => setEditingUser({...editingUser, password: e.target.value})}
+                    value={editingUser.password || ""}
+                    onChange={(e) =>
+                      setEditingUser({
+                        ...editingUser,
+                        password: e.target.value,
+                      })
+                    }
                     className="col-span-3"
                     placeholder="Lämna tomt för att behålla nuvarande"
                   />
@@ -921,7 +1159,12 @@ export default function SuperAdmin() {
                   <Label htmlFor="edit-role" className="text-right">
                     Roll
                   </Label>
-                  <Select value={editingUser.role} onValueChange={(value) => setEditingUser({...editingUser, role: value})}>
+                  <Select
+                    value={editingUser.role}
+                    onValueChange={(value) =>
+                      setEditingUser({ ...editingUser, role: value })
+                    }
+                  >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Välj roll" />
                     </SelectTrigger>
@@ -933,29 +1176,35 @@ export default function SuperAdmin() {
                   </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">
-                    Lås roll
-                  </Label>
+                  <Label className="text-right">Lås roll</Label>
                   <div className="col-span-3 flex items-center space-x-2">
                     <Checkbox
                       id="edit-lockRole"
                       checked={editingUser.lockRole}
-                      onCheckedChange={(checked) => setEditingUser({...editingUser, lockRole: checked as boolean})}
+                      onCheckedChange={(checked) =>
+                        setEditingUser({
+                          ...editingUser,
+                          lockRole: checked as boolean,
+                        })
+                      }
                     />
                     <Label htmlFor="edit-lockRole" className="text-sm">
-                      Hindra användaren från att ändra sin roll
+                      Hindra att rollen kan ändras
                     </Label>
                   </div>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">
-                    Aktiv
-                  </Label>
+                  <Label className="text-right">Aktiv</Label>
                   <div className="col-span-3 flex items-center space-x-2">
                     <Checkbox
                       id="edit-isActive"
                       checked={editingUser.isActive}
-                      onCheckedChange={(checked) => setEditingUser({...editingUser, isActive: checked as boolean})}
+                      onCheckedChange={(checked) =>
+                        setEditingUser({
+                          ...editingUser,
+                          isActive: checked as boolean,
+                        })
+                      }
                     />
                     <Label htmlFor="edit-isActive" className="text-sm">
                       Användaren är aktiv
@@ -965,14 +1214,19 @@ export default function SuperAdmin() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditUserDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditUserDialogOpen(false)}
+              >
                 Avbryt
               </Button>
-              <Button 
+              <Button
                 onClick={handleUpdateUser}
                 disabled={updateUserMutation.isPending}
               >
-                {updateUserMutation.isPending ? "Uppdaterar..." : "Uppdatera användare"}
+                {updateUserMutation.isPending
+                  ? "Uppdaterar..."
+                  : "Uppdatera användare"}
               </Button>
             </DialogFooter>
           </DialogContent>
