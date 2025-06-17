@@ -67,7 +67,6 @@ router.delete('/tenants/:id', authenticateToken, requireSuperAdmin, async (req, 
 router.get('/users', authenticateToken, requireSuperAdmin, async (req, res) => {
   try {
     const allUsers = await storage.getAllUsers();
-    console.log('Fetched users with lockRole field:', allUsers.map(u => ({ id: u.id, email: u.email, lockRole: u.lockRole })));
     res.json(allUsers);
   } catch (error) {
     console.error('Error fetching all users:', error);
@@ -118,9 +117,6 @@ router.patch('/users/:id', authenticateToken, requireSuperAdmin, async (req, res
     const id = parseInt(req.params.id);
     const { password, ...userData } = req.body;
     
-    console.log('Update user request body:', req.body);
-    console.log('User data after password extraction:', userData);
-    
     let updateData = userData;
     
     // Hash password if provided
@@ -128,8 +124,6 @@ router.patch('/users/:id', authenticateToken, requireSuperAdmin, async (req, res
       const hashedPassword = await bcrypt.hash(password, 10);
       updateData = { ...userData, password: hashedPassword };
     }
-    
-    console.log('Final update data:', updateData);
     
     const user = await storage.updateUser(id, updateData);
     

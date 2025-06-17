@@ -757,7 +757,7 @@ export default function SuperAdmin() {
                             {tenant?.name || 'Okänd tenant'}
                           </Badge>
                           <Badge variant="secondary">{user.role}</Badge>
-                          {user.lockRole && <Shield className="h-4 w-4 text-red-500" />}
+                          {user.lockRole && <Shield className="h-4 w-4 text-red-500" title="Roll låst" />}
                           {!user.isActive && <Badge variant="destructive">Inaktiv</Badge>}
                           <Button
                             variant="ghost"
