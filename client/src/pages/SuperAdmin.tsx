@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Building2, Settings, Trash2, Edit, Users, UserPlus, Mail, Shield } from "lucide-react";
+import { Plus, Building2, Settings, Trash2, Edit, Users, UserPlus, Mail, Shield, Filter } from "lucide-react";
 import UserMenu from "@/components/UserMenu";
 import type { Tenant } from "@shared/schema";
 
