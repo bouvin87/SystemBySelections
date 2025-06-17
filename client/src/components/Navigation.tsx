@@ -15,6 +15,8 @@ import {
   LogOut,
   Languages,
   Check,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -179,6 +181,7 @@ export default function Navigation() {
   const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(
     null,
   );
+  const [accountSectionExpanded, setAccountSectionExpanded] = useState(false);
 
   // Fetch user data to check module access
   const { data: authData } = useQuery({
@@ -360,14 +363,25 @@ export default function Navigation() {
 
                 {/* User section - embedded directly in mobile menu */}
                 <div className="border-t border-gray-400 pt-4">
-                  <div className="px-3 py-1 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-3">
-                    Konto
-                  </div>
-                  <div className="block lg:hidden space-y-2">
-                    <MobileUserSection
-                      onClose={() => setMobileMenuOpen(false)}
-                    />
-                  </div>
+                  <button
+                    onClick={() => setAccountSectionExpanded(!accountSectionExpanded)}
+                    className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-blue-300 uppercase tracking-wider hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
+                  >
+                    <span>Konto</span>
+                    {accountSectionExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </button>
+                  
+                  {accountSectionExpanded && (
+                    <div className="block lg:hidden space-y-2 mt-2">
+                      <MobileUserSection
+                        onClose={() => setMobileMenuOpen(false)}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
