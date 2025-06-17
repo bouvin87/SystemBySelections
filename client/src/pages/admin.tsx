@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -126,15 +127,18 @@ export default function Admin() {
 
   // Hämta arbetsmoment för en specifik checklista
   const { data: checklistWorkTasks = [] } = useQuery({
-    queryKey: ["/api/checklists", editingItem?.id, "work-tasks"],
-    queryFn: async () => {
-      if (!editingItem?.id) return [];
-      const response = await fetch(`/api/checklists/${editingItem.id}/work-tasks`);
-      if (!response.ok) return [];
-      return response.json();
-    },
+    queryKey: [`/api/checklists/${editingItem?.id}/work-tasks`],
     enabled: !!editingItem?.id,
   });
+
+  // Update selected work task IDs when editing a checklist
+  useEffect(() => {
+    if (checklistWorkTasks.length > 0) {
+      setSelectedWorkTaskIds(checklistWorkTasks.map((wt: any) => wt.workTaskId));
+    } else if (!editingItem) {
+      setSelectedWorkTaskIds([]);
+    }
+  }, [checklistWorkTasks, editingItem]);
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
@@ -446,22 +450,66 @@ export default function Admin() {
                         </DialogTitle>
                       </DialogHeader>
                       <form
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
-                          const data: InsertChecklist = {
+                          const data = {
                             name: formData.get("name") as string,
                             description: formData.get("description") as string || undefined,
                             icon: selectedIcon || undefined,
-                            includeWorkTasks: formData.get("includeWorkTasks") === "on",
+                            includeWorkTasks: selectedWorkTaskIds.length > 0,
                             includeWorkStations: formData.get("includeWorkStations") === "on",
                             includeShifts: formData.get("includeShifts") === "on",
                             isActive: formData.get("isActive") === "on",
                             showInMenu: formData.get("showInMenu") === "on",
                             hasDashboard: formData.get("hasDashboard") === "on",
                             order: parseInt(formData.get("order") as string) || 0,
+                            workTaskIds: selectedWorkTaskIds,
                           };
-                          handleSubmit("/api/checklists", data);
+                          
+                          try {
+                            let checklistId;
+                            if (editingItem) {
+                              // Update existing checklist
+                              const response = await apiRequest("PATCH", `/api/checklists/${editingItem.id}`, data);
+                              checklistId = editingItem.id;
+                            } else {
+                              // Create new checklist
+                              const response = await apiRequest("POST", "/api/checklists", data);
+                              const result = await response.json();
+                              checklistId = result.id;
+                            }
+                            
+                            // Update work task relationships
+                            if (checklistId && selectedWorkTaskIds.length > 0) {
+                              // First, clear existing relationships
+                              await apiRequest("DELETE", `/api/checklists/${checklistId}/work-tasks`);
+                              
+                              // Then create new relationships
+                              for (const workTaskId of selectedWorkTaskIds) {
+                                await apiRequest("POST", `/api/checklists/${checklistId}/work-tasks`, {
+                                  workTaskId: workTaskId
+                                });
+                              }
+                            }
+                            
+                            // Invalidate queries and close dialog
+                            queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+                            toast({
+                              title: editingItem ? "Checklista uppdaterad" : "Checklista skapad",
+                              description: "Checklistan har sparats framgångsrikt.",
+                            });
+                            setDialogOpen(false);
+                            setEditingItem(null);
+                            setSelectedIcon("");
+                            setSelectedWorkTaskIds([]);
+                          } catch (error) {
+                            toast({
+                              title: "Fel",
+                              description: "Kunde inte spara checklistan. Försök igen.",
+                              variant: "destructive",
+                            });
+                          }
                         }}
                         className="space-y-4"
                       >

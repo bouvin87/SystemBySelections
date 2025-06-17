@@ -413,6 +413,15 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
+  async deleteAllChecklistWorkTasks(checklistId: number, tenantId: number): Promise<void> {
+    await db.delete(checklistWorkTasks).where(
+      and(
+        eq(checklistWorkTasks.checklistId, checklistId),
+        eq(checklistWorkTasks.tenantId, tenantId)
+      )
+    );
+  }
+
   // Checklist Responses
   async getChecklistResponses(tenantId: number, filters: { 
     limit?: number; 

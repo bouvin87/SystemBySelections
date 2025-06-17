@@ -423,6 +423,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Checklist Work Tasks endpoints
+  app.get('/api/checklists/:id/work-tasks', authenticateToken, async (req, res) => {
+    try {
+      const checklistId = parseInt(req.params.id);
+      const workTasks = await storage.getChecklistWorkTasks(checklistId, req.tenantId!);
+      res.json(workTasks);
+    } catch (error) {
+      console.error('Get checklist work tasks error:', error);
+      res.status(500).json({ message: "Failed to fetch checklist work tasks" });
+    }
+  });
+
+  app.post('/api/checklists/:id/work-tasks', authenticateToken, async (req, res) => {
+    try {
+      const checklistId = parseInt(req.params.id);
+      const { workTaskId } = req.body;
+      const checklistWorkTask = await storage.createChecklistWorkTask({
+        checklistId,
+        workTaskId,
+        tenantId: req.tenantId!
+      });
+      res.status(201).json(checklistWorkTask);
+    } catch (error) {
+      console.error('Create checklist work task error:', error);
+      res.status(400).json({ message: "Failed to create checklist work task" });
+    }
+  });
+
+  app.delete('/api/checklists/:id/work-tasks', authenticateToken, async (req, res) => {
+    try {
+      const checklistId = parseInt(req.params.id);
+      // Delete all work task relationships for this checklist
+      await storage.deleteAllChecklistWorkTasks(checklistId, req.tenantId!);
+      res.status(200).json({ message: "Checklist work tasks deleted" });
+    } catch (error) {
+      console.error('Delete checklist work tasks error:', error);
+      res.status(500).json({ message: "Failed to delete checklist work tasks" });
+    }
+  });
+
   // === CATEGORIES ===
   app.get("/api/categories", authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
