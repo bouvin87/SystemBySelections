@@ -69,6 +69,7 @@ export default function Admin() {
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  const [selectedWorkTaskIds, setSelectedWorkTaskIds] = useState<number[]>([]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isLoading } = useAuth();
@@ -120,7 +121,19 @@ export default function Admin() {
 
   const { data: workTasks = [] } = useQuery<WorkTask[]>({
     queryKey: ["/api/work-tasks"],
-    enabled: activeTab === "basic-data",
+    enabled: activeTab === "basic-data" || activeTab === "checklists",
+  });
+
+  // Hämta arbetsmoment för en specifik checklista
+  const { data: checklistWorkTasks = [] } = useQuery({
+    queryKey: ["/api/checklists", editingItem?.id, "work-tasks"],
+    queryFn: async () => {
+      if (!editingItem?.id) return [];
+      const response = await fetch(`/api/checklists/${editingItem.id}/work-tasks`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!editingItem?.id,
   });
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
@@ -483,13 +496,31 @@ export default function Admin() {
                             defaultValue={editingItem?.order || 0}
                           />
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="includeWorkTasks"
-                            name="includeWorkTasks"
-                            defaultChecked={editingItem?.includeWorkTasks ?? true}
-                          />
-                          <Label htmlFor="includeWorkTasks">{t('admin.includeWorkTasks')}</Label>
+                        <div>
+                          <Label className="text-base font-medium">Välj arbetsmoment</Label>
+                          <div className="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
+                            {workTasks.map((workTask) => (
+                              <div key={workTask.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`workTask-${workTask.id}`}
+                                  checked={selectedWorkTaskIds.includes(workTask.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedWorkTaskIds([...selectedWorkTaskIds, workTask.id]);
+                                    } else {
+                                      setSelectedWorkTaskIds(selectedWorkTaskIds.filter(id => id !== workTask.id));
+                                    }
+                                  }}
+                                />
+                                <Label htmlFor={`workTask-${workTask.id}`} className="text-sm">
+                                  {workTask.name}
+                                </Label>
+                              </div>
+                            ))}
+                            {workTasks.length === 0 && (
+                              <p className="text-sm text-gray-500">Inga arbetsmoment tillgängliga</p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
