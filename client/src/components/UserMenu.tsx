@@ -12,18 +12,69 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User, Building2, Settings, Languages, Check } from 'lucide-react';
+import { LogOut, User, Building2, Settings, Languages, Check, Switch } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function UserMenu() {
   const { user, tenant, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { i18n, t } = useTranslation();
+  const [availableTenants, setAvailableTenants] = useState<any[]>([]);
+  const [loadingTenants, setLoadingTenants] = useState(false);
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
   };
+
+  const fetchAvailableTenants = async () => {
+    if (!user?.email) return;
+    
+    setLoadingTenants(true);
+    try {
+      const response = await fetch('/api/auth/tenants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableTenants(data.tenants || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tenants:', error);
+    } finally {
+      setLoadingTenants(false);
+    }
+  };
+
+  const switchTenant = async (tenantId: number) => {
+    try {
+      const response = await apiRequest({
+        endpoint: '/api/auth/switch-tenant',
+        method: 'POST',
+        data: { tenantId },
+      });
+
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Failed to switch tenant:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchAvailableTenants();
+    }
+  }, [user?.email]);
 
   if (!user || !tenant) {
     return null;

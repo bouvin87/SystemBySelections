@@ -81,26 +81,72 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Login endpoint
+// Get available tenants for an email
+router.post('/tenants', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const users = await storage.getUsersByEmail(email);
+    const activeUsers = users.filter(u => u.isActive);
+    
+    if (activeUsers.length === 0) {
+      return res.status(404).json({ message: 'No accounts found for this email' });
+    }
+
+    const tenants = [];
+    for (const user of activeUsers) {
+      if (user.tenantId) {
+        const tenant = await storage.getTenant(user.tenantId);
+        if (tenant) {
+          tenants.push({
+            id: tenant.id,
+            name: tenant.name,
+            modules: tenant.modules,
+            userRole: user.role.trim(),
+          });
+        }
+      }
+    }
+
+    res.json({ tenants });
+  } catch (error) {
+    console.error('Get tenants error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Login endpoint with multi-tenant support
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = loginSchema.parse(req.body);
+    const { email, password, tenantId } = req.body;
     
-    // Find user by email across all tenants
-    const user = await storage.getUserByEmailGlobal(email);
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const isPasswordValid = await comparePassword(password, user.hashedPassword);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    // If tenantId is provided, login to specific tenant
+    if (tenantId) {
+      const user = await storage.getUserByEmail(email, tenantId);
+      if (!user || !user.isActive) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
 
-    // Handle superadmin users without tenant
-    if (user.role.trim() === 'superadmin') {
+      const isPasswordValid = await comparePassword(password, user.hashedPassword);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      const tenant = await storage.getTenant(tenantId);
+      if (!tenant) {
+        return res.status(404).json({ message: 'Tenant not found' });
+      }
+
       const token = generateToken({
         userId: user.id,
+        tenantId: tenant.id,
         role: user.role.trim(),
         email: user.email,
       });
@@ -112,40 +158,97 @@ router.post('/login', async (req, res) => {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role,
+          role: user.role.trim(),
         },
-        tenant: null, // Superadmin has no tenant
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          modules: tenant.modules,
+        },
       });
     }
 
-    // Get the user's tenant for regular users
-    const tenant = await storage.getTenant(user.tenantId!);
-    if (!tenant) {
-      return res.status(401).json({ message: 'Tenant not found for user' });
+    // Find all users with this email
+    const users = await storage.getUsersByEmail(email);
+    const activeUsers = users.filter(u => u.isActive);
+    
+    if (activeUsers.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = generateToken({
-      userId: user.id,
-      tenantId: tenant.id,
-      role: user.role.trim(), // Ta bort whitespace från rollen
-      email: user.email,
-    });
+    // Verify password using first user (all should have same password)
+    const firstUser = activeUsers[0];
+    const isPasswordValid = await comparePassword(password, firstUser.hashedPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
-    res.json({
-      token,
-      user: {
-        id: user.id,
+    // Handle superadmin users without tenant
+    const superadminUser = activeUsers.find(u => u.role.trim() === 'superadmin');
+    if (superadminUser) {
+      const token = generateToken({
+        userId: superadminUser.id,
+        role: superadminUser.role.trim(),
+        email: superadminUser.email,
+      });
+
+      return res.json({
+        token,
+        user: {
+          id: superadminUser.id,
+          email: superadminUser.email,
+          firstName: superadminUser.firstName,
+          lastName: superadminUser.lastName,
+          role: superadminUser.role.trim(),
+        },
+        tenant: null,
+      });
+    }
+
+    // Filter tenant users
+    const tenantUsers = activeUsers.filter(u => u.tenantId);
+    
+    // If user has multiple tenants, require tenant selection
+    if (tenantUsers.length > 1) {
+      return res.status(200).json({ 
+        requireTenantSelection: true,
+        message: 'Multiple tenants available, please select one' 
+      });
+    }
+
+    // Single tenant login
+    if (tenantUsers.length === 1) {
+      const user = tenantUsers[0];
+      const tenant = await storage.getTenant(user.tenantId!);
+      if (!tenant) {
+        return res.status(401).json({ message: 'Tenant not found for user' });
+      }
+
+      const token = generateToken({
+        userId: user.id,
+        tenantId: tenant.id,
+        role: user.role.trim(),
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tenant: {
-        id: tenant.id,
-        name: tenant.name,
-        modules: tenant.modules,
-      },
-    });
+      });
+
+      return res.json({
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role.trim(),
+        },
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          modules: tenant.modules,
+        },
+      });
+    }
+
+    return res.status(401).json({ message: 'Invalid credentials' });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Login failed' });
@@ -277,6 +380,57 @@ router.get('/tenants', requireSuperAdmin, async (req, res) => {
   } catch (error) {
     console.error('Fetch tenants error:', error);
     res.status(500).json({ message: 'Failed to fetch tenants' });
+  }
+});
+
+// Switch tenant for user (requires re-authentication)
+router.post('/switch-tenant', authenticateToken, async (req, res) => {
+  try {
+    const { tenantId } = req.body;
+    const currentUserId = req.user!.userId;
+    const currentEmail = req.user!.email;
+
+    if (!tenantId) {
+      return res.status(400).json({ message: 'Tenant ID is required' });
+    }
+
+    // Verify user has access to this tenant
+    const user = await storage.getUserByEmail(currentEmail, tenantId);
+    if (!user || !user.isActive || user.id !== currentUserId) {
+      return res.status(403).json({ message: 'Access denied to this tenant' });
+    }
+
+    const tenant = await storage.getTenant(tenantId);
+    if (!tenant) {
+      return res.status(404).json({ message: 'Tenant not found' });
+    }
+
+    // Generate new token for the selected tenant
+    const token = generateToken({
+      userId: user.id,
+      tenantId: tenant.id,
+      role: user.role.trim(),
+      email: user.email,
+    });
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role.trim(),
+      },
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        modules: tenant.modules,
+      },
+    });
+  } catch (error) {
+    console.error('Switch tenant error:', error);
+    res.status(500).json({ message: 'Failed to switch tenant' });
   }
 });
 
