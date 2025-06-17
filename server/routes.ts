@@ -68,6 +68,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users for the tenant (admin only)
   app.get('/api/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
+      // Debug logging
+      console.log('User request debug:', {
+        user: req.user,
+        tenantId: req.tenantId,
+        userRole: req.user?.role,
+        roleType: typeof req.user?.role
+      });
+
       // Only admins can view all users
       if (req.user?.role !== 'admin') {
         return res.status(403).json({ message: 'Admin access required' });
