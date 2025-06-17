@@ -541,7 +541,7 @@ export default function SuperAdmin() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">Användarhantering</h2>
-                <p className="text-sm text-gray-500">Skapa användare för tenants</p>
+                <p className="text-sm text-gray-500">Hantera alla användare över alla tenants</p>
               </div>
               
               <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
@@ -670,18 +670,77 @@ export default function SuperAdmin() {
               </Dialog>
             </div>
 
+            {/* User Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-5 w-5" />
+                  Filtrera användare
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="filter-tenant">Tenant</Label>
+                    <Input
+                      id="filter-tenant"
+                      placeholder="Filtrera efter tenant..."
+                      value={userFilters.tenant}
+                      onChange={(e) => setUserFilters({ ...userFilters, tenant: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="filter-email">E-post</Label>
+                    <Input
+                      id="filter-email"
+                      placeholder="Filtrera efter e-post..."
+                      value={userFilters.email}
+                      onChange={(e) => setUserFilters({ ...userFilters, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="filter-name">Namn</Label>
+                    <Input
+                      id="filter-name"
+                      placeholder="Filtrera efter namn..."
+                      value={userFilters.name}
+                      onChange={(e) => setUserFilters({ ...userFilters, name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="filter-role">Roll</Label>
+                    <Input
+                      id="filter-role"
+                      placeholder="Filtrera efter roll..."
+                      value={userFilters.role}
+                      onChange={(e) => setUserFilters({ ...userFilters, role: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end mt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setUserFilters({ tenant: '', email: '', name: '', role: '' })}
+                  >
+                    Rensa filter
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Users List */}
-            {selectedTenantForUser && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Användare för {(tenants as any[]).find(t => t.id === selectedTenantForUser)?.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {Array.isArray(users) && users.map((user: any) => (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Alla användare ({filteredUsers.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Array.isArray(filteredUsers) && filteredUsers.map((user: any) => {
+                    const tenant = (tenants as any[]).find((t: any) => t.id === user.tenantId);
+                    return (
                       <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
@@ -690,9 +749,13 @@ export default function SuperAdmin() {
                           <div>
                             <p className="font-medium">{user.firstName} {user.lastName}</p>
                             <p className="text-sm text-gray-500">{user.email}</p>
+                            <p className="text-xs text-gray-400">Tenant: {tenant?.name || 'Okänd'}</p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
+                          <Badge variant="outline" className="text-xs">
+                            {tenant?.name || 'Okänd tenant'}
+                          </Badge>
                           <Badge variant="secondary">{user.role}</Badge>
                           {user.isRoleEditable && <Shield className="h-4 w-4 text-green-500" />}
                           {!user.isActive && <Badge variant="destructive">Inaktiv</Badge>}
@@ -705,14 +768,14 @@ export default function SuperAdmin() {
                           </Button>
                         </div>
                       </div>
-                    ))}
-                    {(users as any[]).length === 0 && (
-                      <p className="text-center text-gray-500 py-4">Inga användare hittades för denna tenant.</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    );
+                  })}
+                  {(filteredUsers as any[]).length === 0 && (
+                    <p className="text-center text-gray-500 py-4">Inga användare hittades med de aktuella filtren.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
