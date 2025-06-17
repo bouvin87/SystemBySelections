@@ -57,6 +57,7 @@ import type {
   CreateUserRequest,
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
+import TenantThemeSettings from "@/components/TenantThemeSettings";
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("users");
@@ -281,12 +282,13 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full ${hasChecklistsModule ? 'grid-cols-4' : 'grid-cols-3'}`}>
+              <TabsList className={`grid w-full ${hasChecklistsModule ? 'grid-cols-5' : 'grid-cols-4'}`}>
                 <TabsTrigger value="users">Användare</TabsTrigger>
                 {hasChecklistsModule && (
                   <TabsTrigger value="checklists">{t('admin.checklists')}</TabsTrigger>
                 )}
                 <TabsTrigger value="basic-data">{t('admin.basicData')}</TabsTrigger>
+                <TabsTrigger value="theme">Färgtema</TabsTrigger>
                 <TabsTrigger value="settings">{t('admin.settings')}</TabsTrigger>
               </TabsList>
 
