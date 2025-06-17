@@ -12,7 +12,7 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User, Building2, Settings, Languages, Check } from 'lucide-react';
+import { LogOut, User, Building2, Settings, Languages, Check, Shield } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useTranslation } from 'react-i18next';
 
@@ -108,7 +108,7 @@ export default function UserMenu() {
         
         {user.role === 'superadmin' && (
           <DropdownMenuItem onClick={() => setLocation('/super-admin')} className="p-3 md:p-2">
-            <Crown className="mr-3 md:mr-2 h-5 w-5 md:h-4 md:w-4 text-yellow-600" />
+            <Shield className="mr-3 md:mr-2 h-5 w-5 md:h-4 md:w-4 text-yellow-600" />
             <span className="text-base md:text-sm">Super Admin</span>
           </DropdownMenuItem>
         )}

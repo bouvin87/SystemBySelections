@@ -970,7 +970,6 @@ export default function SuperAdmin() {
                             {user.lockRole && (
                               <Shield
                                 className="h-4 w-4 text-red-500"
-                                title="Roll låst"
                               />
                             )}
                             {!user.isActive && (
