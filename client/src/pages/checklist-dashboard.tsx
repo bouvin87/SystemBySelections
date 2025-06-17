@@ -44,12 +44,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: checklist } = useQuery<Checklist>({
-    queryKey: ["/api/checklists", id],
-    queryFn: async () => {
-      const response = await fetch(`/api/checklists/${id}`);
-      if (!response.ok) throw new Error("Failed to fetch checklist");
-      return response.json();
-    },
+    queryKey: [`/api/checklists/${id}`],
   });
 
   // Fetch filter data
@@ -84,30 +79,15 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   };
 
   const { data: stats } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats", id, filters],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/stats?${buildQueryParams()}`);
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      return response.json();
-    },
+    queryKey: [`/api/dashboard/stats?${buildQueryParams()}`],
   });
 
   const { data: responses = [] } = useQuery<ChecklistResponse[]>({
-    queryKey: ["/api/responses", id, filters],
-    queryFn: async () => {
-      const response = await fetch(`/api/responses?${buildQueryParams()}`);
-      if (!response.ok) throw new Error("Failed to fetch responses");
-      return response.json();
-    },
+    queryKey: [`/api/responses?${buildQueryParams()}`],
   });
 
   const { data: dashboardQuestions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/dashboard/questions", id],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/questions?checklistId=${id}`);
-      if (!response.ok) throw new Error("Failed to fetch dashboard questions");
-      return response.json();
-    },
+    queryKey: [`/api/dashboard/questions?checklistId=${id}`],
   });
 
   if (!checklist) {
