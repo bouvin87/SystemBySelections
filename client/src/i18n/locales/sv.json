@@ -1,9 +1,5 @@
 {
-  "navigation": {
-    "dashboard": "Dashboard",
-    "admin": "Administration",
-    "newEntry": "Ny registrering"
-  },
+
   "admin": {
     "title": "Administration",
     "checklists": "Checklistor",
@@ -80,6 +76,10 @@
     "averageFromAnswers": "Medelvärde av {{count}} svar"
   },
   "navigation": {
+    "dashboard": "Dashboard",
+    "admin": "Administration",
+    "newEntry": "Ny registrering",
+    "checklists": "Checklistor",
     "startNewChecklist": "Starta checklista",
     "selectChecklist": "Välj checklista att genomföra",
     "searchChecklists": "Sök checklistor...",

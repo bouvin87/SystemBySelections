@@ -2,7 +2,20 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ClipboardList, Menu, X, CheckSquare, Plus, User, Building2, Settings, Crown, LogOut, Languages, Check } from "lucide-react";
+import {
+  ClipboardList,
+  Menu,
+  X,
+  CheckSquare,
+  Plus,
+  User,
+  Building2,
+  Settings,
+  Crown,
+  LogOut,
+  Languages,
+  Check,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
@@ -26,15 +39,16 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
   }).data;
 
   const tenant = authData?.tenant;
-  
-  const displayName = (user as any).firstName && (user as any).lastName 
-    ? `${(user as any).firstName} ${(user as any).lastName}`
-    : user.email;
+
+  const displayName =
+    (user as any).firstName && (user as any).lastName
+      ? `${(user as any).firstName} ${(user as any).lastName}`
+      : user.email;
 
   const initials = displayName
-    .split(' ')
+    .split(" ")
     .map((name: string) => name.charAt(0))
-    .join('')
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 
@@ -57,7 +71,7 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
             <p className="text-blue-200 text-sm">{user.email}</p>
           </div>
         </div>
-        
+
         {/* User details */}
         <div className="space-y-2 text-sm">
           {tenant && (
@@ -69,8 +83,11 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
           <div className="flex items-center gap-2 text-blue-100">
             <User className="h-4 w-4" />
             <span className="capitalize">
-              {user.role === 'superadmin' ? 'Super Admin' : 
-               user.role === 'admin' ? 'Administrator' : 'Användare'}
+              {user.role === "superadmin"
+                ? "Super Admin"
+                : user.role === "admin"
+                  ? "Administrator"
+                  : "Användare"}
             </span>
           </div>
         </div>
@@ -86,35 +103,35 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => changeLanguage('sv')}
+              onClick={() => changeLanguage("sv")}
               className={`flex items-center justify-start w-full px-3 py-2 text-sm rounded-md transition-colors ${
-                i18n.language === 'sv' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50'
+                i18n.language === "sv"
+                  ? "bg-blue-600 text-white"
+                  : "text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50"
               }`}
             >
-              {i18n.language === 'sv' && <Check className="mr-2 h-4 w-4" />}
+              {i18n.language === "sv" && <Check className="mr-2 h-4 w-4" />}
               Svenska
             </button>
             <button
-              onClick={() => changeLanguage('en')}
+              onClick={() => changeLanguage("en")}
               className={`flex items-center justify-start w-full px-3 py-2 text-sm rounded-md transition-colors ${
-                i18n.language === 'en' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50'
+                i18n.language === "en"
+                  ? "bg-blue-600 text-white"
+                  : "text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50"
               }`}
             >
-              {i18n.language === 'en' && <Check className="mr-2 h-4 w-4" />}
+              {i18n.language === "en" && <Check className="mr-2 h-4 w-4" />}
               English
             </button>
           </div>
         </div>
 
         {/* Admin links */}
-        {user.role === 'admin' && (
+        {user.role === "admin" && (
           <button
             onClick={() => {
-              setLocation('/admin');
+              setLocation("/admin");
               onClose();
             }}
             className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
@@ -124,10 +141,10 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
           </button>
         )}
 
-        {user.role === 'superadmin' && (
+        {user.role === "superadmin" && (
           <button
             onClick={() => {
-              setLocation('/super-admin');
+              setLocation("/super-admin");
               onClose();
             }}
             className="flex items-center w-full px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
@@ -232,15 +249,15 @@ export default function Navigation() {
                     key={item.href}
                     href={item.href}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      location === item.href 
-                        ? "bg-blue-700 text-white" 
+                      location === item.href
+                        ? "bg-blue-700 text-white"
                         : "text-blue-100 hover:bg-[var(--color-accent)]/50 hover:text-white"
                     }`}
                   >
                     {item.label}
                   </Link>
                 ))}
-                
+
                 {menuChecklists.map((checklist) => (
                   <button
                     key={`checklist-${checklist.id}`}
@@ -275,7 +292,11 @@ export default function Navigation() {
                 className="lg:hidden p-2 text-blue-100 hover:text-white hover:bg-[var(--color-accent)]/50 transition-colors rounded-md"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -291,8 +312,8 @@ export default function Navigation() {
                       key={item.href}
                       href={item.href}
                       className={`block px-3 py-3 rounded-lg text-base font-medium transition-colors ${
-                        location === item.href 
-                          ? "bg-blue-600 text-white" 
+                        location === item.href
+                          ? "bg-blue-600 text-white"
                           : "text-blue-100 hover:bg-[var(--color-accent)]/50 hover:text-white"
                       }`}
                       onClick={() => setMobileMenuOpen(false)}
@@ -306,9 +327,9 @@ export default function Navigation() {
                 {(menuChecklists.length > 0 || hasChecklistsModule) && (
                   <div className="space-y-2 mb-4">
                     <div className="px-3 py-1 text-xs font-semibold text-blue-300 uppercase tracking-wider">
-                      Checklistor
+                      {t("navigation.checklists")}
                     </div>
-                    
+
                     {menuChecklists.map((checklist) => (
                       <button
                         key={`mobile-checklist-${checklist.id}`}
@@ -338,12 +359,14 @@ export default function Navigation() {
                 )}
 
                 {/* User section - embedded directly in mobile menu */}
-                <div className="border-t border-blue-600 pt-4">
+                <div className="border-t border-gray-400 pt-4">
                   <div className="px-3 py-1 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-3">
                     Konto
                   </div>
                   <div className="block md:hidden space-y-2">
-                    <MobileUserSection onClose={() => setMobileMenuOpen(false)} />
+                    <MobileUserSection
+                      onClose={() => setMobileMenuOpen(false)}
+                    />
                   </div>
                 </div>
               </div>

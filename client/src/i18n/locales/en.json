@@ -1,9 +1,5 @@
 {
-  "navigation": {
-    "dashboard": "Dashboard",
-    "admin": "Administration",
-    "newEntry": "New Entry"
-  },
+
   "admin": {
     "title": "Administration",
     "checklists": "Checklists",
@@ -80,6 +76,10 @@
     "averageFromAnswers": "Average of {{count}} answers"
   },
   "navigation": {
+    "dashboard": "Dashboard",
+    "admin": "Administration",
+    "newEntry": "New Entry",
+    "checklists": "Checklists",
     "startNewChecklist": "Start Checklist",
     "selectChecklist": "Select checklist to perform",
     "searchChecklists": "Search checklists...",
