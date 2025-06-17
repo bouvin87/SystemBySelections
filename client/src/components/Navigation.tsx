@@ -250,7 +250,7 @@ export default function Navigation() {
                   <Button
                     key={`checklist-${checklist.id}`}
                     onClick={() => openModal(checklist.id)}
-                    className="px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2"
+                    className="px-3 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-md flex items-center gap-2"
                     variant="ghost"
                   >
                     {renderIcon(checklist.icon, "h-4 w-4") || (
@@ -263,7 +263,7 @@ export default function Navigation() {
                 {hasChecklistsModule && (
                   <Button
                     onClick={() => setChecklistSelectionOpen(true)}
-                    className="px-3 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-md flex items-center gap-2"
+                    className="px-3 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-md flex items-center gap-2"
                     variant="ghost"
                   >
                     <Plus className="h-4 w-4" />
@@ -281,7 +281,7 @@ export default function Navigation() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden p-2 hover:bg-blue-700 text-white rounded-md"
+                className="lg:hidden p-2 hover:bg-gray-700 text-white rounded-md"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
