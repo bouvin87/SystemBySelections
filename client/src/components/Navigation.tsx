@@ -303,7 +303,7 @@ export default function Navigation() {
 
           {/* Mobile slide-down menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden bg-blue-800 border-t border-blue-600">
+            <div className="lg:hidden border-t" style={{ backgroundColor: 'var(--color-secondary)', borderColor: 'var(--color-secondary)' }}>
               <div className="px-4 py-3 space-y-1">
                 {/* Navigation links */}
                 <div className="space-y-1 mb-4">
