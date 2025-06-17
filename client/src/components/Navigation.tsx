@@ -310,31 +310,29 @@ export default function Navigation() {
                     </div>
                     
                     {menuChecklists.map((checklist) => (
-                      <Button
+                      <button
                         key={`mobile-checklist-${checklist.id}`}
                         onClick={() => openModal(checklist.id)}
-                        className="w-full justify-start px-3 py-3 text-base bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-3"
-                        variant="ghost"
+                        className="w-full flex items-center justify-start px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-blue-700/50 transition-colors rounded-lg gap-3"
                       >
                         {renderIcon(checklist.icon, "h-5 w-5") || (
                           <CheckSquare className="h-5 w-5" />
                         )}
                         {checklist.name}
-                      </Button>
+                      </button>
                     ))}
 
                     {hasChecklistsModule && (
-                      <Button
+                      <button
                         onClick={() => {
                           setChecklistSelectionOpen(true);
                           setMobileMenuOpen(false);
                         }}
-                        className="w-full justify-start px-3 py-3 text-base bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-3"
-                        variant="ghost"
+                        className="w-full flex items-center justify-start px-3 py-3 text-base text-blue-200 hover:text-white hover:bg-blue-700/50 transition-colors rounded-lg gap-3"
                       >
                         <Plus className="h-5 w-5" />
                         {t("navigation.startNewChecklist")}
-                      </Button>
+                      </button>
                     )}
                   </div>
                 )}
