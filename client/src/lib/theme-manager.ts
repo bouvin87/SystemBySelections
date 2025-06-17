@@ -39,6 +39,8 @@ export function applyTheme(theme: Partial<TenantTheme>) {
   root.style.setProperty('--color-warning', finalTheme.colorWarning);
   root.style.setProperty('--color-background', finalTheme.colorBackground);
   root.style.setProperty('--color-text', finalTheme.colorText);
+  root.style.setProperty('--color-link', finalTheme.colorLink);
+  root.style.setProperty('--color-link-hover', finalTheme.colorLinkHover);
 
   // Also update primary color for shadcn components to match tenant theme
   root.style.setProperty('--primary', finalTheme.colorPrimary);
