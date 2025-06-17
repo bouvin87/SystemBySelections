@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +76,8 @@ export default function FormModal({
       setFormData((prev) => ({
         ...prev,
         checklistId: preselectedChecklistId,
+        workTaskId: null, // Reset work task when checklist changes
+        workStationId: null, // Reset work station when checklist changes
       }));
     }
   }, [preselectedChecklistId]);
@@ -103,10 +105,43 @@ export default function FormModal({
   // Get the current checklist configuration
   const currentChecklist = checklists.find(c => c.id === formData.checklistId);
 
-  const { data: workTasks = [] } = useQuery<WorkTask[]>({
-    queryKey: ["/api/work-tasks"],
-    enabled: isOpen && currentChecklist?.includeWorkTasks,
+  // Hämta arbetsmoment kopplade till den valda checklistan
+  const { data: checklistWorkTasks = [] } = useQuery({
+    queryKey: [`/api/checklists/${formData.checklistId}/work-tasks`],
+    enabled: Boolean(isOpen && formData.checklistId && currentChecklist?.includeWorkTasks),
   });
+
+  // Hämta alla arbetsmoment för att kunna visa namn
+  const { data: allWorkTasks = [] } = useQuery<WorkTask[]>({
+    queryKey: ["/api/work-tasks"],
+    enabled: isOpen && Array.isArray(checklistWorkTasks) && checklistWorkTasks.length > 0,
+  });
+
+  // Filtrera arbetsmoment baserat på vad som är kopplat till checklistan
+  const workTasks = useMemo(() => {
+    if (!Array.isArray(checklistWorkTasks) || !Array.isArray(allWorkTasks)) {
+      return [];
+    }
+    return allWorkTasks.filter(wt => 
+      checklistWorkTasks.some((cwt: any) => cwt.workTaskId === wt.id)
+    );
+  }, [checklistWorkTasks, allWorkTasks]);
+
+  // Auto-select work task if only one is available
+  useEffect(() => {
+    if (workTasks.length === 1 && formData.workTaskId === null) {
+      setFormData((prev) => ({
+        ...prev,
+        workTaskId: workTasks[0].id,
+      }));
+    } else if (workTasks.length === 0 && formData.workTaskId !== null) {
+      setFormData((prev) => ({
+        ...prev,
+        workTaskId: null,
+        workStationId: null,
+      }));
+    }
+  }, [workTasks.length, formData.workTaskId]);
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
