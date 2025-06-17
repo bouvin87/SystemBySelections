@@ -223,7 +223,7 @@ export default function SuperAdmin() {
       firstName?: string; 
       lastName?: string; 
       role?: string; 
-      isRoleEditable?: boolean;
+      lockRole?: boolean;
       isActive?: boolean;
     }) => {
       return await apiRequest({
@@ -637,19 +637,19 @@ export default function SuperAdmin() {
 
                     <div className="flex items-start space-x-3">
                       <Checkbox
-                        id="user-roleEditable"
-                        checked={newUser.isRoleEditable}
-                        onCheckedChange={(checked) => setNewUser({ ...newUser, isRoleEditable: checked as boolean })}
+                        id="user-lockRole"
+                        checked={newUser.lockRole}
+                        onCheckedChange={(checked) => setNewUser({ ...newUser, lockRole: checked as boolean })}
                       />
                       <div className="grid gap-1.5 leading-none">
                         <label
-                          htmlFor="user-roleEditable"
+                          htmlFor="user-lockRole"
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                          Rollen kan ändras
+                          Lås roll
                         </label>
                         <p className="text-xs text-muted-foreground">
-                          Tillåt att användarens roll kan ändras senare
+                          Hindra användaren från att ändra sin roll
                         </p>
                       </div>
                     </div>
@@ -757,7 +757,7 @@ export default function SuperAdmin() {
                             {tenant?.name || 'Okänd tenant'}
                           </Badge>
                           <Badge variant="secondary">{user.role}</Badge>
-                          {user.isRoleEditable && <Shield className="h-4 w-4 text-green-500" />}
+                          {user.lockRole && <Shield className="h-4 w-4 text-red-500" />}
                           {!user.isActive && <Badge variant="destructive">Inaktiv</Badge>}
                           <Button
                             variant="ghost"
@@ -918,16 +918,16 @@ export default function SuperAdmin() {
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-right">
-                    Redigerbar roll
+                    Lås roll
                   </Label>
                   <div className="col-span-3 flex items-center space-x-2">
                     <Checkbox
-                      id="edit-isRoleEditable"
-                      checked={editingUser.isRoleEditable}
-                      onCheckedChange={(checked) => setEditingUser({...editingUser, isRoleEditable: checked as boolean})}
+                      id="edit-lockRole"
+                      checked={editingUser.lockRole}
+                      onCheckedChange={(checked) => setEditingUser({...editingUser, lockRole: checked as boolean})}
                     />
-                    <Label htmlFor="edit-isRoleEditable" className="text-sm">
-                      Användaren kan ändra sin roll
+                    <Label htmlFor="edit-lockRole" className="text-sm">
+                      Hindra användaren från att ändra sin roll
                     </Label>
                   </div>
                 </div>
