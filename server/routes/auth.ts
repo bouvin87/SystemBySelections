@@ -98,10 +98,10 @@ router.post('/login', async (req, res) => {
     }
 
     // Handle superadmin users without tenant
-    if (user.role === 'superadmin') {
+    if (user.role.trim() === 'superadmin') {
       const token = generateToken({
         userId: user.id,
-        role: user.role,
+        role: user.role.trim(),
         email: user.email,
       });
 
@@ -127,7 +127,7 @@ router.post('/login', async (req, res) => {
     const token = generateToken({
       userId: user.id,
       tenantId: tenant.id,
-      role: user.role,
+      role: user.role.trim(), // Ta bort whitespace från rollen
       email: user.email,
     });
 

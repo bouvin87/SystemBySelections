@@ -46,17 +46,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Debug logging för token
-      console.log('Token from localStorage:', token);
-      
-      // Dekoda JWT token för debug
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('JWT payload:', payload);
-      } catch (e) {
-        console.log('Could not decode JWT for debug');
-      }
-
       const response = await fetch('/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -65,7 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Auth response data:', data);
         setAuthState({
           isAuthenticated: true,
           isLoading: false,
@@ -73,7 +61,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           tenant: data.tenant,
         });
       } else {
-        console.log('Auth response not ok:', response.status, response.statusText);
         localStorage.removeItem('authToken');
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
