@@ -368,7 +368,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const checklists = await storage.getActiveChecklists(req.tenantId!);
       res.json(checklists);
     } catch (error) {
+      console.error('Get active checklists error:', error);
       res.status(500).json({ message: "Failed to fetch active checklists" });
+    }
+  });
+
+  app.get('/api/checklists/all-active', authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const checklists = await storage.getAllActiveChecklists(req.tenantId!);
+      res.json(checklists);
+    } catch (error) {
+      console.error('Get all active checklists error:', error);
+      res.status(500).json({ message: "Failed to fetch checklist" });
     }
   });
 
@@ -572,7 +583,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/responses', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
-      const validatedData = insertChecklistResponseSchema.parse(req.body);
+      const { tenantId, ...validatedData } = insertChecklistResponseSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId!
+      });
       const response = await storage.createChecklistResponse({
         ...validatedData,
         tenantId: req.tenantId!
