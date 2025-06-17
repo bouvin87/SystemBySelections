@@ -16,7 +16,7 @@ export const tenants = pgTable("tenants", {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").references(() => tenants.id), // Nullable for superadmin
-  email: varchar("email", { length: 255 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).notNull(),
   hashedPassword: text("hashed_password").notNull(),
   role: text("role").notNull().default("user"), // superadmin, admin, underadmin, user
   firstName: text("first_name"),
