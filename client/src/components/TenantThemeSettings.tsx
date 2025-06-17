@@ -18,6 +18,8 @@ interface TenantThemeResponse {
   colorWarning?: string | null;
   colorBackground?: string | null;
   colorText?: string | null;
+  colorLink?: string | null;
+  colorLinkHover?: string | null;
 }
 
 export default function TenantThemeSettings() {
@@ -150,6 +152,16 @@ export default function TenantThemeSettings() {
       key: "colorText" as keyof TenantTheme,
       label: "Textfärg",
       description: "Huvudtextfärg för läsbarhet",
+    },
+    {
+      key: "colorLink" as keyof TenantTheme,
+      label: "Länkfärg",
+      description: "Färg för länktext i menyer och knappar",
+    },
+    {
+      key: "colorLinkHover" as keyof TenantTheme,
+      label: "Länk hover-färg",
+      description: "Färg när användaren hovrar över länkar",
     },
   ];
 

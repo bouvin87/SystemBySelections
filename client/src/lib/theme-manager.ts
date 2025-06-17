@@ -10,6 +10,8 @@ export interface TenantTheme {
   colorWarning: string;
   colorBackground: string;
   colorText: string;
+  colorLink: string;
+  colorLinkHover: string;
 }
 
 export const defaultTheme: TenantTheme = {
@@ -19,6 +21,8 @@ export const defaultTheme: TenantTheme = {
   colorWarning: '#f59e0b',
   colorBackground: '#ffffff',
   colorText: '#111827',
+  colorLink: '#3b82f6',
+  colorLinkHover: '#2563eb',
 };
 
 /**

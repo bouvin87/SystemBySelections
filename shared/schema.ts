@@ -16,6 +16,8 @@ export const tenants = pgTable("tenants", {
   colorWarning: varchar("color_warning", { length: 7 }).default("#f59e0b"), // Default amber
   colorBackground: varchar("color_background", { length: 7 }).default("#ffffff"), // Default white
   colorText: varchar("color_text", { length: 7 }).default("#111827"), // Default dark gray
+  colorLink: varchar("color_link", { length: 7 }).default("#3b82f6"), // Default link color (blue)
+  colorLinkHover: varchar("color_link_hover", { length: 7 }).default("#2563eb"), // Default link hover color (darker blue)
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
