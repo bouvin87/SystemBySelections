@@ -840,10 +840,10 @@ export class DatabaseStorage implements IStorage {
       const conditions = [eq(deviations.tenantId, tenantId)];
       
       if (filters.status) {
-        conditions.push(eq(deviations.status, filters.status as any));
+        conditions.push(eq(deviations.statusId, parseInt(filters.status)));
       }
       if (filters.priority) {
-        conditions.push(eq(deviations.priority, filters.priority as any));
+        conditions.push(eq(deviations.priorityId, parseInt(filters.priority)));
       }
       if (filters.assignedToUserId) {
         conditions.push(eq(deviations.assignedToUserId, filters.assignedToUserId));
@@ -960,32 +960,49 @@ export class DatabaseStorage implements IStorage {
     overdue: number;
     highPriority: number;
   }> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    
+    // Get status IDs for filtering
+    const statuses = await this.getDeviationStatuses(tenantId);
+    const newStatusId = statuses.find(s => s.name.toLowerCase() === 'ny')?.id;
+    const inProgressStatusId = statuses.find(s => s.name.toLowerCase() === 'pågående')?.id;
+    const doneStatusId = statuses.find(s => s.name.toLowerCase() === 'klar')?.id;
+    
+    // Get priority IDs for filtering
+    const priorities = await this.getDeviationPriorities(tenantId);
+    const highPriorityIds = priorities.filter(p => 
+      p.name.toLowerCase().includes('hög') || 
+      p.name.toLowerCase().includes('kritisk')
+    ).map(p => p.id);
     
     const [totalResult] = await db.select({ count: count() }).from(deviations)
       .where(eq(deviations.tenantId, tenantId));
     
     const [newResult] = await db.select({ count: count() }).from(deviations)
-      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.status, 'new')));
+      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.statusId, newStatusId || 0)));
     
     const [inProgressResult] = await db.select({ count: count() }).from(deviations)
-      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.status, 'in_progress')));
+      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.statusId, inProgressStatusId || 0)));
     
     const [doneResult] = await db.select({ count: count() }).from(deviations)
-      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.status, 'done')));
+      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.statusId, doneStatusId || 0)));
     
     const [overdueResult] = await db.select({ count: count() }).from(deviations)
       .where(and(
         eq(deviations.tenantId, tenantId),
-        ne(deviations.status, 'done'),
+        ne(deviations.statusId, doneStatusId || 0),
         isNotNull(deviations.dueDate),
         lt(deviations.dueDate, today)
       ));
     
+    const highPriorityConditions = highPriorityIds.length > 0 
+      ? highPriorityIds.map(id => eq(deviations.priorityId, id))
+      : [eq(deviations.priorityId, 0)]; // fallback that returns 0 results
+    
     const [highPriorityResult] = await db.select({ count: count() }).from(deviations)
       .where(and(
         eq(deviations.tenantId, tenantId),
-        or(eq(deviations.priority, 'high'), eq(deviations.priority, 'critical'))
+        or(...highPriorityConditions)
       ));
 
     return {
