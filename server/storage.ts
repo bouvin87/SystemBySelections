@@ -815,6 +815,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(deviationStatuses).where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)));
   }
 
+  async getDefaultDeviationStatus(tenantId: number): Promise<DeviationStatus | undefined> {
+    const result = await db.select().from(deviationStatuses)
+      .where(and(eq(deviationStatuses.tenantId, tenantId), eq(deviationStatuses.isDefault, true)))
+      .limit(1);
+    return result[0];
+  }
+
   async getDeviations(tenantId: number, filters?: {
     status?: string;
     priority?: string;

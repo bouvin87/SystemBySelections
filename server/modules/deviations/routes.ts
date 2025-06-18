@@ -121,10 +121,14 @@ export default function deviationRoutes(app: Express) {
         const tenantId = req.tenantId!;
         const userId = req.user!.userId;
         
+        // Get default status for the tenant
+        const defaultStatus = await storage.getDefaultDeviationStatus(tenantId);
+        
         const validatedData = insertDeviationSchema.parse({
           ...req.body,
           tenantId,
           createdByUserId: userId,
+          statusId: defaultStatus?.id, // Set to default status
         });
         
         const deviation = await storage.createDeviation(validatedData);
