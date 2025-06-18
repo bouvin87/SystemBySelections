@@ -30,7 +30,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { ActionItem, ActionComment, WorkTask, WorkStation } from "@shared/schema";
 
-interface User {
+interface ActionUser {
   id: number;
   firstName?: string;
   lastName?: string;
@@ -118,7 +118,7 @@ export default function Actions() {
     queryKey: ["/api/work-stations"],
   });
 
-  const { data: users = [] } = useQuery<User[]>({
+  const { data: users = [] } = useQuery<ActionUser[]>({
     queryKey: ["/api/users"],
   });
 
