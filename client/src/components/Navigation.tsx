@@ -205,7 +205,8 @@ export default function Navigation() {
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto">
           {/* Mobile-first header - modern design */}
-          <div className="flex justify-between items-center h-16 px-6">
+          <div className="flex items-center h-16 px-6">
+            {/* Logo */}
             <Link
               href="/"
               className="flex items-center text-gray-900 hover:text-blue-600 transition-colors"
@@ -216,56 +217,57 @@ export default function Navigation() {
               <h1 className="text-lg font-semibold">ProductionLog</h1>
             </Link>
 
-            <div className="flex items-center gap-3">
-              {/* Desktop-only navigation - modern style */}
-              <div className="hidden lg:flex items-center space-x-2">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      location === item.href
-                        ? "text-blue-600 bg-blue-50"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+            {/* Desktop navigation - left side after logo */}
+            <div className="hidden lg:flex items-center space-x-2 ml-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    location === item.href
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
 
-                {menuChecklists.map((checklist) => (
-                  <button
-                    key={`checklist-${checklist.id}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Checklist button clicked:', checklist.id, checklist.name);
-                      openModal(checklist.id);
-                    }}
-                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors cursor-pointer"
-                    type="button"
-                  >
-                    {renderIcon(checklist.icon, "h-4 w-4") || (
-                      <CheckSquare className="h-4 w-4" />
-                    )}
-                    {checklist.name}
-                  </button>
-                ))}
+              {menuChecklists.map((checklist) => (
+                <button
+                  key={`checklist-${checklist.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Checklist button clicked:', checklist.id, checklist.name);
+                    openModal(checklist.id);
+                  }}
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors cursor-pointer"
+                  type="button"
+                >
+                  {renderIcon(checklist.icon, "h-4 w-4") || (
+                    <CheckSquare className="h-4 w-4" />
+                  )}
+                  {checklist.name}
+                </button>
+              ))}
 
-                {hasChecklistsModule && (
-                  <button
-                    onClick={() => {
-                      console.log('Opening checklist selection modal');
-                      setChecklistSelectionOpen(true);
-                    }}
-                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t("navigation.startNewChecklist")}
-                  </button>
-                )}
-              </div>
+              {hasChecklistsModule && (
+                <button
+                  onClick={() => {
+                    console.log('Opening checklist selection modal');
+                    setChecklistSelectionOpen(true);
+                  }}
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("navigation.startNewChecklist")}
+                </button>
+              )}
+            </div>
 
+            {/* Right side - User menu and mobile button */}
+            <div className="flex items-center gap-3 ml-auto">
               {/* User menu - always visible on desktop */}
               <div className="hidden lg:flex items-center space-x-4">
                 <LanguageSelector />
