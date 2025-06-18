@@ -46,6 +46,7 @@ interface DeviationModalProps {
 
 export default function DeviationModal({ isOpen, onClose, onSuccess }: DeviationModalProps) {
   const { toast } = useToast();
+  const [selectedDueDate, setSelectedDueDate] = useState<string>("");
 
   // Fetch deviation types
   const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
@@ -230,23 +231,13 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
             <div>
               <Label htmlFor="dueDate">Deadline</Label>
               <DatePicker
-                value=""
+                value={selectedDueDate}
                 onChange={(value) => {
-                  // Set the value in form data
-                  const form = document.querySelector('form') as HTMLFormElement;
-                  if (form) {
-                    let input = form.querySelector('input[name="dueDate"]') as HTMLInputElement;
-                    if (!input) {
-                      input = document.createElement('input');
-                      input.type = 'hidden';
-                      input.name = 'dueDate';
-                      form.appendChild(input);
-                    }
-                    input.value = value;
-                  }
+                  setSelectedDueDate(value);
                 }}
                 placeholder="Välj deadline"
               />
+              <input type="hidden" name="dueDate" value={selectedDueDate} />
             </div>
           </div>
           
