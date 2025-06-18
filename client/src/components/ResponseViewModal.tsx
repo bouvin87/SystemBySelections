@@ -128,13 +128,25 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     }
   };
 
+  // Debug logging
+  console.log('Modal state:', { 
+    response: !!response, 
+    categories: categories.length, 
+    questions: allQuestions.length,
+    responseId,
+    isOpen 
+  });
+
   if (!response) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Laddar...</DialogTitle>
+            <DialogTitle>Laddar response...</DialogTitle>
           </DialogHeader>
+          <div className="p-4">
+            Response ID: {responseId}
+          </div>
         </DialogContent>
       </Dialog>
     );
