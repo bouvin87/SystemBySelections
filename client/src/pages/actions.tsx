@@ -563,7 +563,8 @@ export default function Actions() {
       </div>
 
       {/* Create Action Modal */}
-      <DialogContent className="max-w-2xl">
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Skapa ny åtgärd</DialogTitle>
         </DialogHeader>
@@ -678,7 +679,8 @@ export default function Actions() {
             </Button>
           </div>
         </form>
-      </DialogContent>
+        </DialogContent>
+      </Dialog>
 
       {/* Action Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
