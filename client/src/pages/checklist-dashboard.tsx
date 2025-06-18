@@ -400,7 +400,6 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                           <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Operatör</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Datum & Tid</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Detaljer</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Status</th>
                           <th className="text-right py-3 px-4 font-medium text-gray-600 text-sm">Åtgärd</th>
                         </tr>
                       </thead>
@@ -431,30 +430,34 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                             </td>
                             <td className="py-4 px-4">
                               <div className="space-y-1">
-                                {response.workTaskName && (
+                                {response.workTaskId && (
                                   <div className="text-sm">
                                     <span className="text-gray-600">Arbetsmoment:</span>
-                                    <span className="ml-1 font-medium">{response.workTaskName}</span>
+                                    <span className="ml-1 font-medium">
+                                      {workTasks.find(wt => wt.id === response.workTaskId)?.name || `ID: ${response.workTaskId}`}
+                                    </span>
                                   </div>
                                 )}
-                                {response.workStationName && (
+                                {response.workStationId && (
                                   <div className="text-sm">
                                     <span className="text-gray-600">Station:</span>
-                                    <span className="ml-1 font-medium">{response.workStationName}</span>
+                                    <span className="ml-1 font-medium">
+                                      {workStations.find(ws => ws.id === response.workStationId)?.name || `ID: ${response.workStationId}`}
+                                    </span>
                                   </div>
                                 )}
-                                {response.shiftName && (
+                                {response.shiftId && (
                                   <div className="text-sm">
                                     <span className="text-gray-600">Skift:</span>
-                                    <span className="ml-1 font-medium">{response.shiftName}</span>
+                                    <span className="ml-1 font-medium">
+                                      {shifts.find(s => s.id === response.shiftId)?.name || `ID: ${response.shiftId}`}
+                                    </span>
                                   </div>
                                 )}
+                                {!response.workTaskId && !response.workStationId && !response.shiftId && (
+                                  <div className="text-sm text-gray-400">Inga detaljer tillgängliga</div>
+                                )}
                               </div>
-                            </td>
-                            <td className="py-4 px-4">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Slutförd
-                              </span>
                             </td>
                             <td className="py-4 px-4 text-right">
                               <Button
