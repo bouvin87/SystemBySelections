@@ -5,7 +5,7 @@
  * based on checklist responses or other quality/safety issues.
  */
 
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { z } from "zod";
 import { storage } from "../../storage";
 import { 
@@ -14,6 +14,7 @@ import {
   validateTenantOwnership, 
   enforceTenantIsolation 
 } from "../../middleware/auth";
+
 // Define AuthenticatedRequest type locally
 interface AuthenticatedRequest extends Request {
   user?: any;
