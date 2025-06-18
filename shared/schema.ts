@@ -271,8 +271,6 @@ export const deviations = pgTable("deviations", {
   deviationTypeId: integer("deviation_type_id").notNull().references(() => deviationTypes.id),
   priorityId: integer("priority_id").references(() => deviationPriorities.id),
   statusId: integer("status_id").references(() => deviationStatuses.id),
-  priority: text("priority", { enum: ["low", "medium", "high", "critical"] }).notNull().default("medium"),
-  status: text("status", { enum: ["new", "in_progress", "done"] }).notNull().default("new"),
   assignedToUserId: integer("assigned_to_user_id").references(() => users.id),
   createdByUserId: integer("created_by_user_id").notNull().references(() => users.id),
   dueDate: timestamp("due_date"),
@@ -308,6 +306,14 @@ export const deviationsRelations = relations(deviations, ({ one, many }) => ({
   deviationType: one(deviationTypes, {
     fields: [deviations.deviationTypeId],
     references: [deviationTypes.id],
+  }),
+  priority: one(deviationPriorities, {
+    fields: [deviations.priorityId],
+    references: [deviationPriorities.id],
+  }),
+  status: one(deviationStatuses, {
+    fields: [deviations.statusId],
+    references: [deviationStatuses.id],
   }),
   createdBy: one(users, {
     fields: [deviations.createdByUserId],
