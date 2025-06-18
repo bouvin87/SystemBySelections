@@ -196,13 +196,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Deviations module - protected and tenant-scoped  
-  deviationRoutes(app);
-
-  // Deviation Priorities API
-  app.get('/api/deviations/priorities', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  // Deviation Priorities API (must be before deviationRoutes to avoid conflicts)
+  app.get('/api/deviations/priorities', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
-      const priorities = await storage.getDeviationPriorities(req.tenantId!);
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const priorities = await storage.getDeviationPriorities(req.tenantId);
       res.json(priorities);
     } catch (error) {
       console.error('Error fetching deviation priorities:', error);
@@ -210,11 +210,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/deviations/priorities', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/deviations/priorities', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
       const priority = await storage.createDeviationPriority({
         ...req.body,
-        tenantId: req.tenantId!,
+        tenantId: req.tenantId,
       });
       res.status(201).json(priority);
     } catch (error) {
@@ -223,10 +226,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/deviations/priorities/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.patch('/api/deviations/priorities/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
       const id = parseInt(req.params.id);
-      const priority = await storage.updateDeviationPriority(id, req.body, req.tenantId!);
+      const priority = await storage.updateDeviationPriority(id, req.body, req.tenantId);
       res.json(priority);
     } catch (error) {
       console.error('Error updating deviation priority:', error);
@@ -234,10 +240,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/deviations/priorities/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/deviations/priorities/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
       const id = parseInt(req.params.id);
-      await storage.deleteDeviationPriority(id, req.tenantId!);
+      await storage.deleteDeviationPriority(id, req.tenantId);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting deviation priority:', error);
@@ -246,9 +255,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Deviation Statuses API
-  app.get('/api/deviations/statuses', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/deviations/statuses', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
-      const statuses = await storage.getDeviationStatuses(req.tenantId!);
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const statuses = await storage.getDeviationStatuses(req.tenantId);
       res.json(statuses);
     } catch (error) {
       console.error('Error fetching deviation statuses:', error);
@@ -256,11 +268,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/deviations/statuses', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/deviations/statuses', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
       const status = await storage.createDeviationStatus({
         ...req.body,
-        tenantId: req.tenantId!,
+        tenantId: req.tenantId,
       });
       res.status(201).json(status);
     } catch (error) {
@@ -269,10 +284,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/deviations/statuses/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.patch('/api/deviations/statuses/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
       const id = parseInt(req.params.id);
-      const status = await storage.updateDeviationStatus(id, req.body, req.tenantId!);
+      const status = await storage.updateDeviationStatus(id, req.body, req.tenantId);
       res.json(status);
     } catch (error) {
       console.error('Error updating deviation status:', error);
@@ -280,16 +298,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/deviations/statuses/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  app.delete('/api/deviations/statuses/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
       const id = parseInt(req.params.id);
-      await storage.deleteDeviationStatus(id, req.tenantId!);
+      await storage.deleteDeviationStatus(id, req.tenantId);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting deviation status:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
+
+  // Deviations module - protected and tenant-scoped  
+  deviationRoutes(app);
 
   // === USER MANAGEMENT ROUTES ===
   // Get all users for the tenant (admin only)
