@@ -345,9 +345,7 @@ export const deviationCommentsRelations = relations(deviationComments, ({ one })
 export type DeviationType = typeof deviationTypes.$inferSelect;
 export type InsertDeviationType = z.infer<typeof insertDeviationTypeSchema>;
 export type DeviationPriority = typeof deviationPriorities.$inferSelect;
-export type InsertDeviationPriority = z.infer<typeof insertDeviationPrioritySchema>;
 export type DeviationStatus = typeof deviationStatuses.$inferSelect;
-export type InsertDeviationStatus = z.infer<typeof insertDeviationStatusSchema>;
 export type Deviation = typeof deviations.$inferSelect;
 export type InsertDeviation = z.infer<typeof insertDeviationSchema>;
 export type DeviationComment = typeof deviationComments.$inferSelect;
@@ -383,6 +381,9 @@ export const insertDeviationStatusSchema = createInsertSchema(deviationStatuses)
   createdAt: true,
   updatedAt: true,
 });
+
+export type InsertDeviationPriority = z.infer<typeof insertDeviationPrioritySchema>;
+export type InsertDeviationStatus = z.infer<typeof insertDeviationStatusSchema>;
 
 
 
