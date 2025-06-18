@@ -14,7 +14,7 @@ interface ResponseViewModalProps {
 
 export default function ResponseViewModal({ isOpen, onClose, responseId }: ResponseViewModalProps) {
   const { data: response, isLoading: responseLoading, error: responseError } = useQuery<ChecklistResponse>({
-    queryKey: ["/api/responses", responseId],
+    queryKey: [`/api/responses/${responseId}`],
     enabled: !!responseId,
   });
 
@@ -131,7 +131,7 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
   // Debug logging
   console.log('Modal state:', { 
     response: !!response, 
-    responseData: response,
+    responseObject: response,
     responseLoading,
     responseError,
     categories: categories.length, 
