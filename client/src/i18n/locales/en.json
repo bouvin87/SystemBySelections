@@ -168,6 +168,8 @@
     "workStation": "Station",
     "workTask": "Work task",
     "clearFilters": "Clear filters",
-    "shift": "Shift"
+    "shift": "Shift",
+    "checklist": "Checklist",
+    "checklists": "Checklists"
   }
 }

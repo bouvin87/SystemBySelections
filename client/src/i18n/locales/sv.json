@@ -168,6 +168,8 @@
     "workStation": "Station",
     "workTask": "Arbetsmoment",
     "clearFilters": "Rensa filter",
-    "shift": "Skift"
+    "shift": "Skift",
+    "checklist": "Checklista",
+    "checklists": "Checklistor"
   }
 }

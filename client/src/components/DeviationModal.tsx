@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 
@@ -228,10 +229,23 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
             
             <div>
               <Label htmlFor="dueDate">Deadline</Label>
-              <Input 
-                id="dueDate" 
-                name="dueDate" 
-                type="datetime-local"
+              <DatePicker
+                value=""
+                onChange={(value) => {
+                  // Set the value in form data
+                  const form = document.querySelector('form') as HTMLFormElement;
+                  if (form) {
+                    let input = form.querySelector('input[name="dueDate"]') as HTMLInputElement;
+                    if (!input) {
+                      input = document.createElement('input');
+                      input.type = 'hidden';
+                      input.name = 'dueDate';
+                      form.appendChild(input);
+                    }
+                    input.value = value;
+                  }
+                }}
+                placeholder="Välj deadline"
               />
             </div>
           </div>

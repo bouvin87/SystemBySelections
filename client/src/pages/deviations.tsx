@@ -1,15 +1,43 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Navigation } from "@/components/Navigation";
 import DeviationModal from "@/components/DeviationModal";
-import { AlertTriangle, Plus, Search, Filter, Calendar, User, MapPin, Clock, MessageSquare } from "lucide-react";
+import {
+  AlertTriangle,
+  Plus,
+  Search,
+  Filter,
+  Calendar,
+  User,
+  MapPin,
+  Clock,
+  MessageSquare,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -72,28 +100,28 @@ interface DeviationUser {
 
 const priorityColors = {
   low: "bg-blue-100 text-blue-800",
-  medium: "bg-yellow-100 text-yellow-800", 
+  medium: "bg-yellow-100 text-yellow-800",
   high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800"
+  critical: "bg-red-100 text-red-800",
 };
 
 const statusColors = {
   new: "bg-gray-100 text-gray-800",
   in_progress: "bg-blue-100 text-blue-800",
-  done: "bg-green-100 text-green-800"
+  done: "bg-green-100 text-green-800",
 };
 
 const priorityLabels = {
   low: "Låg",
-  medium: "Medium", 
+  medium: "Medium",
   high: "Hög",
-  critical: "Kritisk"
+  critical: "Kritisk",
 };
 
 const statusLabels = {
   new: "Ny",
   in_progress: "Pågående",
-  done: "Klar"
+  done: "Klar",
 };
 
 export default function DeviationsPage() {
@@ -103,10 +131,12 @@ export default function DeviationsPage() {
     priority: "",
     assignedToUserId: "",
     workTaskId: "",
-    search: ""
+    search: "",
   });
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedDeviation, setSelectedDeviation] = useState<Deviation | null>(null);
+  const [selectedDeviation, setSelectedDeviation] = useState<Deviation | null>(
+    null,
+  );
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Fetch deviation stats
@@ -143,15 +173,13 @@ export default function DeviationsPage() {
     },
   });
 
-
-
   // Build query parameters for filtering
   const queryParams = new URLSearchParams();
-  
+
   // Add filters to query params
   Object.entries(filters).forEach(([key, value]) => {
     const filterValue = filters[key as keyof typeof filters];
-    if (filterValue && filterValue !== 'all') {
+    if (filterValue && filterValue !== "all") {
       queryParams.append(key, filterValue);
     }
   });
@@ -160,13 +188,11 @@ export default function DeviationsPage() {
   const { data: deviations = [], isLoading } = useQuery<Deviation[]>({
     queryKey: ["/api/deviations", queryParams.toString()],
     queryFn: async () => {
-      const url = `/api/deviations${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const url = `/api/deviations${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
       const response = await apiRequest("GET", url);
       return response.json();
     },
   });
-
-
 
   const openDeviationDetail = (deviation: Deviation) => {
     setSelectedDeviation(deviation);
@@ -176,7 +202,7 @@ export default function DeviationsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
+
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -189,7 +215,7 @@ export default function DeviationsPage() {
               Hantera och följ upp avvikelser i produktionen
             </p>
           </div>
-          
+
           <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Ny avvikelse
@@ -201,37 +227,49 @@ export default function DeviationsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold">{stats.total}</CardTitle>
+                <CardTitle className="text-2xl font-bold">
+                  {stats.total}
+                </CardTitle>
                 <CardDescription>Totalt</CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold text-gray-600">{stats.new}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-600">
+                  {stats.new}
+                </CardTitle>
                 <CardDescription>Nya</CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold text-blue-600">{stats.inProgress}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-blue-600">
+                  {stats.inProgress}
+                </CardTitle>
                 <CardDescription>Pågående</CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold text-green-600">{stats.done}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-green-600">
+                  {stats.done}
+                </CardTitle>
                 <CardDescription>Klara</CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold text-red-600">{stats.overdue}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-red-600">
+                  {stats.overdue}
+                </CardTitle>
                 <CardDescription>Försenade</CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-2xl font-bold text-orange-600">{stats.highPriority}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-orange-600">
+                  {stats.highPriority}
+                </CardTitle>
                 <CardDescription>Hög prioritet</CardDescription>
               </CardHeader>
             </Card>
@@ -255,7 +293,12 @@ export default function DeviationsPage() {
                   <Input
                     placeholder="Sök avvikelser..."
                     value={filters.search}
-                    onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        search: e.target.value,
+                      }))
+                    }
                     className="pl-10"
                   />
                 </div>
@@ -263,7 +306,12 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Status</Label>
-                <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+                <Select
+                  value={filters.status}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, status: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Alla statusar" />
                   </SelectTrigger>
@@ -278,7 +326,12 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Prioritet</Label>
-                <Select value={filters.priority} onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}>
+                <Select
+                  value={filters.priority}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, priority: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Alla prioriteter" />
                   </SelectTrigger>
@@ -294,7 +347,12 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Tilldelad till</Label>
-                <Select value={filters.assignedToUserId} onValueChange={(value) => setFilters(prev => ({ ...prev, assignedToUserId: value }))}>
+                <Select
+                  value={filters.assignedToUserId}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, assignedToUserId: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Alla användare" />
                   </SelectTrigger>
@@ -311,7 +369,12 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Arbetsmoment</Label>
-                <Select value={filters.workTaskId} onValueChange={(value) => setFilters(prev => ({ ...prev, workTaskId: value }))}>
+                <Select
+                  value={filters.workTaskId}
+                  onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, workTaskId: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Alla arbetsmoment" />
                   </SelectTrigger>
@@ -344,17 +407,22 @@ export default function DeviationsPage() {
             </Card>
           ) : (
             deviations.map((deviation) => {
-              const deviationType = deviationTypes.find(t => t.id === deviation.deviationTypeId);
+              const deviationType = deviationTypes.find(
+                (t) => t.id === deviation.deviationTypeId,
+              );
               return (
-                <Card key={deviation.id} className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => openDeviationDetail(deviation)}>
+                <Card
+                  key={deviation.id}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => openDeviationDetail(deviation)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {deviationType && (
-                            <div 
-                              className="w-3 h-3 rounded-full" 
+                            <div
+                              className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: deviationType.color }}
                             />
                           )}
@@ -366,20 +434,31 @@ export default function DeviationsPage() {
                             {statusLabels[deviation.status]}
                           </Badge>
                         </div>
-                        
+
                         {deviation.description && (
-                          <p className="text-gray-600 text-sm mb-2">{deviation.description}</p>
+                          <p className="text-gray-600 text-sm mb-2">
+                            {deviation.description}
+                          </p>
                         )}
-                        
+
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
-                            {format(new Date(deviation.createdAt), "d MMM yyyy", { locale: sv })}
+                            {format(
+                              new Date(deviation.createdAt),
+                              "d MMM yyyy",
+                              { locale: sv },
+                            )}
                           </div>
                           {deviation.dueDate && (
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
-                              Deadline: {format(new Date(deviation.dueDate), "d MMM yyyy", { locale: sv })}
+                              Deadline:{" "}
+                              {format(
+                                new Date(deviation.dueDate),
+                                "d MMM yyyy",
+                                { locale: sv },
+                              )}
                             </div>
                           )}
                         </div>
@@ -404,7 +483,7 @@ export default function DeviationsPage() {
                   {selectedDeviation.title}
                 </DialogTitle>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <Badge className={priorityColors[selectedDeviation.priority]}>
@@ -414,27 +493,37 @@ export default function DeviationsPage() {
                     {statusLabels[selectedDeviation.status]}
                   </Badge>
                 </div>
-                
+
                 {selectedDeviation.description && (
                   <div>
                     <Label>Beskrivning</Label>
-                    <p className="text-gray-700">{selectedDeviation.description}</p>
+                    <p className="text-gray-700">
+                      {selectedDeviation.description}
+                    </p>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Skapad</Label>
                     <p className="text-gray-700">
-                      {format(new Date(selectedDeviation.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      {format(
+                        new Date(selectedDeviation.createdAt),
+                        "d MMM yyyy HH:mm",
+                        { locale: sv },
+                      )}
                     </p>
                   </div>
-                  
+
                   {selectedDeviation.dueDate && (
                     <div>
                       <Label>Deadline</Label>
                       <p className="text-gray-700">
-                        {format(new Date(selectedDeviation.dueDate), "d MMM yyyy HH:mm", { locale: sv })}
+                        {format(
+                          new Date(selectedDeviation.dueDate),
+                          "d MMM yyyy HH:mm",
+                          { locale: sv },
+                        )}
                       </p>
                     </div>
                   )}
@@ -446,8 +535,8 @@ export default function DeviationsPage() {
       </Dialog>
 
       {/* DeviationModal Component */}
-      <DeviationModal 
-        isOpen={isCreateModalOpen} 
+      <DeviationModal
+        isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={() => {
           // Refresh the deviations list after creating
