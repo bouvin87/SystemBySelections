@@ -317,7 +317,12 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                     <div>
                       <div className="text-2xl font-bold">{stats?.totalResponses || 0}</div>
                       <div className="text-blue-100 text-sm">{t('dashboard.totalResponsesFiltered')}</div>
-                      <div className="text-blue-200 text-xs mt-1">+12% från förra månaden</div>
+                      <div className="text-blue-200 text-xs mt-1">{responses.filter(r => {
+                        const responseDate = new Date(r.createdAt);
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        return responseDate >= yesterday;
+                      }).length} senaste 24 timmar</div>
                     </div>
                     <div className="bg-white/20 p-3 rounded-lg">
                       <BarChart3 className="h-6 w-6" />
@@ -394,6 +399,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                         <tr className="border-b border-gray-200">
                           <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Operatör</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Datum & Tid</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Detaljer</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Status</th>
                           <th className="text-right py-3 px-4 font-medium text-gray-600 text-sm">Åtgärd</th>
                         </tr>
@@ -421,6 +427,28 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                                 <div className="text-sm text-gray-500">
                                   {new Date(response.createdAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
                                 </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="space-y-1">
+                                {response.workTaskName && (
+                                  <div className="text-sm">
+                                    <span className="text-gray-600">Arbetsmoment:</span>
+                                    <span className="ml-1 font-medium">{response.workTaskName}</span>
+                                  </div>
+                                )}
+                                {response.workStationName && (
+                                  <div className="text-sm">
+                                    <span className="text-gray-600">Station:</span>
+                                    <span className="ml-1 font-medium">{response.workStationName}</span>
+                                  </div>
+                                )}
+                                {response.shiftName && (
+                                  <div className="text-sm">
+                                    <span className="text-gray-600">Skift:</span>
+                                    <span className="ml-1 font-medium">{response.shiftName}</span>
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td className="py-4 px-4">
