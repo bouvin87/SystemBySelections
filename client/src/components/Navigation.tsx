@@ -28,6 +28,7 @@ import UserMenu from "@/components/UserMenu";
 import { renderIcon } from "@/lib/icon-utils";
 import { useAuth } from "@/hooks/useAuth";
 import LanguageSelector from "@/components/LanguageSelector";
+import logoSvg from "@/lib/logo.svg?url";
 
 // Mobile User Section Component - embedded directly in mobile menu with collapsible functionality
 function MobileUserSection({ 
@@ -235,9 +236,11 @@ export default function Navigation() {
               href="/"
               className="flex items-center text-gray-900 hover:text-blue-600 transition-colors"
             >
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <Building className="h-5 w-5 text-white" />
-              </div>
+              <img 
+                src={logoSvg} 
+                alt="ProductionLog" 
+                className="w-8 h-8 mr-3"
+              />
               <h1 className="text-lg font-semibold">ProductionLog</h1>
             </Link>
 
