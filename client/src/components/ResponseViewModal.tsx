@@ -26,9 +26,46 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     enabled: !!response?.checklistId,
   });
 
-  // Get all questions for this checklist (fetch all at once)
+  // Get all questions for all categories in this checklist
   const { data: allQuestions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions"],
+    queryKey: ["/api/questions", "all-categories", categories.map(c => c.id).join(',')],
+    queryFn: async () => {
+      if (!categories.length) return [];
+      
+      const allQuestions: Question[] = [];
+      
+      // Fetch questions for each category with proper authentication
+      for (const category of categories) {
+        try {
+          const token = localStorage.getItem('authToken');
+          const url = `/api/questions?categoryId=${category.id}`;
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+          
+          const response = await fetch(url, {
+            headers,
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const questions = await response.json();
+            allQuestions.push(...questions);
+
+          } else {
+            console.warn(`Failed to fetch questions for category ${category.name}: ${response.status} ${response.statusText}`);
+          }
+        } catch (error) {
+          console.error(`Error fetching questions for category ${category.name}:`, error);
+        }
+      }
+      
+      return allQuestions;
+    },
     enabled: categories.length > 0,
   });
 
@@ -210,7 +247,7 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
                 .filter(q => q.categoryId === category.id)
                 .sort((a, b) => a.order - b.order);
               
-              console.log(`Category ${category.name} (${category.id}): ${categoryQuestions.length} questions`);
+
 
               return (
                 <TabsContent key={category.id} value={category.id.toString()}>
