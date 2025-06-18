@@ -1396,8 +1396,27 @@ export default function Admin() {
               {hasDeviationsModule && (
                 <TabsContent value="deviations">
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Hantera avvikelsetyper</h3>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Avvikelser</h2>
+                      <p className="text-gray-600 dark:text-gray-400">Hantera avvikelseinställningar och typer</p>
+                    </div>
+                    
+                    <Tabs defaultValue="settings" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="settings">Grundinställningar</TabsTrigger>
+                        <TabsTrigger value="types">Avvikelsetyper</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="settings" className="space-y-6">
+                        <DeviationSettingsTab />
+                      </TabsContent>
+                      
+                      <TabsContent value="types" className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Avvikelsetyper</h3>
+                            <p className="text-gray-600 dark:text-gray-400">Hantera anpassade avvikelsetyper för din organisation</p>
+                          </div>
                       <Dialog open={dialogOpen && activeTab === "deviations"} onOpenChange={setDialogOpen}>
                         <DialogTrigger asChild>
                           <Button onClick={() => openDialog()}>
@@ -1535,7 +1554,9 @@ export default function Admin() {
                           </CardContent>
                         </Card>
                       )}
-                    </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </div>
                 </TabsContent>
               )}
