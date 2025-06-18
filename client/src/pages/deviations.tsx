@@ -444,6 +444,16 @@ export default function DeviationsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* DeviationModal Component */}
+      <DeviationModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          // Refresh the deviations list after creating
+          queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
+        }}
+      />
     </div>
   );
 }

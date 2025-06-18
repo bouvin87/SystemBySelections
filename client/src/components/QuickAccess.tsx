@@ -11,6 +11,8 @@ interface QuickAccessProps {
 }
 
 function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
+  const [isDeviationModalOpen, setIsDeviationModalOpen] = useState(false);
+  
   // Check if user has access to checklists module
   const { data: authData } = useQuery({
     queryKey: ["/api/auth/me"],
