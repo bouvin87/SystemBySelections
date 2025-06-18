@@ -243,11 +243,11 @@ export default function Navigation() {
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-1 p-0">
                 <img
                   src={logoSvg}
-                  alt="ProductionLog"
+                  alt="Systems by Selections"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-lg font-semibold">System by Sections</h1>
+              <h1 className="text-lg font-semibold">Systems by Selections</h1>
             </Link>
 
             {/* Desktop navigation - left side after logo */}

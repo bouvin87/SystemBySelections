@@ -84,16 +84,16 @@ export default function Login() {
           <div className="flex items-center justify-center mb-8">
             <img 
               src={logoSvg} 
-              alt="ProductionLog" 
+              alt="Systems by Selections" 
               className="w-12 h-12"
             />
-            <h1 className="ml-3 text-xl font-semibold text-gray-900">ProductionLog</h1>
+            <h1 className="ml-3 text-xl font-semibold text-gray-900">Systems by Selections</h1>
           </div>
 
           {/* Form */}
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {showTenantSelection ? 'Välj organisation' : 'Logga in på ProductionLog'}
+              {showTenantSelection ? 'Välj organisation' : 'Logga in på Systems by Selections'}
             </h2>
             <p className="text-gray-600">
               {showTenantSelection 
@@ -219,9 +219,9 @@ export default function Login() {
               ))}
             </div>
             <blockquote className="text-white text-lg leading-relaxed mb-6">
-              "Det är så skönt att se ProductionLog fokusera helt på industriella produkter. 
-              Ger dig alla nödvändiga verktyg du behöver för att starta sälja dina produkter 
-              och prenumerationer snabbt och enkelt."
+              "Det är så skönt att se Systems by Selections fokusera helt på industriella system. 
+              Ger dig alla nödvändiga verktyg du behöver för att hantera dina processer 
+              och checklistor effektivt och enkelt."
             </blockquote>
             <div className="flex items-center">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
