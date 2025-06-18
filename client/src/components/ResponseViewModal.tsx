@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, User, MapPin, Clock } from "lucide-react";
 import type { ChecklistResponse, Category, Question, WorkTask, WorkStation, Shift } from "@shared/schema";
 
@@ -24,25 +26,29 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     enabled: !!response?.checklistId,
   });
 
-  // Get all questions for categories in this checklist
+  // Get all questions for this checklist's categories
   const { data: allQuestions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "for-categories", categories.map(c => c.id).join(',')],
+    queryKey: ["/api/questions", "for-checklist", response?.checklistId],
     queryFn: async () => {
       if (!categories.length) return [];
       
-      // Fetch questions for each category
-      const questionPromises = categories.map(async (category) => {
-        const response = await fetch(`/api/questions?categoryId=${category.id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        if (!response.ok) return [];
-        return response.json();
-      });
-      
-      const questionArrays = await Promise.all(questionPromises);
-      return questionArrays.flat();
+      const allQuestions: Question[] = [];
+      for (const category of categories) {
+        try {
+          const response = await fetch(`/api/questions?categoryId=${category.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          if (response.ok) {
+            const questions = await response.json();
+            allQuestions.push(...questions);
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch questions for category ${category.id}:`, error);
+        }
+      }
+      return allQuestions;
     },
     enabled: categories.length > 0,
   });
@@ -128,16 +134,7 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     }
   };
 
-  // Debug logging
-  console.log('Modal state:', { 
-    response: !!response, 
-    responseLoading,
-    responseError: responseError ? String(responseError) : null,
-    categories: categories.length, 
-    questions: allQuestions.length,
-    responseId,
-    isOpen 
-  });
+
 
   if (responseLoading || !response) {
     return (
@@ -214,8 +211,19 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
           </CardContent>
         </Card>
 
-        {/* Questions and Answers */}
-        <div className="space-y-4">
+        {/* Questions and Answers with Tabs */}
+        {categories.length > 0 && (
+          <Tabs defaultValue={categories[0]?.id.toString()} className="w-full">
+            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${categories.length}, 1fr)` }}>
+              {categories
+                .sort((a, b) => a.order - b.order)
+                .map((category) => (
+                  <TabsTrigger key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+            </TabsList>
+          
           {categories
             .sort((a, b) => a.order - b.order)
             .map((category) => {
@@ -223,44 +231,49 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
                 .filter(q => q.categoryId === category.id)
                 .sort((a, b) => a.order - b.order);
 
-              if (categoryQuestions.length === 0) return null;
-
               return (
-                <Card key={category.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{category.name}</CardTitle>
-                    {category.description && (
-                      <p className="text-sm text-muted-foreground">{category.description}</p>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {categoryQuestions.map((question, index) => (
-                        <div key={question.id}>
-                          <div className="flex flex-col space-y-2">
-                            <div className="flex items-start justify-between">
-                              <span className="text-sm font-medium">{question.text}</span>
-                              {question.isRequired && (
-                                <Badge variant="outline" className="text-xs">
-                                  Obligatorisk
-                                </Badge>
+                <TabsContent key={category.id} value={category.id.toString()}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">{category.name}</CardTitle>
+                      {category.description && (
+                        <p className="text-sm text-muted-foreground">{category.description}</p>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      {categoryQuestions.length > 0 ? (
+                        <div className="space-y-4">
+                          {categoryQuestions.map((question, index) => (
+                            <div key={question.id}>
+                              <div className="flex flex-col space-y-2">
+                                <div className="flex items-start justify-between">
+                                  <span className="text-sm font-medium">{question.text}</span>
+                                  {question.isRequired && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Obligatorisk
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="pl-4">
+                                  {renderQuestionValue(question, responseData[question.id.toString()])}
+                                </div>
+                              </div>
+                              {index < categoryQuestions.length - 1 && (
+                                <Separator className="mt-4" />
                               )}
                             </div>
-                            <div className="pl-4">
-                              {renderQuestionValue(question, responseData[question.id.toString()])}
-                            </div>
-                          </div>
-                          {index < categoryQuestions.length - 1 && (
-                            <Separator className="mt-4" />
-                          )}
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      ) : (
+                        <p className="text-muted-foreground">Inga frågor i denna kategori</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               );
             })}
-        </div>
+          </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
