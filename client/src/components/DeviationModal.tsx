@@ -34,6 +34,7 @@ interface DeviationUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  isActive: boolean;
 }
 
 interface DeviationModalProps {
@@ -184,7 +185,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
                   <SelectValue placeholder="Välj användare" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users.map((user) => (
+                  {users.filter(user => user.isActive).map((user) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.firstName} {user.lastName} ({user.email})
                     </SelectItem>
