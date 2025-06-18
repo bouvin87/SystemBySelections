@@ -327,13 +327,7 @@ export default function DeviationsPage() {
                       .sort((a, b) => a.order - b.order)
                       .map((status) => (
                       <SelectItem key={status.id} value={status.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: status.color }}
-                          />
-                          {status.name}
-                        </div>
+                        {status.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -358,13 +352,7 @@ export default function DeviationsPage() {
                       .sort((a, b) => a.order - b.order)
                       .map((priority) => (
                       <SelectItem key={priority.id} value={priority.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: priority.color }}
-                          />
-                          {priority.name}
-                        </div>
+                        {priority.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
