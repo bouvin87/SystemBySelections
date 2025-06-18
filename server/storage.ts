@@ -561,7 +561,11 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(questions.order);
     
-    return result;
+    // Set default dashboardDisplayType to 'average' if null
+    return result.map(question => ({
+      ...question,
+      dashboardDisplayType: question.dashboardDisplayType || 'average'
+    }));
   }
 
   // Admin Settings

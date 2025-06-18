@@ -39,21 +39,27 @@ export default function DashboardQuestionCard({
   };
 
   const renderCard = () => {
-    if (!question.dashboardDisplayType || relevantResponses.length === 0) {
+    // Default to 'medelvärde' if no dashboardDisplayType is set
+    const displayType = question.dashboardDisplayType || 'medelvärde';
+    
+    if (relevantResponses.length === 0) {
       return null;
     }
 
-    switch (question.dashboardDisplayType) {
+    switch (displayType) {
       case "medelvärde":
+      case "average":
         return renderAverageCard();
       case "graf":
+      case "chart":
         return renderChartCard();
       case "progressbar":
         return renderProgressCard();
       case "antal":
+      case "count":
         return renderCountCard();
       default:
-        return null;
+        return renderAverageCard(); // Default fallback
     }
   };
 
