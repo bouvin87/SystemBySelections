@@ -256,11 +256,13 @@ export default function Navigation() {
               <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-1 p-0">
                 <img
                   src={logoSvg}
-                  alt="System by Selection"
+                  alt={t("common.applicationName")}
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-lg font-semibold">System by Selection</h1>
+              <h1 className="text-lg font-semibold">
+                {t("common.applicationName")}
+              </h1>
             </Link>
 
             {/* Desktop navigation - left side after logo */}

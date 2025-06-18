@@ -4,16 +4,37 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import DashboardQuestionCard from "@/components/DashboardQuestionCard";
 import ResponseViewModal from "@/components/ResponseViewModal";
 import { Link } from "wouter";
-import { ArrowLeft, Filter, Search, Calendar, Eye, Activity, BarChart3 } from "lucide-react";
+import {
+  ArrowLeft,
+  Filter,
+  Search,
+  Calendar,
+  Eye,
+  Activity,
+  BarChart3,
+} from "lucide-react";
 import { useState, useEffect } from "react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
-import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift, Question } from "@shared/schema";
+import type {
+  ChecklistResponse,
+  Checklist,
+  WorkTask,
+  WorkStation,
+  Shift,
+  Question,
+} from "@shared/schema";
 
 interface DashboardStats {
   totalResponses: number;
@@ -27,19 +48,19 @@ interface ChecklistDashboardProps {
 // Utility function to parse relative dates
 function parseRelativeDate(dateStr: string): string {
   if (!dateStr) return "";
-  
+
   const today = new Date();
-  
+
   if (dateStr === "t") {
     // Today
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split("T")[0];
   } else if (dateStr.startsWith("t-")) {
     // Days ago
     const daysAgo = parseInt(dateStr.substring(2));
     if (!isNaN(daysAgo)) {
       const targetDate = new Date(today);
       targetDate.setDate(today.getDate() - daysAgo);
-      return targetDate.toISOString().split('T')[0];
+      return targetDate.toISOString().split("T")[0];
     }
   } else if (dateStr.startsWith("t+")) {
     // Days ahead
@@ -47,10 +68,10 @@ function parseRelativeDate(dateStr: string): string {
     if (!isNaN(daysAhead)) {
       const targetDate = new Date(today);
       targetDate.setDate(today.getDate() + daysAhead);
-      return targetDate.toISOString().split('T')[0];
+      return targetDate.toISOString().split("T")[0];
     }
   }
-  
+
   // Return as-is if it's already a date or invalid format
   return dateStr;
 }
@@ -59,38 +80,45 @@ function parseRelativeDate(dateStr: string): string {
 function parseUrlFilters(search: string) {
   const params = new URLSearchParams(search);
   return {
-    workTaskId: params.get('workTaskId') || "all",
-    workStationId: params.get('workStationId') || "all",
-    shiftId: params.get('shiftId') || "all",
-    startDate: parseRelativeDate(params.get('startDate') || ""),
-    endDate: parseRelativeDate(params.get('endDate') || ""),
-    search: params.get('search') || "",
+    workTaskId: params.get("workTaskId") || "all",
+    workStationId: params.get("workStationId") || "all",
+    shiftId: params.get("shiftId") || "all",
+    startDate: parseRelativeDate(params.get("startDate") || ""),
+    endDate: parseRelativeDate(params.get("endDate") || ""),
+    search: params.get("search") || "",
   };
 }
 
 // Utility function to update URL with current filters
 function updateUrlWithFilters(filters: any, checklistId: string) {
   const params = new URLSearchParams();
-  
+
   Object.entries(filters).forEach(([key, value]) => {
-    if (value && typeof value === 'string' && value.trim() !== '' && value !== 'all') {
+    if (
+      value &&
+      typeof value === "string" &&
+      value.trim() !== "" &&
+      value !== "all"
+    ) {
       params.set(key, value as string);
     }
   });
-  
+
   const queryString = params.toString();
   const basePath = `/checklist/${checklistId}/dashboard`;
   const newPath = queryString ? `${basePath}?${queryString}` : basePath;
-  
+
   // Update URL without navigation
-  window.history.replaceState({}, '', newPath);
+  window.history.replaceState({}, "", newPath);
 }
 
-export default function ChecklistDashboard({ checklistId }: ChecklistDashboardProps) {
+export default function ChecklistDashboard({
+  checklistId,
+}: ChecklistDashboardProps) {
   const { t } = useTranslation();
   const [location] = useLocation();
   const id = parseInt(checklistId);
-  
+
   // Initialize filters from URL parameters
   const [filters, setFilters] = useState(() => {
     const urlParams = new URL(window.location.href).search;
@@ -99,7 +127,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
 
   // Response view modal state
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
+  const [selectedResponseId, setSelectedResponseId] = useState<number | null>(
+    null,
+  );
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -112,7 +142,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   useEffect(() => {
     const urlParams = new URL(window.location.href).search;
     const urlFilters = parseUrlFilters(urlParams);
-    
+
     // Only update if filters are different to avoid infinite loops
     if (JSON.stringify(urlFilters) !== JSON.stringify(filters)) {
       setFilters(urlFilters);
@@ -142,15 +172,18 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   // Build query parameters for filtering
   const buildQueryParams = () => {
     const params = new URLSearchParams();
-    params.set('checklistId', id.toString());
-    
-    if (filters.workTaskId && filters.workTaskId !== "all") params.set('workTaskId', filters.workTaskId);
-    if (filters.workStationId && filters.workStationId !== "all") params.set('workStationId', filters.workStationId);
-    if (filters.shiftId && filters.shiftId !== "all") params.set('shiftId', filters.shiftId);
-    if (filters.startDate) params.set('startDate', filters.startDate);
-    if (filters.endDate) params.set('endDate', filters.endDate);
-    if (filters.search) params.set('search', filters.search);
-    
+    params.set("checklistId", id.toString());
+
+    if (filters.workTaskId && filters.workTaskId !== "all")
+      params.set("workTaskId", filters.workTaskId);
+    if (filters.workStationId && filters.workStationId !== "all")
+      params.set("workStationId", filters.workStationId);
+    if (filters.shiftId && filters.shiftId !== "all")
+      params.set("shiftId", filters.shiftId);
+    if (filters.startDate) params.set("startDate", filters.startDate);
+    if (filters.endDate) params.set("endDate", filters.endDate);
+    if (filters.search) params.set("search", filters.search);
+
     return params.toString();
   };
 
@@ -172,7 +205,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p>{t('common.loading')}</p>
+            <p>{t("common.loading")}</p>
           </div>
         </div>
       </div>
@@ -187,15 +220,15 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           <Card className="text-center py-12">
             <CardContent>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {t('dashboard.dashboardNotEnabled')}
+                {t("dashboard.dashboardNotEnabled")}
               </h3>
               <p className="text-gray-600 mb-6">
-                {t('dashboard.dashboardNotEnabledDescription')}
+                {t("dashboard.dashboardNotEnabledDescription")}
               </p>
               <Link href="/">
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t('dashboard.backToHome')}
+                  {t("dashboard.backToHome")}
                 </Button>
               </Link>
             </CardContent>
@@ -208,7 +241,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
+
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -217,22 +250,22 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
               <Link href="/">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t('dashboard.back')}
+                  {t("dashboard.back")}
                 </Button>
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   {checklist.name}
                 </h1>
-                <p className="text-sm text-gray-600">{t('dashboard.title')}</p>
+                <p className="text-sm text-gray-600">{t("dashboard.title")}</p>
               </div>
             </div>
-            <Button 
-              onClick={() => setShowFilters(!showFilters)} 
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
               variant={showFilters ? "default" : "outline"}
             >
               <Filter className="mr-2 h-4 w-4" />
-              {t('common.filter')}
+              {t("common.filter")}
             </Button>
           </div>
         </div>
@@ -247,20 +280,27 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Filter className="h-5 w-5" />
-                    {t('dashboard.filterOptions')}
+                    {t("dashboard.filterOptions")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Search */}
                   <div>
-                    <Label htmlFor="search">{t('dashboard.searchOperator')}</Label>
+                    <Label htmlFor="search">
+                      {t("dashboard.searchOperator")}
+                    </Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="search"
-                        placeholder={t('dashboard.searchOperatorPlaceholder')}
+                        placeholder={t("dashboard.searchOperatorPlaceholder")}
                         value={filters.search}
-                        onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                        onChange={(e) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            search: e.target.value,
+                          }))
+                        }
                         className="pl-10"
                       />
                     </div>
@@ -270,30 +310,34 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                   <div className="space-y-3">
                     <Label className="text-sm font-medium flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      {t('dashboard.dateRange')}
+                      {t("dashboard.dateRange")}
                     </Label>
                     <div className="space-y-2">
                       <div>
                         <Input
                           type="date"
                           value={filters.startDate}
-                          onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                          placeholder={t('dashboard.fromDate')}
+                          onChange={(e) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                            }))
+                          }
+                          placeholder={t("dashboard.fromDate")}
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Använd 't' för idag, 't-1' för igår, 't-7' för en vecka sedan
-                        </p>
                       </div>
                       <div>
                         <Input
                           type="date"
                           value={filters.endDate}
-                          onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                          placeholder={t('dashboard.toDate')}
+                          onChange={(e) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              endDate: e.target.value,
+                            }))
+                          }
+                          placeholder={t("dashboard.toDate")}
                         />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Använd 't' för idag, 't-1' för igår, 't+1' för imorgon
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -301,22 +345,29 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                   {/* Work Task Filter */}
                   {checklist.includeWorkTasks && (
                     <div>
-                      <Label>{t('common.workTask')}</Label>
+                      <Label>{t("common.workTask")}</Label>
                       <Select
                         value={filters.workTaskId}
-                        onValueChange={(value) => setFilters(prev => ({ 
-                          ...prev, 
-                          workTaskId: value,
-                          workStationId: "all"
-                        }))}
+                        onValueChange={(value) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            workTaskId: value,
+                            workStationId: "all",
+                          }))
+                        }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('common.allWorkTasks')} />
+                          <SelectValue placeholder={t("common.allWorkTasks")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">{t('common.allWorkTasks')}</SelectItem>
+                          <SelectItem value="all">
+                            {t("common.allWorkTasks")}
+                          </SelectItem>
                           {workTasks.map((task) => (
-                            <SelectItem key={task.id} value={task.id.toString()}>
+                            <SelectItem
+                              key={task.id}
+                              value={task.id.toString()}
+                            >
                               {task.name}
                             </SelectItem>
                           ))}
@@ -328,21 +379,39 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                   {/* Work Station Filter */}
                   {checklist.includeWorkStations && (
                     <div>
-                      <Label>{t('common.workStation')}</Label>
+                      <Label>{t("common.workStation")}</Label>
                       <Select
                         value={filters.workStationId}
-                        onValueChange={(value) => setFilters(prev => ({ ...prev, workStationId: value }))}
+                        onValueChange={(value) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            workStationId: value,
+                          }))
+                        }
                         disabled={!filters.workTaskId}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('common.allWorkStations')} />
+                          <SelectValue
+                            placeholder={t("common.allWorkStations")}
+                          />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">{t('common.allWorkStations')}</SelectItem>
+                          <SelectItem value="all">
+                            {t("common.allWorkStations")}
+                          </SelectItem>
                           {workStations
-                            .filter(station => filters.workTaskId === "all" || !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
+                            .filter(
+                              (station) =>
+                                filters.workTaskId === "all" ||
+                                !filters.workTaskId ||
+                                station.workTaskId ===
+                                  parseInt(filters.workTaskId),
+                            )
                             .map((station) => (
-                              <SelectItem key={station.id} value={station.id.toString()}>
+                              <SelectItem
+                                key={station.id}
+                                value={station.id.toString()}
+                              >
                                 {station.name}
                               </SelectItem>
                             ))}
@@ -354,18 +423,25 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                   {/* Shift Filter */}
                   {checklist.includeShifts && (
                     <div>
-                      <Label>{t('common.shift')}</Label>
+                      <Label>{t("common.shift")}</Label>
                       <Select
                         value={filters.shiftId}
-                        onValueChange={(value) => setFilters(prev => ({ ...prev, shiftId: value }))}
+                        onValueChange={(value) =>
+                          setFilters((prev) => ({ ...prev, shiftId: value }))
+                        }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t('common.allShifts')} />
+                          <SelectValue placeholder={t("common.allShifts")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">{t('common.allShifts')}</SelectItem>
+                          <SelectItem value="all">
+                            {t("common.allShifts")}
+                          </SelectItem>
                           {shifts.map((shift) => (
-                            <SelectItem key={shift.id} value={shift.id.toString()}>
+                            <SelectItem
+                              key={shift.id}
+                              value={shift.id.toString()}
+                            >
                               {shift.name} ({shift.startTime}-{shift.endTime})
                             </SelectItem>
                           ))}
@@ -374,19 +450,21 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                     </div>
                   )}
 
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full"
-                    onClick={() => setFilters({
-                      workTaskId: "all",
-                      workStationId: "all",
-                      shiftId: "all",
-                      startDate: "",
-                      endDate: "",
-                      search: "",
-                    })}
+                    onClick={() =>
+                      setFilters({
+                        workTaskId: "all",
+                        workStationId: "all",
+                        shiftId: "all",
+                        startDate: "",
+                        endDate: "",
+                        search: "",
+                      })
+                    }
                   >
-                    {t('common.clearFilters')}
+                    {t("common.clearFilters")}
                   </Button>
                 </CardContent>
               </Card>
@@ -401,14 +479,23 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-2xl font-bold">{stats?.totalResponses || 0}</div>
-                      <div className="text-blue-100 text-sm">{t('dashboard.totalResponsesFiltered')}</div>
-                      <div className="text-blue-200 text-xs mt-1">{responses.filter(r => {
-                        const responseDate = new Date(r.createdAt);
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        return responseDate >= yesterday;
-                      }).length} senaste 24 timmar</div>
+                      <div className="text-2xl font-bold">
+                        {stats?.totalResponses || 0}
+                      </div>
+                      <div className="text-blue-100 text-sm">
+                        {t("dashboard.totalResponsesFiltered")}
+                      </div>
+                      <div className="text-blue-200 text-xs mt-1">
+                        {
+                          responses.filter((r) => {
+                            const responseDate = new Date(r.createdAt);
+                            const yesterday = new Date();
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            return responseDate >= yesterday;
+                          }).length
+                        }{" "}
+                        senaste 24 timmar
+                      </div>
                     </div>
                     <div className="bg-white/20 p-3 rounded-lg">
                       <BarChart3 className="h-6 w-6" />
@@ -416,16 +503,23 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-2xl font-bold">
-                        {Object.values(filters).filter(v => v && v !== "all").length}
+                        {
+                          Object.values(filters).filter((v) => v && v !== "all")
+                            .length
+                        }
                       </div>
-                      <div className="text-green-100 text-sm">{t('dashboard.activeFilters')}</div>
-                      <div className="text-green-200 text-xs mt-1">Nuvarande filter</div>
+                      <div className="text-green-100 text-sm">
+                        {t("dashboard.activeFilters")}
+                      </div>
+                      <div className="text-green-200 text-xs mt-1">
+                        Nuvarande filter
+                      </div>
                     </div>
                     <div className="bg-white/20 p-3 rounded-lg">
                       <Filter className="h-6 w-6" />
@@ -441,7 +535,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-blue-600" />
-                    {t('dashboard.questionStatistics')}
+                    {t("dashboard.questionStatistics")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -464,7 +558,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
               <Card>
                 <CardContent className="py-12 text-center">
                   <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Inga dashboard-frågor konfigurerade</p>
+                  <p className="text-gray-500">
+                    Inga dashboard-frågor konfigurerade
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -474,7 +570,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-green-600" />
-                  {t('dashboard.latestResponses')}
+                  {t("dashboard.latestResponses")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -483,34 +579,60 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Operatör</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Datum & Tid</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">Detaljer</th>
-                          <th className="text-right py-3 px-4 font-medium text-gray-600 text-sm">Åtgärd</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">
+                            Operatör
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">
+                            Datum & Tid
+                          </th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">
+                            Detaljer
+                          </th>
+                          <th className="text-right py-3 px-4 font-medium text-gray-600 text-sm">
+                            Åtgärd
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {responses.slice(0, 8).map((response, index) => (
-                          <tr key={response.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <tr
+                            key={response.id}
+                            className="border-b border-gray-100 hover:bg-gray-50"
+                          >
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                                  index % 3 === 0 ? 'bg-blue-100 text-blue-700' :
-                                  index % 3 === 1 ? 'bg-green-100 text-green-700' :
-                                  'bg-purple-100 text-purple-700'
-                                }`}>
-                                  {response.operatorName.charAt(0).toUpperCase()}
+                                <div
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                                    index % 3 === 0
+                                      ? "bg-blue-100 text-blue-700"
+                                      : index % 3 === 1
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-purple-100 text-purple-700"
+                                  }`}
+                                >
+                                  {response.operatorName
+                                    .charAt(0)
+                                    .toUpperCase()}
                                 </div>
-                                <span className="font-medium">{response.operatorName}</span>
+                                <span className="font-medium">
+                                  {response.operatorName}
+                                </span>
                               </div>
                             </td>
                             <td className="py-4 px-4">
                               <div>
                                 <div className="font-medium">
-                                  {new Date(response.createdAt).toLocaleDateString('sv-SE')}
+                                  {new Date(
+                                    response.createdAt,
+                                  ).toLocaleDateString("sv-SE")}
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                  {new Date(response.createdAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(
+                                    response.createdAt,
+                                  ).toLocaleTimeString("sv-SE", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
                                 </div>
                               </div>
                             </td>
@@ -518,22 +640,32 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                               <div className="flex flex-wrap gap-1">
                                 {response.workTaskId && (
                                   <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                    {workTasks.find(wt => wt.id === response.workTaskId)?.name || `ID: ${response.workTaskId}`}
+                                    {workTasks.find(
+                                      (wt) => wt.id === response.workTaskId,
+                                    )?.name || `ID: ${response.workTaskId}`}
                                   </span>
                                 )}
                                 {response.workStationId && (
                                   <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
-                                    {workStations.find(ws => ws.id === response.workStationId)?.name || `ID: ${response.workStationId}`}
+                                    {workStations.find(
+                                      (ws) => ws.id === response.workStationId,
+                                    )?.name || `ID: ${response.workStationId}`}
                                   </span>
                                 )}
                                 {response.shiftId && (
                                   <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
-                                    {shifts.find(s => s.id === response.shiftId)?.name || `ID: ${response.shiftId}`}
+                                    {shifts.find(
+                                      (s) => s.id === response.shiftId,
+                                    )?.name || `ID: ${response.shiftId}`}
                                   </span>
                                 )}
-                                {!response.workTaskId && !response.workStationId && !response.shiftId && (
-                                  <span className="text-xs text-gray-400">Inga detaljer</span>
-                                )}
+                                {!response.workTaskId &&
+                                  !response.workStationId &&
+                                  !response.shiftId && (
+                                    <span className="text-xs text-gray-400">
+                                      Inga detaljer
+                                    </span>
+                                  )}
                               </div>
                             </td>
                             <td className="py-4 px-4 text-right">
@@ -558,7 +690,9 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                 ) : (
                   <div className="text-center py-12">
                     <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">{t('dashboard.noResponsesYet')}</p>
+                    <p className="text-gray-500">
+                      {t("dashboard.noResponsesYet")}
+                    </p>
                   </div>
                 )}
               </CardContent>

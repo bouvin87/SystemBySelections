@@ -1,6 +1,7 @@
 import { 
   tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
+  actionItems, actionComments,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
@@ -8,10 +9,12 @@ import {
   type ChecklistWorkTask, type InsertChecklistWorkTask,
   type ChecklistResponse, type InsertChecklistResponse,
   type AdminSetting, type InsertAdminSetting,
-  type QuestionWorkTask, type InsertQuestionWorkTask
+  type QuestionWorkTask, type InsertQuestionWorkTask,
+  type ActionItem, type InsertActionItem,
+  type ActionComment, type InsertActionComment
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, and, count } from "drizzle-orm";
+import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne, case } from "drizzle-orm";
 
 export interface IStorage {
   // === MULTI-TENANT CORE ===
@@ -119,12 +122,47 @@ export interface IStorage {
   // Dashboard Questions (tenant-scoped)
   getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]>;
 
+  // Question Work Tasks (tenant-scoped)
+  getQuestionWorkTasks(questionId: number, tenantId: number): Promise<QuestionWorkTask[]>;
+  createQuestionWorkTask(questionWorkTask: InsertQuestionWorkTask): Promise<QuestionWorkTask>;
+  deleteQuestionWorkTask(questionId: number, workTaskId: number, tenantId: number): Promise<void>;
+
+  // Action Items (tenant-scoped)
+  getActionItems(tenantId: number, filters?: {
+    status?: string;
+    priority?: string;
+    assignedToUserId?: number;
+    createdByUserId?: number;
+    workTaskId?: number;
+    locationId?: number;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<ActionItem[]>;
+  getActionItem(id: number, tenantId: number): Promise<ActionItem | undefined>;
+  createActionItem(actionItem: InsertActionItem): Promise<ActionItem>;
+  updateActionItem(id: number, actionItem: Partial<InsertActionItem>, tenantId: number): Promise<ActionItem>;
+  deleteActionItem(id: number, tenantId: number): Promise<void>;
+
+  // Action Comments (tenant-scoped via action item)
+  getActionComments(actionItemId: number, tenantId: number): Promise<ActionComment[]>;
+  createActionComment(comment: InsertActionComment): Promise<ActionComment>;
+  deleteActionComment(id: number, tenantId: number): Promise<void>;
+
+  // Action Statistics
+  getActionStats(tenantId: number): Promise<{
+    total: number;
+    new: number;
+    inProgress: number;
+    done: number;
+    overdue: number;
+    highPriority: number;
+  }>;
+
   // Admin Settings (tenant-scoped)
   getAdminSettings(tenantId: number): Promise<AdminSetting[]>;
   getAdminSetting(key: string, tenantId: number): Promise<AdminSetting | undefined>;
   setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting>;
-
-
 }
 
 export class DatabaseStorage implements IStorage {

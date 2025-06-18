@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, unique, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // === MULTI-TENANT CORE TABLES ===
 
@@ -208,6 +209,108 @@ export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type QuestionWorkTask = typeof questionWorkTasks.$inferSelect;
 export type InsertQuestionWorkTask = z.infer<typeof insertQuestionWorkTaskSchema>;
+
+// === ACTION ITEMS MODULE ===
+
+// Action Items Module - Enums
+export const actionStatusEnum = pgEnum('action_status', ['new', 'in_progress', 'done']);
+export const actionPriorityEnum = pgEnum('action_priority', ['low', 'medium', 'high', 'critical']);
+
+// Action Items Table
+export const actionItems = pgTable("action_items", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  status: actionStatusEnum("status").notNull().default('new'),
+  priority: actionPriorityEnum("priority").notNull().default('medium'),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  checklistResponseId: integer("checklist_response_id").references(() => checklistResponses.id),
+  questionId: integer("question_id").references(() => questions.id),
+  createdByUserId: integer("created_by_user_id").notNull().references(() => users.id),
+  assignedToUserId: integer("assigned_to_user_id").references(() => users.id),
+  locationId: integer("location_id").references(() => workStations.id),
+  workTaskId: integer("work_task_id").references(() => workTasks.id),
+});
+
+// Action Comments Table
+export const actionComments = pgTable("action_comments", {
+  id: serial("id").primaryKey(),
+  actionItemId: integer("action_item_id").notNull().references(() => actionItems.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id),
+  comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Relations for Action Items
+export const actionItemsRelations = relations(actionItems, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [actionItems.tenantId],
+    references: [tenants.id],
+  }),
+  createdBy: one(users, {
+    fields: [actionItems.createdByUserId],
+    references: [users.id],
+    relationName: "actionItemCreatedBy",
+  }),
+  assignedTo: one(users, {
+    fields: [actionItems.assignedToUserId],
+    references: [users.id],
+    relationName: "actionItemAssignedTo",
+  }),
+  checklistResponse: one(checklistResponses, {
+    fields: [actionItems.checklistResponseId],
+    references: [checklistResponses.id],
+  }),
+  question: one(questions, {
+    fields: [actionItems.questionId],
+    references: [questions.id],
+  }),
+  location: one(workStations, {
+    fields: [actionItems.locationId],
+    references: [workStations.id],
+  }),
+  workTask: one(workTasks, {
+    fields: [actionItems.workTaskId],
+    references: [workTasks.id],
+  }),
+  comments: many(actionComments),
+}));
+
+export const actionCommentsRelations = relations(actionComments, ({ one }) => ({
+  actionItem: one(actionItems, {
+    fields: [actionComments.actionItemId],
+    references: [actionItems.id],
+  }),
+  user: one(users, {
+    fields: [actionComments.userId],
+    references: [users.id],
+  }),
+}));
+
+// Schemas for Action Items
+export const insertActionItemSchema = createInsertSchema(actionItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const selectActionItemSchema = createInsertSchema(actionItems);
+
+export const insertActionCommentSchema = createInsertSchema(actionComments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const selectActionCommentSchema = createInsertSchema(actionComments);
+
+// Types for Action Items
+export type ActionItem = typeof actionItems.$inferSelect;
+export type InsertActionItem = z.infer<typeof insertActionItemSchema>;
+export type ActionComment = typeof actionComments.$inferSelect;
+export type InsertActionComment = z.infer<typeof insertActionCommentSchema>;
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;

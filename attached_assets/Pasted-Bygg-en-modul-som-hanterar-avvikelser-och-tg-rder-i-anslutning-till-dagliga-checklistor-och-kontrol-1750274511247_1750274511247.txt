@@ -1,0 +1,58 @@
+Bygg en modul som hanterar avvikelser och åtgärder i anslutning till dagliga checklistor och kontroller. Modulen ska göra det möjligt för användare att identifiera, dokumentera, prioritera och följa upp avvikelser som kräver åtgärd – med full spårbarhet och tydlig ansvarsfördelning.
+
+🎯 Mål med modulen
+Ge en strukturerad process för att hantera avvikelser och uppföljningar
+
+Skapa åtgärder från checklistor eller manuellt
+
+Tilldela ansvariga och bevaka status
+
+Följa upp alla öppna och avslutade åtgärder på ett sökbart och filtrerbart sätt
+
+📋 Databasstruktur – kärntabeller
+ActionItem (åtgärd)
+Fält	Typ	Beskrivning
+id	UUID / int	Unikt ID för åtgärden
+title	string	Kort titel/beskrivning
+description	text	Detaljerad beskrivning av avvikelsen
+status	enum	new, in_progress, done
+priority	enum	low, medium, high, critical
+due_date	datetime (nullable)	Sista datum för åtgärd
+created_at	datetime	Skapad tidpunkt
+updated_at	datetime	Senaste ändring
+checklist_item_id	FK (nullable)	Referens till ursprunglig checkpunkt (om den skapats från en checklista)
+created_by_user_id	FK	Användare som skapade åtgärden
+assigned_to_user_id	FK (nullable)	Ansvarig användare (eller grupp)
+location_id	FK (nullable)	Om kopplad till en station, modul, maskin etc
+
+ActionComment
+Fält	Typ	Beskrivning
+id	UUID / int	Kommentarens ID
+action_item_id	FK	Tillhörande åtgärd
+user_id	FK	Avsändare
+comment	text	Innehåll
+created_at	datetime	Tidpunkt
+
+🔧 Funktionellt stöd
+Skapa en åtgärd manuellt eller från en checklista
+
+Tilldela till ansvarig person eller roll
+
+Sätt prioritet och (valfritt) deadline
+
+Visa status med filter på status, kategori, ansvarig, plats
+
+Kommentarsfält för dialog under hanteringen
+
+Ändringslogg (timestamp + användare)
+
+Möjlighet till “klarmarkering” och signering
+
+Visa antal öppna åtgärder per station eller team
+
+🔄 Relation till andra moduler
+En ActionItem kan vara länkad till ett specifikt checklistmoment (checklist_item_id)
+
+Åtgärder kan samlas i dashboard/statistikmodul
+
+Framtida integration med notifieringar och rapportexport

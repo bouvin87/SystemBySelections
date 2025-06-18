@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import logoSvg from "@/lib/logo.svg?url";
 import backgroundPng from "@/lib/background.png?url";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -31,6 +32,7 @@ export default function Login() {
   const [selectedTenantId, setSelectedTenantId] = useState<string>("");
   const [showTenantSelection, setShowTenantSelection] = useState(false);
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,11 +97,11 @@ export default function Login() {
           <div className="flex items-center justify-center mb-8">
             <img
               src={logoSvg}
-              alt="System by Selection"
+              alt={t("common.applicationName")}
               className="w-12 h-12"
             />
             <h1 className="ml-3 text-xl font-semibold text-gray-900">
-              System by Selection
+              {t("common.applicationName")}
             </h1>
           </div>
 
@@ -108,7 +110,7 @@ export default function Login() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {showTenantSelection
                 ? "Välj organisation"
-                : "Logga in på System by Selection"}
+                : `Logga in på ${t("common.applicationName")}`}
             </h2>
             <p className="text-gray-600">
               {showTenantSelection
@@ -242,7 +244,7 @@ export default function Login() {
       {/* Right side - Background image with testimonial */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
         {/* Background image */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${backgroundPng})` }}
         >
@@ -254,12 +256,13 @@ export default function Login() {
         <div className="relative z-10 flex items-center justify-center p-12 w-full h-full">
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 max-w-md">
             <blockquote className="text-white text-lg leading-relaxed mb-6">
-              System by Sections is a modular platform for production-driven
-              teams who need structure, clarity, and control. Whether you're
-              managing shift logs, checklists, maintenance tickets or custom
-              workflows – every section is organized, visual, and scalable.
-              Designed for industries where precision matters, System by
-              Sections brings order to complexity – one module at a time.
+              {t("common.applicationName")} is a modular platform for
+              production-driven teams who need structure, clarity, and control.
+              Whether you're managing shift logs, checklists, maintenance
+              tickets or custom workflows – every section is organized, visual,
+              and scalable. Designed for industries where precision matters,
+              System by Sections brings order to complexity – one module at a
+              time.
             </blockquote>
             <div className="flex items-center">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
