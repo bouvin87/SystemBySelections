@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Navigation } from "@/components/Navigation";
+import DeviationModal from "@/components/DeviationModal";
 import { AlertTriangle, Plus, Search, Filter, Calendar, User, MapPin, Clock, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -143,29 +143,7 @@ export default function DeviationsPage() {
     },
   });
 
-  // Create deviation mutation
-  const createDeviationMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/deviations", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/deviations/stats"] });
-      setIsCreateModalOpen(false);
-      toast({
-        title: "Avvikelse skapad",
-        description: "Avvikelsen har skapats framgångsrikt.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Fel",
-        description: "Det gick inte att skapa avvikelsen. Försök igen.",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   // Build query parameters for filtering
   const queryParams = new URLSearchParams();
@@ -188,20 +166,7 @@ export default function DeviationsPage() {
     },
   });
 
-  const handleCreateDeviation = (formData: FormData) => {
-    const data = {
-      title: formData.get("title"),
-      description: formData.get("description") || undefined,
-      deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priority: formData.get("priority"),
-      assignedToUserId: formData.get("assignedToUserId") ? parseInt(formData.get("assignedToUserId") as string) : undefined,
-      workTaskId: formData.get("workTaskId") ? parseInt(formData.get("workTaskId") as string) : undefined,
-      locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
-      dueDate: formData.get("dueDate") || undefined,
-    };
 
-    createDeviationMutation.mutate(data);
-  };
 
   const openDeviationDetail = (deviation: Deviation) => {
     setSelectedDeviation(deviation);
@@ -225,138 +190,10 @@ export default function DeviationsPage() {
             </p>
           </div>
           
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Ny avvikelse
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Skapa ny avvikelse</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleCreateDeviation(new FormData(e.currentTarget));
-              }} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <Label htmlFor="title">Titel *</Label>
-                    <Input id="title" name="title" required />
-                  </div>
-                  
-                  <div className="col-span-2">
-                    <Label htmlFor="description">Beskrivning</Label>
-                    <Textarea id="description" name="description" rows={3} />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="deviationTypeId">Avvikelsetyp *</Label>
-                    <Select name="deviationTypeId" required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Välj typ" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {deviationTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id.toString()}>
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ backgroundColor: type.color }}
-                              />
-                              {type.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="priority">Prioritet</Label>
-                    <Select name="priority" defaultValue="medium">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Låg</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">Hög</SelectItem>
-                        <SelectItem value="critical">Kritisk</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="assignedToUserId">Tilldela till</Label>
-                    <Select name="assignedToUserId">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Välj användare" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users.map((user) => (
-                          <SelectItem key={user.id} value={user.id.toString()}>
-                            {user.firstName} {user.lastName} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="workTaskId">Arbetsmoment</Label>
-                    <Select name="workTaskId">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Välj arbetsmoment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workTasks.map((task) => (
-                          <SelectItem key={task.id} value={task.id.toString()}>
-                            {task.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="locationId">Plats</Label>
-                    <Select name="locationId">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Välj plats" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {workStations.map((station) => (
-                          <SelectItem key={station.id} value={station.id.toString()}>
-                            {station.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="dueDate">Deadline</Label>
-                    <Input 
-                      id="dueDate" 
-                      name="dueDate" 
-                      type="datetime-local"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                    Avbryt
-                  </Button>
-                  <Button type="submit" disabled={createDeviationMutation.isPending}>
-                    {createDeviationMutation.isPending ? "Skapar..." : "Skapa avvikelse"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ny avvikelse
+          </Button>
         </div>
 
         {/* Stats Cards */}

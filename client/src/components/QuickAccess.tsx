@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CheckSquare, Plus } from "lucide-react";
-import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { renderIcon } from "@/lib/icon-utils";
+import DeviationModal from "@/components/DeviationModal";
 import type { Checklist } from "@shared/schema";
 
 interface QuickAccessProps {
@@ -90,19 +91,24 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
           
           {/* Deviation create button */}
           {hasDeviationButton && (
-            <Link href="/deviations/create">
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300 whitespace-nowrap"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Skapa avvikelse
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsDeviationModalOpen(true)}
+              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300 whitespace-nowrap"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Skapa avvikelse
+            </Button>
           )}
         </div>
       </div>
+      
+      {/* Deviation Modal */}
+      <DeviationModal 
+        isOpen={isDeviationModalOpen} 
+        onClose={() => setIsDeviationModalOpen(false)}
+      />
     </div>
   );
 }
