@@ -149,7 +149,7 @@ export default function FAQ() {
                   Vanliga frågor
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  Hitta svar på vanliga frågor om Systems by Selections
+                  Hitta svar på vanliga frågor om System by Selection
                 </p>
               </div>
             </div>
@@ -271,7 +271,7 @@ export default function FAQ() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900 mb-2">Teknisk information</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Systemversion: Systems by Selections v1.0</li>
+                <li>• Systemversion: System by Selection v1.0</li>
                 <li>• Stöd för moderna webbläsare</li>
                 <li>• Optimerat för desktop och mobila enheter</li>
               </ul>

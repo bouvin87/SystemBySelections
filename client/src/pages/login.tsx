@@ -95,11 +95,11 @@ export default function Login() {
           <div className="flex items-center justify-center mb-8">
             <img
               src={logoSvg}
-              alt="System by Selections"
+              alt="System by Selection"
               className="w-12 h-12"
             />
             <h1 className="ml-3 text-xl font-semibold text-gray-900">
-              System by Selections
+              System by Selection
             </h1>
           </div>
 
@@ -108,7 +108,7 @@ export default function Login() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {showTenantSelection
                 ? "Välj organisation"
-                : "Logga in på System by Selections"}
+                : "Logga in på System by Selection"}
             </h2>
             <p className="text-gray-600">
               {showTenantSelection
