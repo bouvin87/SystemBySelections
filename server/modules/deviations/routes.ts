@@ -25,51 +25,7 @@ import { insertDeviationTypeSchema, insertDeviationSchema, insertDeviationCommen
 
 export default function deviationRoutes(app: Express) {
   
-  // === DEVIATION TYPES ===
-  
-  // GET /api/deviations/types - List deviation types
-  app.get('/api/deviations/types', 
-    authenticateToken, 
-    requireModule('deviations'), 
-    validateTenantOwnership, 
-    enforceTenantIsolation, 
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const tenantId = req.tenantId!;
-        const deviationTypes = await storage.getDeviationTypes(tenantId);
-        res.json(deviationTypes);
-        
-      } catch (error) {
-        console.error('Error fetching deviation types:', error);
-        res.status(500).json({ message: 'Internal server error' });
-      }
-    }
-  );
 
-  // POST /api/deviations/types - Create deviation type
-  app.post('/api/deviations/types', 
-    authenticateToken, 
-    requireModule('deviations'), 
-    validateTenantOwnership, 
-    enforceTenantIsolation, 
-    async (req: AuthenticatedRequest, res) => {
-      try {
-        const tenantId = req.tenantId!;
-        
-        const validatedData = insertDeviationTypeSchema.parse({
-          ...req.body,
-          tenantId,
-        });
-        
-        const deviationType = await storage.createDeviationType(validatedData);
-        res.status(201).json(deviationType);
-        
-      } catch (error) {
-        console.error('Error creating deviation type:', error);
-        res.status(500).json({ message: 'Internal server error' });
-      }
-    }
-  );
 
   // === GET /api/deviations - List deviations ===
   app.get('/api/deviations', 
