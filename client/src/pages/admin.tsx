@@ -84,6 +84,9 @@ export default function Admin() {
 
   // Check if user has access to checklists module
   const hasChecklistsModule = authData?.tenant?.modules?.includes('checklists') ?? false;
+  
+  // Check if user has access to deviations module
+  const hasDeviationsModule = authData?.tenant?.modules?.includes('deviations') ?? false;
 
   // Redirect non-admin users to dashboard
   useEffect(() => {
@@ -1377,6 +1380,153 @@ export default function Admin() {
               </TabsContent>
 
 
+
+              {/* Deviations Tab */}
+              {hasDeviationsModule && (
+                <TabsContent value="deviations">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-medium">Hantera avvikelsetyper</h3>
+                      <Dialog open={dialogOpen && activeTab === "deviations"} onOpenChange={setDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button onClick={() => openDialog()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Lägg till avvikelsetyp
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {editingItem ? "Redigera avvikelsetyp" : "Skapa avvikelsetyp"}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const formData = new FormData(e.currentTarget);
+                              const data = {
+                                name: formData.get("name") as string,
+                                description: formData.get("description") as string || undefined,
+                                color: formData.get("color") as string || "#ef4444",
+                                isActive: formData.get("isActive") === "on",
+                              };
+                              
+                              if (editingItem) {
+                                updateMutation.mutate({
+                                  endpoint: `/api/deviations/types/${editingItem.id}`,
+                                  data,
+                                });
+                              } else {
+                                createMutation.mutate({
+                                  endpoint: "/api/deviations/types",
+                                  data,
+                                });
+                              }
+                              setDialogOpen(false);
+                              setEditingItem(null);
+                            }}
+                            className="space-y-4"
+                          >
+                            <div>
+                              <Label htmlFor="name">Namn</Label>
+                              <Input
+                                id="name"
+                                name="name"
+                                defaultValue={editingItem?.name || ""}
+                                placeholder="t.ex. Kvalitet, Säkerhet..."
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="description">Beskrivning</Label>
+                              <Textarea
+                                id="description"
+                                name="description"
+                                defaultValue={editingItem?.description || ""}
+                                placeholder="Beskriv vad denna avvikelsetyp omfattar..."
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="color">Färg</Label>
+                              <Input
+                                id="color"
+                                name="color"
+                                type="color"
+                                defaultValue={editingItem?.color || "#ef4444"}
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                id="isActive"
+                                name="isActive"
+                                defaultChecked={editingItem?.isActive ?? true}
+                              />
+                              <Label htmlFor="isActive">Aktiv</Label>
+                            </div>
+                            <Button type="submit" className="w-full">
+                              <Save className="mr-2 h-4 w-4" />
+                              Spara
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    <div className="grid gap-4">
+                      {deviationTypes.map((type) => (
+                        <Card key={type.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div 
+                                  className="w-4 h-4 rounded-full" 
+                                  style={{ backgroundColor: type.color }}
+                                />
+                                <div>
+                                  <h4 className="text-sm font-medium">{type.name}</h4>
+                                  {type.description && (
+                                    <p className="text-sm text-gray-600 mt-1">{type.description}</p>
+                                  )}
+                                  <div className="mt-2">
+                                    <Badge variant={type.isActive ? "default" : "secondary"}>
+                                      {type.isActive ? "Aktiv" : "Inaktiv"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDialog(type)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete("/api/deviations/types", type.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {deviationTypes.length === 0 && (
+                        <Card>
+                          <CardContent className="p-8 text-center text-gray-500">
+                            <p>Inga avvikelsetyper skapade än.</p>
+                            <p className="text-sm mt-1">Klicka på "Lägg till avvikelsetyp" för att komma igång.</p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
 
               {/* Settings Tab */}
               <TabsContent value="settings">
