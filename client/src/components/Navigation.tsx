@@ -31,11 +31,11 @@ import LanguageSelector from "@/components/LanguageSelector";
 import logoSvg from "@/lib/logo.svg?url";
 
 // Mobile User Section Component - embedded directly in mobile menu with collapsible functionality
-function MobileUserSection({ 
-  onClose, 
-  accountSectionExpanded, 
-  setAccountSectionExpanded 
-}: { 
+function MobileUserSection({
+  onClose,
+  accountSectionExpanded,
+  setAccountSectionExpanded,
+}: {
   onClose: () => void;
   accountSectionExpanded: boolean;
   setAccountSectionExpanded: (expanded: boolean) => void;
@@ -79,10 +79,14 @@ function MobileUserSection({
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-xs font-medium text-blue-700">{initials}</span>
+              <span className="text-xs font-medium text-blue-700">
+                {initials}
+              </span>
             </div>
             <div>
-              <div className="text-sm font-medium text-gray-900">{displayName}</div>
+              <div className="text-sm font-medium text-gray-900">
+                {displayName}
+              </div>
               <div className="text-xs text-gray-500">{user.email}</div>
             </div>
           </div>
@@ -236,14 +240,14 @@ export default function Navigation() {
               href="/"
               className="flex items-center text-gray-900 hover:text-blue-600 transition-colors"
             >
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 p-1">
-                <img 
-                  src={logoSvg} 
-                  alt="ProductionLog" 
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-1 p-0">
+                <img
+                  src={logoSvg}
+                  alt="ProductionLog"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-lg font-semibold">ProductionLog</h1>
+              <h1 className="text-lg font-semibold">System by Sections</h1>
             </Link>
 
             {/* Desktop navigation - left side after logo */}
@@ -368,8 +372,8 @@ export default function Navigation() {
 
                 {/* Mobile user section */}
                 <div className="border-t border-gray-100 pt-4">
-                  <MobileUserSection 
-                    onClose={() => setMobileMenuOpen(false)} 
+                  <MobileUserSection
+                    onClose={() => setMobileMenuOpen(false)}
                     accountSectionExpanded={accountSectionExpanded}
                     setAccountSectionExpanded={setAccountSectionExpanded}
                   />

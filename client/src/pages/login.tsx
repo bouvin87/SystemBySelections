@@ -72,9 +72,7 @@ export default function Login() {
     }
   };
 
-  // Extract tenant info from subdomain
-  const subdomain = window.location.hostname.split('.')[0];
-  const tenantName = subdomain === 'localhost' ? 'Demo' : subdomain;
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -86,7 +84,7 @@ export default function Login() {
           <CardDescription>
             {showTenantSelection 
               ? 'Välj vilken organisation du vill logga in på'
-              : `Logga in på ${tenantName} för att komma åt dina moduler`
+              : 'Logga in för att komma åt dina moduler'
             }
           </CardDescription>
         </CardHeader>
@@ -184,9 +182,7 @@ export default function Login() {
             )}
           </form>
           
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>Multi-tenant SaaS • Subdomain: {subdomain}</p>
-          </div>
+
         </CardContent>
       </Card>
     </div>
