@@ -1833,11 +1833,13 @@ export default function Admin() {
                 <TabsContent value="deviations">
                   <div className="space-y-6">
                     <Tabs defaultValue="settings" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
+                      <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="settings">
                           Grundinställningar
                         </TabsTrigger>
                         <TabsTrigger value="types">Avvikelsetyper</TabsTrigger>
+                        <TabsTrigger value="priorities">Prioriteter</TabsTrigger>
+                        <TabsTrigger value="statuses">Statusar</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="settings" className="space-y-6">
@@ -2030,6 +2032,14 @@ export default function Admin() {
                             </Card>
                           )}
                         </div>
+                      </TabsContent>
+
+                      <TabsContent value="priorities" className="space-y-6">
+                        <DeviationPrioritiesManagement />
+                      </TabsContent>
+
+                      <TabsContent value="statuses" className="space-y-6">
+                        <DeviationStatusesManagement />
                       </TabsContent>
                     </Tabs>
                   </div>
