@@ -210,41 +210,44 @@ export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type QuestionWorkTask = typeof questionWorkTasks.$inferSelect;
 export type InsertQuestionWorkTask = z.infer<typeof insertQuestionWorkTaskSchema>;
 
-// === ACTION ITEMS MODULE ===
-
-// Action Items Module - Enums
-export const actionStatusEnum = pgEnum('action_status', ['new', 'in_progress', 'done']);
-export const actionPriorityEnum = pgEnum('action_priority', ['low', 'medium', 'high', 'critical']);
-
-// Action Items Table
-export const actionItems = pgTable("action_items", {
+// === DEVIATIONS MODULE ===
+export const deviationTypes = pgTable("deviation_types", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").notNull().references(() => tenants.id),
-  title: varchar("title", { length: 255 }).notNull(),
+  name: text("name").notNull(),
   description: text("description"),
-  status: actionStatusEnum("status").notNull().default('new'),
-  priority: actionPriorityEnum("priority").notNull().default('medium'),
-  dueDate: timestamp("due_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  checklistResponseId: integer("checklist_response_id").references(() => checklistResponses.id),
-  questionId: integer("question_id").references(() => questions.id),
-  createdByUserId: integer("created_by_user_id").notNull().references(() => users.id),
-  assignedToUserId: integer("assigned_to_user_id").references(() => users.id),
-  locationId: integer("location_id").references(() => workStations.id),
-  workTaskId: integer("work_task_id").references(() => workTasks.id),
+  color: text("color").default("#ef4444"), // Default red color
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// Action Comments Table
-export const actionComments = pgTable("action_comments", {
+export const deviations = pgTable("deviations", {
   id: serial("id").primaryKey(),
-  actionItemId: integer("action_item_id").notNull().references(() => actionItems.id, { onDelete: 'cascade' }),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  deviationTypeId: integer("deviation_type_id").notNull().references(() => deviationTypes.id),
+  priority: text("priority", { enum: ["low", "medium", "high", "critical"] }).notNull().default("medium"),
+  status: text("status", { enum: ["new", "in_progress", "done"] }).notNull().default("new"),
+  assignedToUserId: integer("assigned_to_user_id").references(() => users.id),
+  createdByUserId: integer("created_by_user_id").notNull().references(() => users.id),
+  dueDate: timestamp("due_date"),
+  completedAt: timestamp("completed_at"),
+  workTaskId: integer("work_task_id").references(() => workTasks.id),
+  locationId: integer("location_id").references(() => workStations.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const deviationComments = pgTable("deviation_comments", {
+  id: serial("id").primaryKey(),
+  deviationId: integer("deviation_id").notNull().references(() => deviations.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id),
   comment: text("comment").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Relations for Action Items
+// Relations for Deviations
 export const deviationTypesRelations = relations(deviationTypes, ({ one, many }) => ({
   tenant: one(tenants, {
     fields: [deviationTypes.tenantId],

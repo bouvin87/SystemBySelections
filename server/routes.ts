@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import authRoutes from "./routes/auth";
 import checklistRoutes from "./modules/checklists/routes";
-import actionRoutes from "./modules/actions/routes";
+import deviationRoutes from "./modules/deviations/routes";
 import superAdminRoutes from "./routes/super-admin";
 import { resolveTenant } from "./middleware/tenant";
 import { 

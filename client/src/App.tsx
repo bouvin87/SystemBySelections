@@ -11,7 +11,7 @@ import ChecklistEditor from "@/pages/checklist-editor";
 import ChecklistStart from "@/pages/checklist-start";
 import ChecklistDashboard from "@/pages/checklist-dashboard";
 import FAQ from "@/pages/faq";
-import Actions from "@/pages/actions";
+import Deviations from "@/pages/deviations";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
@@ -55,7 +55,7 @@ function Router() {
         {(params) => <ChecklistDashboard checklistId={params.id} />}
       </Route>
       <Route path="/faq" component={FAQ} />
-      <Route path="/actions" component={Actions} />
+      <Route path="/deviations" component={Deviations} />
       <Route component={NotFound} />
     </Switch>
   );
