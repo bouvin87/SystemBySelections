@@ -411,6 +411,9 @@ export default function Navigation() {
           onSelectChecklist={handleChecklistSelection}
         />
       )}
+      
+      {/* Checklist Quick Access Menu */}
+      <ChecklistQuickAccess onChecklistSelect={openModal} />
     </>
   );
 }
