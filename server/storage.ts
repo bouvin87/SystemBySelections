@@ -1,7 +1,7 @@
 import { 
   tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
-  deviationTypes, deviations, deviationComments, deviationSettings,
+  deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationSettings,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
@@ -11,6 +11,8 @@ import {
   type AdminSetting, type InsertAdminSetting,
   type QuestionWorkTask, type InsertQuestionWorkTask,
   type DeviationType, type InsertDeviationType,
+  type DeviationPriority, type InsertDeviationPriority,
+  type DeviationStatus, type InsertDeviationStatus,
   type Deviation, type InsertDeviation,
   type DeviationComment, type InsertDeviationComment,
   type DeviationSetting, type InsertDeviationSetting
@@ -142,6 +144,20 @@ export interface IStorage {
   createDeviationType(deviationType: InsertDeviationType): Promise<DeviationType>;
   updateDeviationType(id: number, deviationType: Partial<InsertDeviationType>, tenantId: number): Promise<DeviationType>;
   deleteDeviationType(id: number, tenantId: number): Promise<void>;
+
+  // Deviation Priorities (tenant-scoped)
+  getDeviationPriorities(tenantId: number): Promise<DeviationPriority[]>;
+  getDeviationPriority(id: number, tenantId: number): Promise<DeviationPriority | undefined>;
+  createDeviationPriority(priority: InsertDeviationPriority): Promise<DeviationPriority>;
+  updateDeviationPriority(id: number, priority: Partial<InsertDeviationPriority>, tenantId: number): Promise<DeviationPriority>;
+  deleteDeviationPriority(id: number, tenantId: number): Promise<void>;
+
+  // Deviation Statuses (tenant-scoped)
+  getDeviationStatuses(tenantId: number): Promise<DeviationStatus[]>;
+  getDeviationStatus(id: number, tenantId: number): Promise<DeviationStatus | undefined>;
+  createDeviationStatus(status: InsertDeviationStatus): Promise<DeviationStatus>;
+  updateDeviationStatus(id: number, status: Partial<InsertDeviationStatus>, tenantId: number): Promise<DeviationStatus>;
+  deleteDeviationStatus(id: number, tenantId: number): Promise<void>;
   getDeviations(tenantId: number, filters?: {
     status?: string;
     priority?: string;

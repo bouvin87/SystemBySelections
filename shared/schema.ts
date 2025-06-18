@@ -240,12 +240,37 @@ export const deviationTypes = pgTable("deviation_types", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const deviationPriorities = pgTable("deviation_priorities", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 50 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull(), // hex color
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const deviationStatuses = pgTable("deviation_statuses", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 50 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull(), // hex color
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  isDefault: boolean("is_default").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const deviations = pgTable("deviations", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").notNull().references(() => tenants.id),
   title: text("title").notNull(),
   description: text("description"),
   deviationTypeId: integer("deviation_type_id").notNull().references(() => deviationTypes.id),
+  priorityId: integer("priority_id").references(() => deviationPriorities.id),
+  statusId: integer("status_id").references(() => deviationStatuses.id),
   priority: text("priority", { enum: ["low", "medium", "high", "critical"] }).notNull().default("medium"),
   status: text("status", { enum: ["new", "in_progress", "done"] }).notNull().default("new"),
   assignedToUserId: integer("assigned_to_user_id").references(() => users.id),

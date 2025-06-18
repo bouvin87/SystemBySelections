@@ -199,6 +199,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deviations module - protected and tenant-scoped  
   deviationRoutes(app);
 
+  // Deviation Priorities API
+  app.get('/api/deviations/priorities', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const priorities = await storage.getDeviationPriorities(req.tenantId!);
+      res.json(priorities);
+    } catch (error) {
+      console.error('Error fetching deviation priorities:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/deviations/priorities', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const priority = await storage.createDeviationPriority({
+        ...req.body,
+        tenantId: req.tenantId!,
+      });
+      res.status(201).json(priority);
+    } catch (error) {
+      console.error('Error creating deviation priority:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.patch('/api/deviations/priorities/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const priority = await storage.updateDeviationPriority(id, req.body, req.tenantId!);
+      res.json(priority);
+    } catch (error) {
+      console.error('Error updating deviation priority:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/deviations/priorities/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDeviationPriority(id, req.tenantId!);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting deviation priority:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Deviation Statuses API
+  app.get('/api/deviations/statuses', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const statuses = await storage.getDeviationStatuses(req.tenantId!);
+      res.json(statuses);
+    } catch (error) {
+      console.error('Error fetching deviation statuses:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/deviations/statuses', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const status = await storage.createDeviationStatus({
+        ...req.body,
+        tenantId: req.tenantId!,
+      });
+      res.status(201).json(status);
+    } catch (error) {
+      console.error('Error creating deviation status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.patch('/api/deviations/statuses/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const status = await storage.updateDeviationStatus(id, req.body, req.tenantId!);
+      res.json(status);
+    } catch (error) {
+      console.error('Error updating deviation status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/deviations/statuses/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDeviationStatus(id, req.tenantId!);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting deviation status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // === USER MANAGEMENT ROUTES ===
   // Get all users for the tenant (admin only)
   app.get('/api/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
