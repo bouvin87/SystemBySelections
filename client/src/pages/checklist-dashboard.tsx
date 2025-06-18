@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import Navigation from "@/components/Navigation";
 import DashboardQuestionCard from "@/components/DashboardQuestionCard";
 import ResponseViewModal from "@/components/ResponseViewModal";
@@ -313,36 +314,26 @@ export default function ChecklistDashboard({
                       {t("dashboard.dateRange")}
                     </Label>
                     <div className="space-y-2">
-                      <div className="relative">
-                        <Input
-                          type="date"
-                          value={filters.startDate}
-                          onChange={(e) =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              startDate: e.target.value,
-                            }))
-                          }
-                          placeholder={t("dashboard.fromDate")}
-                          className="pr-10"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                      </div>
-                      <div className="relative">
-                        <Input
-                          type="date"
-                          value={filters.endDate}
-                          onChange={(e) =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              endDate: e.target.value,
-                            }))
-                          }
-                          placeholder={t("dashboard.toDate")}
-                          className="pr-10"
-                        />
-                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                      </div>
+                      <DatePicker
+                        value={filters.startDate}
+                        onChange={(value) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            startDate: value,
+                          }))
+                        }
+                        placeholder={t("dashboard.fromDate")}
+                      />
+                      <DatePicker
+                        value={filters.endDate}
+                        onChange={(value) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            endDate: value,
+                          }))
+                        }
+                        placeholder={t("dashboard.toDate")}
+                      />
                     </div>
                   </div>
 
