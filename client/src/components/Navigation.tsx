@@ -319,7 +319,15 @@ export default function Navigation() {
             {/* Right side - User menu and mobile button */}
             <div className="flex items-center gap-3 ml-auto">
               {/* User menu - always visible on desktop */}
-              <div className="hidden lg:flex items-center space-x-4">
+              <div className="hidden lg:flex items-center space-x-3">
+                {/* FAQ icon */}
+                <Link
+                  href="/faq"
+                  className="flex items-center justify-center w-9 h-9 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Vanliga frågor"
+                >
+                  <HelpCircle className="h-5 w-5" />
+                </Link>
                 <UserMenu />
               </div>
 
