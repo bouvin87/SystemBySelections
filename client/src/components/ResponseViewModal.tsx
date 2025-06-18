@@ -18,15 +18,19 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     enabled: !!responseId,
   });
 
+  // Get categories for this checklist
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: [`/api/categories?checklistId=${response?.checklistId}`],
     enabled: !!response?.checklistId,
   });
 
+  // Get all questions for categories in this checklist
   const { data: allQuestions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "for-response", response?.checklistId, categories.length],
+    queryKey: ["/api/questions", "for-categories", categories.map(c => c.id).join(',')],
     queryFn: async () => {
-      if (!response?.checklistId || categories.length === 0) return [];
+      if (!categories.length) return [];
+      
+      // Fetch questions for each category
       const questionPromises = categories.map(async (category) => {
         const response = await fetch(`/api/questions?categoryId=${category.id}`, {
           headers: {
@@ -36,10 +40,11 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
         if (!response.ok) return [];
         return response.json();
       });
+      
       const questionArrays = await Promise.all(questionPromises);
       return questionArrays.flat();
     },
-    enabled: !!response?.checklistId && categories.length > 0,
+    enabled: categories.length > 0,
   });
 
   // Fetch related data using existing queries that have auth handled
