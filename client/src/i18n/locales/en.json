@@ -1,5 +1,4 @@
 {
-
   "admin": {
     "title": "Administration",
     "checklists": "Checklists",
@@ -47,7 +46,7 @@
     "recentResponses": "Recent responses",
     "noData": "No data available",
     "viewResponse": "View response",
-    "operator": "Operator",
+    "operator": "Name",
     "workTask": "Work task",
     "workStation": "Work station",
     "shift": "Shift",
@@ -64,12 +63,15 @@
     "backToHome": "Back to home",
     "back": "Back",
     "filterOptions": "Filter options",
-    "searchOperator": "Search operator",
-    "searchOperatorPlaceholder": "Search by operator name...",
+    "searchOperator": "Search name",
+    "searchOperatorPlaceholder": "Search by name...",
     "fromDate": "From date",
     "toDate": "To date",
+    "dateRange": "Date Range",
+    "activeFilters": "Active Filters",
+    "questionsTracked": "Questions Tracked",
     "questionStatistics": "Question statistics",
-    "totalResponsesFiltered": "Total responses (filtered)",
+    "totalResponsesFiltered": "Total responses",
     "latestResponses": "Latest responses",
     "noResponsesYet": "No responses yet",
     "positiveAnswers": "{{positive}} of {{total}} answers",
@@ -92,7 +94,7 @@
   },
   "form": {
     "selectChecklist": "Select checklist",
-    "operatorName": "Operator name",
+    "operatorName": "Name",
     "selectWorkTask": "Select work task",
     "selectWorkStation": "Select work station",
     "selectShift": "Select shift",
@@ -155,6 +157,16 @@
     "view": "View",
     "includesWorkTasks": "Includes work tasks",
     "includesWorkStations": "Includes stations",
-    "includesShifts": "Includes shifts"
+    "includesShifts": "Includes shifts",
+    "allWorkTasks": "All work tasks",
+    "allWorkStations": "All stations",
+    "allShifts": "All shifts",
+    "selectWorkTask": "Select work task",
+    "selectWorkStation": "Select station",
+    "selectShift": "Select shift",
+    "workStation": "Station",
+    "workTask": "Work task",
+    "clearFilters": "Clear filters",
+    "shift": "Shift"
   }
 }

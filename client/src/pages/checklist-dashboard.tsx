@@ -132,236 +132,293 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('dashboard.back')}
+      
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  {t('dashboard.back')}
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {checklist.name}
+                </h1>
+                <p className="text-sm text-gray-600">{t('dashboard.title')}</p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setShowFilters(!showFilters)} 
+              variant={showFilters ? "default" : "outline"}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              {t('common.filter')}
             </Button>
-          </Link>
+          </div>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {t('dashboard.title')} - {checklist.name}
-          </h1>
-          <Button 
-            onClick={() => setShowFilters(!showFilters)} 
-            variant="outline"
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            {t('common.filter')}
-          </Button>
-        </div>
-
-        {showFilters && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                {t('dashboard.filterOptions')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Search */}
-                <div>
-                  <Label htmlFor="search">{t('dashboard.searchOperator')}</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="search"
-                      placeholder={t('dashboard.searchOperatorPlaceholder')}
-                      value={filters.search}
-                      onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                {/* Date Range */}
-                <div>
-                  <Label htmlFor="startDate">{t('dashboard.fromDate')}</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="endDate">{t('dashboard.toDate')}</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                  />
-                </div>
-
-                {/* Work Task Filter */}
-                {checklist.includeWorkTasks && (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
+          {/* Sidebar with filters */}
+          {showFilters && (
+            <div className="w-80 flex-shrink-0">
+              <Card className="sticky top-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    {t('dashboard.filterOptions')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Search */}
                   <div>
-                    <Label>{t('common.workTask')}</Label>
-                    <Select
-                      value={filters.workTaskId}
-                      onValueChange={(value) => setFilters(prev => ({ 
-                        ...prev, 
-                        workTaskId: value,
-                        workStationId: "all" // Reset station when task changes
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('common.allWorkTasks')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{t('common.allWorkTasks')}</SelectItem>
-                        {workTasks.map((task) => (
-                          <SelectItem key={task.id} value={task.id.toString()}>
-                            {task.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="search">{t('dashboard.searchOperator')}</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="search"
+                        placeholder={t('dashboard.searchOperatorPlaceholder')}
+                        value={filters.search}
+                        onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                )}
 
-                {/* Work Station Filter */}
-                {checklist.includeWorkStations && (
-                  <div>
-                    <Label>{t('common.workStation')}</Label>
-                    <Select
-                      value={filters.workStationId}
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, workStationId: value }))}
-                      disabled={!filters.workTaskId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('common.allWorkStations')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{t('common.allWorkStations')}</SelectItem>
-                        {workStations
-                          .filter(station => filters.workTaskId === "all" || !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
-                          .map((station) => (
-                            <SelectItem key={station.id} value={station.id.toString()}>
-                              {station.name}
+                  {/* Date Range */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {t('dashboard.dateRange')}
+                    </Label>
+                    <div className="space-y-2">
+                      <Input
+                        type="date"
+                        value={filters.startDate}
+                        onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                        placeholder={t('dashboard.fromDate')}
+                      />
+                      <Input
+                        type="date"
+                        value={filters.endDate}
+                        onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                        placeholder={t('dashboard.toDate')}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Work Task Filter */}
+                  {checklist.includeWorkTasks && (
+                    <div>
+                      <Label>{t('common.workTask')}</Label>
+                      <Select
+                        value={filters.workTaskId}
+                        onValueChange={(value) => setFilters(prev => ({ 
+                          ...prev, 
+                          workTaskId: value,
+                          workStationId: "all"
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('common.allWorkTasks')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('common.allWorkTasks')}</SelectItem>
+                          {workTasks.map((task) => (
+                            <SelectItem key={task.id} value={task.id.toString()}>
+                              {task.name}
                             </SelectItem>
                           ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
-                {/* Shift Filter */}
-                {checklist.includeShifts && (
-                  <div>
-                    <Label>{t('common.shift')}</Label>
-                    <Select
-                      value={filters.shiftId}
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, shiftId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('common.allShifts')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{t('common.allShifts')}</SelectItem>
-                        {shifts.map((shift) => (
-                          <SelectItem key={shift.id} value={shift.id.toString()}>
-                            {shift.name} ({shift.startTime}-{shift.endTime})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
+                  {/* Work Station Filter */}
+                  {checklist.includeWorkStations && (
+                    <div>
+                      <Label>{t('common.workStation')}</Label>
+                      <Select
+                        value={filters.workStationId}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, workStationId: value }))}
+                        disabled={!filters.workTaskId}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('common.allWorkStations')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('common.allWorkStations')}</SelectItem>
+                          {workStations
+                            .filter(station => filters.workTaskId === "all" || !filters.workTaskId || station.workTaskId === parseInt(filters.workTaskId))
+                            .map((station) => (
+                              <SelectItem key={station.id} value={station.id.toString()}>
+                                {station.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
-              <div className="flex gap-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setFilters({
-                    workTaskId: "all",
-                    workStationId: "all",
-                    shiftId: "all",
-                    startDate: "",
-                    endDate: "",
-                    search: "",
+                  {/* Shift Filter */}
+                  {checklist.includeShifts && (
+                    <div>
+                      <Label>{t('common.shift')}</Label>
+                      <Select
+                        value={filters.shiftId}
+                        onValueChange={(value) => setFilters(prev => ({ ...prev, shiftId: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('common.allShifts')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{t('common.allShifts')}</SelectItem>
+                          {shifts.map((shift) => (
+                            <SelectItem key={shift.id} value={shift.id.toString()}>
+                              {shift.name} ({shift.startTime}-{shift.endTime})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setFilters({
+                      workTaskId: "all",
+                      workStationId: "all",
+                      shiftId: "all",
+                      startDate: "",
+                      endDate: "",
+                      search: "",
+                    })}
+                  >
+                    {t('common.clearFilters')}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Main content */}
+          <div className="flex-1 space-y-8">
+            {/* Statistics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {t('dashboard.totalResponsesFiltered')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-600">{stats?.totalResponses || 0}</div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {t('dashboard.activeFilters')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">
+                    {Object.values(filters).filter(v => v && v !== "all").length}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {t('dashboard.questionsTracked')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-600">{dashboardQuestions.length}</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Dashboard Question Cards */}
+            {dashboardQuestions.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+                  {t('dashboard.questionStatistics')}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {dashboardQuestions.map((item: any) => {
+                    const question = item.questions || item;
+                    return (
+                      <DashboardQuestionCard
+                        key={question.id}
+                        question={question}
+                        responses={responses}
+                        filters={filters}
+                      />
+                    );
                   })}
-                >
-                  {t('common.clearFilters')}
-                </Button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Dashboard Question Cards */}
-        {dashboardQuestions.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">{t('dashboard.questionStatistics')}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {dashboardQuestions.map((item: any) => {
-                // Handle both old format (nested) and new format (flat)
-                const question = item.questions || item;
-                return (
-                  <DashboardQuestionCard
-                    key={question.id}
-                    question={question}
-                    responses={responses}
-                    filters={filters}
-                  />
-                );
-              })}
+            )}
+
+            {/* Recent Responses */}
+            <div>
+              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <div className="w-1 h-6 bg-green-600 rounded-full"></div>
+                {t('dashboard.latestResponses')}
+              </h2>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {responses.slice(0, 10).map((response, index) => (
+                      <div key={response.id} className="flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{response.operatorName}</p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(response.createdAt).toLocaleDateString('sv-SE')} • {new Date(response.createdAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedResponseId(response.id);
+                            setViewModalOpen(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          {t('common.view')}
+                        </Button>
+                      </div>
+                    ))}
+                    {responses.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="text-gray-400 mb-4">
+                          <Eye className="h-12 w-12 mx-auto" />
+                        </div>
+                        <p className="text-gray-500">{t('dashboard.noResponsesYet')}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        )}
-
-        <div className="mb-8">
-          <Card className="w-full max-w-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.totalResponsesFiltered')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalResponses || 0}</div>
-            </CardContent>
-          </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.latestResponses')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {responses.slice(0, 10).map((response) => (
-                <div key={response.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{response.operatorName}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(response.createdAt).toLocaleDateString('sv-SE')} {new Date(response.createdAt).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedResponseId(response.id);
-                      setViewModalOpen(true);
-                    }}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    {t('common.view')}
-                  </Button>
-                </div>
-              ))}
-              {responses.length === 0 && (
-                <p className="text-center text-gray-500 py-8">{t('dashboard.noResponsesYet')}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <ResponseViewModal

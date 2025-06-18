@@ -1,5 +1,4 @@
 {
-
   "admin": {
     "title": "Administration",
     "checklists": "Checklistor",
@@ -47,7 +46,7 @@
     "recentResponses": "Senaste svar",
     "noData": "Inga data tillgängliga",
     "viewResponse": "Visa svar",
-    "operator": "Operatör",
+    "operator": "Namn",
     "workTask": "Arbetsuppgift",
     "workStation": "Arbetsstation",
     "shift": "Skift",
@@ -64,12 +63,15 @@
     "backToHome": "Tillbaka till startsidan",
     "back": "Tillbaka",
     "filterOptions": "Filter alternativ",
-    "searchOperator": "Sök operatör",
-    "searchOperatorPlaceholder": "Sök på operatörsnamn...",
+    "searchOperator": "Sök namn",
+    "searchOperatorPlaceholder": "Sök på namn...",
     "fromDate": "Från datum",
     "toDate": "Till datum",
+    "dateRange": "Datumintervall",
+    "activeFilters": "Aktiva filter",
+    "questionsTracked": "Spårade frågor",
     "questionStatistics": "Frågestatistik",
-    "totalResponsesFiltered": "Totala svar (filtrerat)",
+    "totalResponsesFiltered": "Totala svar",
     "latestResponses": "Senaste svar",
     "noResponsesYet": "Inga svar ännu",
     "positiveAnswers": "{{positive}} av {{total}} svar",
@@ -92,7 +94,7 @@
   },
   "form": {
     "selectChecklist": "Välj checklista",
-    "operatorName": "Operatörens namn",
+    "operatorName": "Namn",
     "selectWorkTask": "Välj arbetsuppgift",
     "selectWorkStation": "Välj arbetsstation",
     "selectShift": "Välj skift",
@@ -155,6 +157,16 @@
     "view": "Visa",
     "includesWorkTasks": "Inkluderar arbetsmoment",
     "includesWorkStations": "Inkluderar stationer",
-    "includesShifts": "Inkluderar skift"
+    "includesShifts": "Inkluderar skift",
+    "allWorkTasks": "Alla arbetsmoment",
+    "allWorkStations": "Alla stationer",
+    "allShifts": "Alla skift",
+    "selectWorkTask": "Välj arbetsmoment",
+    "selectWorkStation": "Välj station",
+    "selectShift": "Välj skift",
+    "workStation": "Station",
+    "workTask": "Arbetsmoment",
+    "clearFilters": "Rensa filter",
+    "shift": "Skift"
   }
 }
