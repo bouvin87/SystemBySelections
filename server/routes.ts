@@ -160,6 +160,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
+  // === DEVIATION SETTINGS ROUTES ===
+  
+  // GET /api/deviations/settings - Get deviation settings
+  app.get('/api/deviations/settings', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const settings = await storage.getDeviationSettings(tenantId);
+        res.json(settings || { showCreateButtonInMenu: false });
+        
+      } catch (error) {
+        console.error('Error fetching deviation settings:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  );
+
+  // PATCH /api/deviations/settings - Update deviation settings
+  app.patch('/api/deviations/settings', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const settings = await storage.updateDeviationSettings(tenantId, req.body);
+        res.json(settings);
+        
+      } catch (error) {
+        console.error('Error updating deviation settings:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  );
+
   // Deviations module - protected and tenant-scoped  
   deviationRoutes(app);
 
