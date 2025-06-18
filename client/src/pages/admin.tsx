@@ -58,6 +58,67 @@ import type {
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
 
+// Deviation Settings Component
+function DeviationSettingsTab() {
+  const { toast } = useToast();
+  
+  const { data: deviationSettings } = useQuery<any>({
+    queryKey: ["/api/deviations/settings"],
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("PATCH", "/api/deviations/settings", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations/settings"] });
+      toast({ title: "Sparat!", description: "Inställningarna har uppdaterats." });
+    },
+    onError: () => {
+      toast({
+        title: "Fel",
+        description: "Kunde inte spara inställningarna.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSettingChange = (key: string, value: boolean) => {
+    updateSettingsMutation.mutate({ [key]: value });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Settings className="h-5 w-5" />
+          Grundinställningar för avvikelser
+        </CardTitle>
+        <CardDescription>
+          Konfigurera hur avvikelsemodulen fungerar i systemet
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="showCreateButton"
+            checked={deviationSettings?.showCreateButtonInMenu || false}
+            onCheckedChange={(checked) => 
+              handleSettingChange("showCreateButtonInMenu", checked as boolean)
+            }
+          />
+          <Label htmlFor="showCreateButton" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Visa "Skapa avvikelse"-knapp i menyn
+          </Label>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          När aktiverad visas en snabbknapp för att skapa avvikelser direkt från huvudmenyn.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Admin() {
   const [activeTab, setActiveTab] = useState("users");
   const [basicDataTab, setBasicDataTab] = useState("work-tasks");

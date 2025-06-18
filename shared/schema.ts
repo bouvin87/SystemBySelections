@@ -174,6 +174,7 @@ export const insertDeviationSettingSchema = createInsertSchema(deviationSettings
   updatedAt: true 
 });
 
+
 // Question Work Tasks schemas
 export const insertQuestionWorkTaskSchema = createInsertSchema(questionWorkTasks).omit({
   id: true,
@@ -223,6 +224,7 @@ export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type DeviationSetting = typeof deviationSettings.$inferSelect;
 export type InsertDeviationSetting = z.infer<typeof insertDeviationSettingSchema>;
+
 export type QuestionWorkTask = typeof questionWorkTasks.$inferSelect;
 export type InsertQuestionWorkTask = z.infer<typeof insertQuestionWorkTaskSchema>;
 
@@ -340,13 +342,7 @@ export const insertDeviationCommentSchema = createInsertSchema(deviationComments
   createdAt: true,
 });
 
-export const insertDeviationSettingSchema = createInsertSchema(deviationSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export type InsertDeviationSetting = z.infer<typeof insertDeviationSettingSchema>;
-export type DeviationSetting = typeof deviationSettings.$inferSelect;
+
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;
