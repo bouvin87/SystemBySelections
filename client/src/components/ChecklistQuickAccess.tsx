@@ -7,7 +7,7 @@ interface ChecklistQuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
 }
 
-export default function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) {
+function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) {
   // Check if user has access to checklists module
   const { data: authData } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -78,3 +78,5 @@ export default function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQui
     </div>
   );
 }
+
+export default ChecklistQuickAccess;
