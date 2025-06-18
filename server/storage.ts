@@ -724,7 +724,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateDeviationType(id: number, deviationType: Partial<InsertDeviationType>, tenantId: number): Promise<DeviationType> {
     const result = await db.update(deviationTypes)
-      .set({ ...deviationType, updatedAt: new Date().toISOString() })
+      .set({ ...deviationType, updatedAt: new Date() })
       .where(and(eq(deviationTypes.id, id), eq(deviationTypes.tenantId, tenantId)))
       .returning();
     
@@ -818,7 +818,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number): Promise<Deviation> {
     const result = await db.update(deviations)
-      .set({ ...deviation, updatedAt: new Date().toISOString() })
+      .set({ ...deviation, updatedAt: new Date() })
       .where(and(eq(deviations.id, id), eq(deviations.tenantId, tenantId)))
       .returning();
     
