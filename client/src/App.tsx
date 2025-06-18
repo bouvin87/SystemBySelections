@@ -10,6 +10,7 @@ import SuperAdmin from "@/pages/SuperAdmin";
 import ChecklistEditor from "@/pages/checklist-editor";
 import ChecklistStart from "@/pages/checklist-start";
 import ChecklistDashboard from "@/pages/checklist-dashboard";
+import FAQ from "@/pages/faq";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
@@ -52,6 +53,7 @@ function Router() {
       <Route path="/checklist/:id/dashboard">
         {(params) => <ChecklistDashboard checklistId={params.id} />}
       </Route>
+      <Route path="/faq" component={FAQ} />
       <Route component={NotFound} />
     </Switch>
   );

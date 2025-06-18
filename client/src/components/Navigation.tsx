@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   Building,
+  HelpCircle,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -125,6 +126,18 @@ function MobileUserSection({
               <LanguageSelector />
             </div>
 
+            {/* FAQ link */}
+            <button
+              onClick={() => {
+                setLocation("/faq");
+                onClose();
+              }}
+              className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors rounded-md"
+            >
+              <HelpCircle className="mr-3 h-4 w-4" />
+              Vanliga frågor
+            </button>
+
             {/* Admin links */}
             {user.role === "admin" && (
               <button
@@ -214,7 +227,10 @@ export default function Navigation() {
     },
   });
 
-  const navItems = [{ href: "/dashboard", label: "Dashboard" }];
+  const navItems = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/faq", label: "FAQ" }
+  ];
 
   const openModal = (checklistId: number) => {
     console.log("Opening modal for checklist:", checklistId);
@@ -262,7 +278,14 @@ export default function Navigation() {
                       : "text-gray-600 hover:text-gray-900 border-transparent hover:border-gray-300"
                   }`}
                 >
-                  {item.label}
+                  {item.href === "/faq" ? (
+                    <div className="flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4" />
+                      {item.label}
+                    </div>
+                  ) : (
+                    item.label
+                  )}
                 </Link>
               ))}
 
@@ -341,7 +364,14 @@ export default function Navigation() {
                       }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {item.label}
+                      {item.href === "/faq" ? (
+                        <div className="flex items-center gap-2">
+                          <HelpCircle className="h-4 w-4" />
+                          {item.label}
+                        </div>
+                      ) : (
+                        item.label
+                      )}
                     </Link>
                   ))}
 
