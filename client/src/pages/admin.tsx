@@ -166,6 +166,12 @@ export default function Admin() {
     enabled: selectedCategoryId !== null,
   });
 
+  // Deviation types query
+  const { data: deviationTypes = [] } = useQuery<any[]>({
+    queryKey: ["/api/deviations/types"],
+    enabled: activeTab === "deviations",
+  });
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: async ({ endpoint, data }: { endpoint: string; data: any }) => {
