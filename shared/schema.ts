@@ -193,6 +193,7 @@ export const createUserSchema = z.object({
   lastName: z.string().optional(),
   role: z.enum(['admin', 'user']).default('user'),
   password: z.string().min(6),
+  isActive: z.boolean().optional().default(true),
 });
 
 // === TYPES ===

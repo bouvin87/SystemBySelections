@@ -456,6 +456,7 @@ export default function Admin() {
                             lastName: formData.get("lastName") as string,
                             role: formData.get("role") as "admin" | "user",
                             password: formData.get("password") as string,
+                            isActive: formData.get("isActive") === "on",
                           };
                           handleSubmit("/api/users", data);
                         }}
@@ -518,6 +519,18 @@ export default function Admin() {
                             </p>
                           )}
                         </div>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="isActive"
+                              name="isActive"
+                              defaultChecked={editingItem?.isActive ?? true}
+                            />
+                            <Label htmlFor="isActive" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              Användaren är aktiv
+                            </Label>
+                          </div>
+                        </div>
                         {!editingItem && (
                           <div>
                             <Label htmlFor="password">Lösenord</Label>
@@ -545,6 +558,7 @@ export default function Admin() {
                         <TableHead>Namn</TableHead>
                         <TableHead>E-post</TableHead>
                         <TableHead>Roll</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Skapad</TableHead>
                         <TableHead className="w-[100px]">Åtgärder</TableHead>
                       </TableRow>
@@ -567,6 +581,17 @@ export default function Admin() {
                               {userItem.role === "admin"
                                 ? "Administratör"
                                 : "Användare"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                userItem.isActive
+                                  ? "default"
+                                  : "destructive"
+                              }
+                            >
+                              {userItem.isActive ? "Aktiv" : "Inaktiv"}
                             </Badge>
                           </TableCell>
                           <TableCell>
