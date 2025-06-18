@@ -73,6 +73,18 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
     enabled: isOpen,
   });
 
+  // Fetch deviation priorities
+  const { data: deviationPriorities = [] } = useQuery<DeviationPriority[]>({
+    queryKey: ["/api/deviations/priorities"],
+    enabled: isOpen,
+  });
+
+  // Fetch deviation statuses
+  const { data: deviationStatuses = [] } = useQuery<DeviationStatus[]>({
+    queryKey: ["/api/deviations/statuses"],
+    enabled: isOpen,
+  });
+
   // Fetch work tasks
   const { data: workTasks = [] } = useQuery<WorkTask[]>({
     queryKey: ["/api/work-tasks"],
