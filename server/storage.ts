@@ -761,6 +761,60 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Deviation Priorities
+  async getDeviationPriorities(tenantId: number): Promise<DeviationPriority[]> {
+    return await db.select().from(deviationPriorities).where(eq(deviationPriorities.tenantId, tenantId)).orderBy(deviationPriorities.order, deviationPriorities.name);
+  }
+
+  async getDeviationPriority(id: number, tenantId: number): Promise<DeviationPriority | undefined> {
+    const result = await db.select().from(deviationPriorities).where(and(eq(deviationPriorities.id, id), eq(deviationPriorities.tenantId, tenantId)));
+    return result[0];
+  }
+
+  async createDeviationPriority(priority: InsertDeviationPriority): Promise<DeviationPriority> {
+    const result = await db.insert(deviationPriorities).values(priority).returning();
+    return result[0];
+  }
+
+  async updateDeviationPriority(id: number, priority: Partial<InsertDeviationPriority>, tenantId: number): Promise<DeviationPriority> {
+    const result = await db.update(deviationPriorities)
+      .set({ ...priority, updatedAt: new Date() })
+      .where(and(eq(deviationPriorities.id, id), eq(deviationPriorities.tenantId, tenantId)))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDeviationPriority(id: number, tenantId: number): Promise<void> {
+    await db.delete(deviationPriorities).where(and(eq(deviationPriorities.id, id), eq(deviationPriorities.tenantId, tenantId)));
+  }
+
+  // Deviation Statuses
+  async getDeviationStatuses(tenantId: number): Promise<DeviationStatus[]> {
+    return await db.select().from(deviationStatuses).where(eq(deviationStatuses.tenantId, tenantId)).orderBy(deviationStatuses.order, deviationStatuses.name);
+  }
+
+  async getDeviationStatus(id: number, tenantId: number): Promise<DeviationStatus | undefined> {
+    const result = await db.select().from(deviationStatuses).where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)));
+    return result[0];
+  }
+
+  async createDeviationStatus(status: InsertDeviationStatus): Promise<DeviationStatus> {
+    const result = await db.insert(deviationStatuses).values(status).returning();
+    return result[0];
+  }
+
+  async updateDeviationStatus(id: number, status: Partial<InsertDeviationStatus>, tenantId: number): Promise<DeviationStatus> {
+    const result = await db.update(deviationStatuses)
+      .set({ ...status, updatedAt: new Date() })
+      .where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDeviationStatus(id: number, tenantId: number): Promise<void> {
+    await db.delete(deviationStatuses).where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)));
+  }
+
   async getDeviations(tenantId: number, filters?: {
     status?: string;
     priority?: string;

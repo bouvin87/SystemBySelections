@@ -2074,3 +2074,694 @@ export default function Admin() {
     </div>
   );
 }
+
+// Deviation Priorities Management Component
+function DeviationPrioritiesManagement() {
+  const { data: priorities = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/deviations/priorities'],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => apiRequest({
+      endpoint: '/api/deviations/priorities',
+      method: 'POST',
+      data,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deviations/priorities'] });
+      refetch();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest({
+      endpoint: `/api/deviations/priorities/${id}`,
+      method: 'PATCH',
+      data,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deviations/priorities'] });
+      refetch();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      endpoint: `/api/deviations/priorities/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deviations/priorities'] });
+      refetch();
+    },
+  });
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingPriority, setEditingPriority] = useState<any>(null);
+
+  const createForm = useForm({
+    resolver: zodResolver(z.object({
+      name: z.string().min(1, "Namn krävs"),
+      color: z.string().min(1, "Färg krävs"),
+      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+      isActive: z.boolean(),
+    })),
+    defaultValues: {
+      name: "",
+      color: "#ef4444",
+      order: 0,
+      isActive: true,
+    },
+  });
+
+  const editForm = useForm({
+    resolver: zodResolver(z.object({
+      name: z.string().min(1, "Namn krävs"),
+      color: z.string().min(1, "Färg krävs"),
+      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+      isActive: z.boolean(),
+    })),
+    defaultValues: {
+      name: "",
+      color: "#ef4444",
+      order: 0,
+      isActive: true,
+    },
+  });
+
+  const onCreateSubmit = (data: any) => {
+    createMutation.mutate(data);
+    setIsCreateDialogOpen(false);
+    createForm.reset();
+  };
+
+  const onEditSubmit = (data: any) => {
+    if (editingPriority) {
+      updateMutation.mutate({ id: editingPriority.id, data });
+      setEditingPriority(null);
+      editForm.reset();
+    }
+  };
+
+  const handleEdit = (priority: any) => {
+    setEditingPriority(priority);
+    editForm.reset({
+      name: priority.name,
+      color: priority.color,
+      order: priority.order,
+      isActive: priority.isActive,
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm("Är du säker på att du vill ta bort denna prioritet?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  if (isLoading) {
+    return <div>Laddar prioriteter...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Avvikelseprioriteter</h3>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Lägg till prioritet
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Skapa ny prioritet</DialogTitle>
+            </DialogHeader>
+            <Form {...createForm}>
+              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+                <FormField
+                  control={createForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Namn</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="t.ex. Hög" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Färg</FormLabel>
+                      <FormControl>
+                        <Input type="color" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="order"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ordning</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Aktiv</FormLabel>
+                        <FormDescription>
+                          Visa denna prioritet i listan
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Avbryt
+                  </Button>
+                  <Button type="submit">Skapa</Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-4">
+        {priorities.map((priority: any) => (
+          <Card key={priority.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-4 h-4 rounded"
+                    style={{ backgroundColor: priority.color }}
+                  />
+                  <div>
+                    <div className="font-medium">{priority.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Ordning: {priority.order} • {priority.isActive ? 'Aktiv' : 'Inaktiv'}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(priority)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDelete(priority.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingPriority} onOpenChange={() => setEditingPriority(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Redigera prioritet</DialogTitle>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Namn</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="t.ex. Hög" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Färg</FormLabel>
+                    <FormControl>
+                      <Input type="color" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ordning</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Aktiv</FormLabel>
+                      <FormDescription>
+                        Visa denna prioritet i listan
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setEditingPriority(null)}>
+                  Avbryt
+                </Button>
+                <Button type="submit">Spara</Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Deviation Statuses Management Component  
+function DeviationStatusesManagement() {
+  const { data: statuses = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/deviations/statuses'],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => apiRequest({
+      endpoint: '/api/deviations/statuses',
+      method: 'POST',
+      data,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deviations/statuses'] });
+      refetch();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest({
+      endpoint: `/api/deviations/statuses/${id}`,
+      method: 'PATCH',
+      data,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deviations/statuses'] });
+      refetch();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest({
+      endpoint: `/api/deviations/statuses/${id}`,
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/deviations/statuses'] });
+      refetch();
+    },
+  });
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingStatus, setEditingStatus] = useState<any>(null);
+
+  const createForm = useForm({
+    resolver: zodResolver(z.object({
+      name: z.string().min(1, "Namn krävs"),
+      color: z.string().min(1, "Färg krävs"),
+      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+      isActive: z.boolean(),
+      isDefault: z.boolean(),
+    })),
+    defaultValues: {
+      name: "",
+      color: "#3b82f6",
+      order: 0,
+      isActive: true,
+      isDefault: false,
+    },
+  });
+
+  const editForm = useForm({
+    resolver: zodResolver(z.object({
+      name: z.string().min(1, "Namn krävs"),
+      color: z.string().min(1, "Färg krävs"),
+      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+      isActive: z.boolean(),
+      isDefault: z.boolean(),
+    })),
+    defaultValues: {
+      name: "",
+      color: "#3b82f6",
+      order: 0,
+      isActive: true,
+      isDefault: false,
+    },
+  });
+
+  const onCreateSubmit = (data: any) => {
+    createMutation.mutate(data);
+    setIsCreateDialogOpen(false);
+    createForm.reset();
+  };
+
+  const onEditSubmit = (data: any) => {
+    if (editingStatus) {
+      updateMutation.mutate({ id: editingStatus.id, data });
+      setEditingStatus(null);
+      editForm.reset();
+    }
+  };
+
+  const handleEdit = (status: any) => {
+    setEditingStatus(status);
+    editForm.reset({
+      name: status.name,
+      color: status.color,
+      order: status.order,
+      isActive: status.isActive,
+      isDefault: status.isDefault,
+    });
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm("Är du säker på att du vill ta bort denna status?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  if (isLoading) {
+    return <div>Laddar statusar...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Avvikelsestatus</h3>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Lägg till status
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Skapa ny status</DialogTitle>
+            </DialogHeader>
+            <Form {...createForm}>
+              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+                <FormField
+                  control={createForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Namn</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="t.ex. Pågående" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Färg</FormLabel>
+                      <FormControl>
+                        <Input type="color" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="order"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ordning</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Aktiv</FormLabel>
+                        <FormDescription>
+                          Visa denna status i listan
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="isDefault"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Standardstatus</FormLabel>
+                        <FormDescription>
+                          Använd denna status som standard för nya avvikelser
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                    Avbryt
+                  </Button>
+                  <Button type="submit">Skapa</Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-4">
+        {statuses.map((status: any) => (
+          <Card key={status.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-4 h-4 rounded"
+                    style={{ backgroundColor: status.color }}
+                  />
+                  <div>
+                    <div className="font-medium flex items-center space-x-2">
+                      <span>{status.name}</span>
+                      {status.isDefault && (
+                        <Badge variant="secondary">Standard</Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Ordning: {status.order} • {status.isActive ? 'Aktiv' : 'Inaktiv'}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(status)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDelete(status.id)}
+                    disabled={status.isDefault}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingStatus} onOpenChange={() => setEditingStatus(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Redigera status</DialogTitle>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Namn</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="t.ex. Pågående" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Färg</FormLabel>
+                    <FormControl>
+                      <Input type="color" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="order"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ordning</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Aktiv</FormLabel>
+                      <FormDescription>
+                        Visa denna status i listan
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="isDefault"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Standardstatus</FormLabel>
+                      <FormDescription>
+                        Använd denna status som standard för nya avvikelser
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setEditingStatus(null)}>
+                  Avbryt
+                </Button>
+                <Button type="submit">Spara</Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
