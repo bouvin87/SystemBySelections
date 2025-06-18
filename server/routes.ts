@@ -11,10 +11,11 @@ import {
   enforceTenantIsolation,
   requireModule
 } from "./middleware/auth";
+import { storage } from "./storage";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
-  insertUserSchema, insertChecklistResponseSchema
+  insertUserSchema, insertChecklistResponseSchema, insertDeviationTypeSchema
 } from "@shared/schema";
 
 // Extend Request type for authenticated routes
