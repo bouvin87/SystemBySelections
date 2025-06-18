@@ -302,14 +302,18 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">{t('dashboard.questionStatistics')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {dashboardQuestions.map((item: any) => (
-                <DashboardQuestionCard
-                  key={item.questions.id}
-                  question={item.questions}
-                  responses={responses}
-                  filters={filters}
-                />
-              ))}
+              {dashboardQuestions.map((item: any) => {
+                // Handle both old format (nested) and new format (flat)
+                const question = item.questions || item;
+                return (
+                  <DashboardQuestionCard
+                    key={question.id}
+                    question={question}
+                    responses={responses}
+                    filters={filters}
+                  />
+                );
+              })}
             </div>
           </div>
         )}

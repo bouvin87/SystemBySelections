@@ -536,7 +536,7 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard Questions
   async getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]> {
-    return await db.select({
+    const result = await db.select({
       id: questions.id,
       tenantId: questions.tenantId,
       categoryId: questions.categoryId,
@@ -560,6 +560,8 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(questions.order);
+    
+    return result;
   }
 
   // Admin Settings
