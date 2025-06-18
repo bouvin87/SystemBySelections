@@ -227,10 +227,7 @@ export default function Navigation() {
     },
   });
 
-  const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/faq", label: "FAQ" }
-  ];
+  const navItems = [{ href: "/dashboard", label: "Dashboard" }];
 
   const openModal = (checklistId: number) => {
     console.log("Opening modal for checklist:", checklistId);
@@ -278,14 +275,7 @@ export default function Navigation() {
                       : "text-gray-600 hover:text-gray-900 border-transparent hover:border-gray-300"
                   }`}
                 >
-                  {item.href === "/faq" ? (
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="h-4 w-4" />
-                      {item.label}
-                    </div>
-                  ) : (
-                    item.label
-                  )}
+                  {item.label}
                 </Link>
               ))}
 
@@ -364,14 +354,7 @@ export default function Navigation() {
                       }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {item.href === "/faq" ? (
-                        <div className="flex items-center gap-2">
-                          <HelpCircle className="h-4 w-4" />
-                          {item.label}
-                        </div>
-                      ) : (
-                        item.label
-                      )}
+                      {item.label}
                     </Link>
                   ))}
 
