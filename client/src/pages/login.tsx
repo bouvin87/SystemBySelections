@@ -251,7 +251,7 @@ export default function Login() {
         </div>
 
         {/* Testimonial card */}
-        <div className="relative z-10 flex items-center justify-center p-12">
+        <div className="relative z-10 flex items-center justify-center p-12 w-full h-full">
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 max-w-md">
             <blockquote className="text-white text-lg leading-relaxed mb-6">
               System by Sections is a modular platform for production-driven
