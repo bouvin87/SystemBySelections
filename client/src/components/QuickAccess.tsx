@@ -1,13 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, Plus } from "lucide-react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import { renderIcon } from "@/lib/icon-utils";
 import type { Checklist } from "@shared/schema";
 
-interface ChecklistQuickAccessProps {
+interface QuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
 }
 
-function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) {
+function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   // Check if user has access to checklists module
   const { data: authData } = useQuery({
     queryKey: ["/api/auth/me"],
@@ -15,6 +17,7 @@ function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) 
   });
 
   const hasChecklistsModule = authData?.tenant?.modules?.includes("checklists") ?? false;
+  const hasDeviationsModule = authData?.tenant?.modules?.includes("deviations") ?? false;
 
   // Fetch checklistor that should be shown in menu (only if user has access)
   const { data: menuChecklists = [] } = useQuery<Checklist[]>({
@@ -39,8 +42,17 @@ function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) 
     },
   });
 
-  // Don't render if no access or no checklists
-  if (!hasChecklistsModule || menuChecklists.length === 0) {
+  // Fetch deviation settings to check if create button should be shown
+  const { data: deviationSettings } = useQuery({
+    queryKey: ["/api/deviations/settings"],
+    enabled: hasDeviationsModule,
+  });
+
+  // Don't render if no access to any modules or no items to show
+  const hasChecklistItems = hasChecklistsModule && menuChecklists.length > 0;
+  const hasDeviationButton = hasDeviationsModule && deviationSettings?.showCreateButtonInMenu;
+  
+  if (!hasChecklistItems && !hasDeviationButton) {
     return null;
   }
 
@@ -51,7 +63,9 @@ function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) 
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
             Snabbåtkomst:
           </span>
-          {menuChecklists.map((checklist) => (
+          
+          {/* Checklist buttons */}
+          {hasChecklistItems && menuChecklists.map((checklist) => (
             <button
               key={`checklist-${checklist.id}`}
               onClick={(e) => {
@@ -73,10 +87,24 @@ function ChecklistQuickAccess({ onChecklistSelect }: ChecklistQuickAccessProps) 
               {checklist.name}
             </button>
           ))}
+          
+          {/* Deviation create button */}
+          {hasDeviationButton && (
+            <Link href="/deviations/create">
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300 whitespace-nowrap"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Skapa avvikelse
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default ChecklistQuickAccess;
+export default QuickAccess;
