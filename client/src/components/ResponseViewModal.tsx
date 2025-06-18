@@ -13,8 +13,8 @@ interface ResponseViewModalProps {
 }
 
 export default function ResponseViewModal({ isOpen, onClose, responseId }: ResponseViewModalProps) {
-  const { data: response } = useQuery<ChecklistResponse>({
-    queryKey: [`/api/responses/${responseId}`],
+  const { data: response, isLoading: responseLoading, error: responseError } = useQuery<ChecklistResponse>({
+    queryKey: ["/api/responses", responseId],
     enabled: !!responseId,
   });
 
@@ -131,13 +131,15 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
   // Debug logging
   console.log('Modal state:', { 
     response: !!response, 
+    responseLoading,
+    responseError,
     categories: categories.length, 
     questions: allQuestions.length,
     responseId,
     isOpen 
   });
 
-  if (!response) {
+  if (responseLoading || !response) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -145,7 +147,10 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
             <DialogTitle>Laddar response...</DialogTitle>
           </DialogHeader>
           <div className="p-4">
-            Response ID: {responseId}
+            <p>Response ID: {responseId}</p>
+            <p>Loading: {responseLoading ? 'Ja' : 'Nej'}</p>
+            <p>Error: {responseError ? String(responseError) : 'Inget'}</p>
+            <p>Response data: {response ? 'Tillgänglig' : 'Saknas'}</p>
           </div>
         </DialogContent>
       </Dialog>
