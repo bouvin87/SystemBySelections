@@ -335,5 +335,107 @@ export default function deviationRoutes(app: Express) {
     }
   );
 
+  // ===== DEVIATION TYPES MANAGEMENT =====
+
+  // === GET /api/deviations/types - Get all deviation types ===
+  app.get('/api/deviations/types', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationTypes = await storage.getDeviationTypes(tenantId);
+        res.json(deviationTypes);
+        
+      } catch (error) {
+        console.error('Error fetching deviation types:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  );
+
+  // === POST /api/deviations/types - Create deviation type ===
+  app.post('/api/deviations/types', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        
+        const validatedData = insertDeviationTypeSchema.parse({
+          ...req.body,
+          tenantId,
+        });
+        
+        const deviationType = await storage.createDeviationType(validatedData);
+        res.status(201).json(deviationType);
+        
+      } catch (error) {
+        console.error('Error creating deviation type:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  );
+
+  // === PATCH /api/deviations/types/:id - Update deviation type ===
+  app.patch('/api/deviations/types/:id', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationTypeId = parseInt(req.params.id);
+        
+        if (isNaN(deviationTypeId)) {
+          return res.status(400).json({ message: 'Invalid deviation type ID' });
+        }
+        
+        const deviationType = await storage.updateDeviationType(deviationTypeId, req.body, tenantId);
+        res.json(deviationType);
+        
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Deviation type not found') {
+          return res.status(404).json({ message: 'Deviation type not found' });
+        }
+        console.error('Error updating deviation type:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  );
+
+  // === DELETE /api/deviations/types/:id - Delete deviation type ===
+  app.delete('/api/deviations/types/:id', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationTypeId = parseInt(req.params.id);
+        
+        if (isNaN(deviationTypeId)) {
+          return res.status(400).json({ message: 'Invalid deviation type ID' });
+        }
+        
+        await storage.deleteDeviationType(deviationTypeId, tenantId);
+        res.status(204).send();
+        
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Deviation type not found') {
+          return res.status(404).json({ message: 'Deviation type not found' });
+        }
+        console.error('Error deleting deviation type:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  );
+
   return app;
 }

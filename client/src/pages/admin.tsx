@@ -214,6 +214,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations/types"] });
       setDialogOpen(false);
       setEditingItem(null);
       setSelectedIcon("");
