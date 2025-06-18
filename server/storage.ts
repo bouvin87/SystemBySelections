@@ -536,7 +536,20 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard Questions
   async getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]> {
-    return await db.select().from(questions)
+    return await db.select({
+      id: questions.id,
+      tenantId: questions.tenantId,
+      categoryId: questions.categoryId,
+      text: questions.text,
+      type: questions.type,
+      options: questions.options,
+      validation: questions.validation,
+      showInDashboard: questions.showInDashboard,
+      dashboardDisplayType: questions.dashboardDisplayType,
+      hideInView: questions.hideInView,
+      order: questions.order,
+      isRequired: questions.isRequired
+    }).from(questions)
       .innerJoin(categories, eq(questions.categoryId, categories.id))
       .where(
         and(
