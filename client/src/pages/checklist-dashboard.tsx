@@ -9,7 +9,7 @@ import Navigation from "@/components/Navigation";
 import DashboardQuestionCard from "@/components/DashboardQuestionCard";
 import ResponseViewModal from "@/components/ResponseViewModal";
 import { Link } from "wouter";
-import { ArrowLeft, Filter, Search, Calendar, Eye, Users, Activity, BarChart3, TrendingUp, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Filter, Search, Calendar, Eye, Activity, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift, Question } from "@shared/schema";
@@ -310,7 +310,7 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
           {/* Main content */}
           <div className="flex-1 space-y-6">
             {/* Statistics Overview - Falcon Style */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -342,158 +342,41 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                   </div>
                 </CardContent>
               </Card>
+            </div>
 
-              <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold">{dashboardQuestions.length}</div>
-                      <div className="text-purple-100 text-sm">{t('dashboard.questionsTracked')}</div>
-                      <div className="text-purple-200 text-xs mt-1">Aktiva frågor</div>
-                    </div>
-                    <div className="bg-white/20 p-3 rounded-lg">
-                      <Activity className="h-6 w-6" />
-                    </div>
+            {/* Dashboard Question Cards */}
+            {dashboardQuestions.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-blue-600" />
+                    {t('dashboard.questionStatistics')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dashboardQuestions.map((item: any) => {
+                      const question = item.questions || item;
+                      return (
+                        <DashboardQuestionCard
+                          key={question.id}
+                          question={question}
+                          responses={responses}
+                          filters={filters}
+                        />
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
-
-              <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold">98%</div>
-                      <div className="text-orange-100 text-sm">Slutförandegrad</div>
-                      <div className="text-orange-200 text-xs mt-1">Senaste 30 dagarna</div>
-                    </div>
-                    <div className="bg-white/20 p-3 rounded-lg">
-                      <TrendingUp className="h-6 w-6" />
-                    </div>
-                  </div>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Inga dashboard-frågor konfigurerade</p>
                 </CardContent>
               </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Dashboard Question Cards */}
-              <div className="lg:col-span-2">
-                {dashboardQuestions.length > 0 ? (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-blue-600" />
-                        {t('dashboard.questionStatistics')}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {dashboardQuestions.map((item: any) => {
-                          const question = item.questions || item;
-                          return (
-                            <DashboardQuestionCard
-                              key={question.id}
-                              question={question}
-                              responses={responses}
-                              filters={filters}
-                            />
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">Inga dashboard-frågor konfigurerade</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-
-              {/* Quick Stats Sidebar */}
-              <div className="space-y-6">
-                {/* Today's Activity */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      Dagens aktivitet
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Nya svar</span>
-                        <span className="font-semibold text-green-600">+{responses.filter(r => new Date(r.createdAt).toDateString() === new Date().toDateString()).length}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Genomsnittlig tid</span>
-                        <span className="font-semibold">4.2 min</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Slutförda</span>
-                        <span className="font-semibold text-blue-600">100%</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Top Performers */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-purple-600" />
-                      Mest aktiva
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {responses.slice(0, 3).map((response, index) => (
-                        <div key={response.id} className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                            index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                            index === 1 ? 'bg-gray-100 text-gray-700' :
-                            'bg-orange-100 text-orange-700'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{response.operatorName}</p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(response.createdAt).toLocaleDateString('sv-SE')}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      Snabbåtgärder
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Exportera data
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Skapa rapport
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Visa trender
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            )}
 
             {/* Recent Responses Table */}
             <Card>
