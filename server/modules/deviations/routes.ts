@@ -119,7 +119,7 @@ export default function deviationRoutes(app: Express) {
     async (req: AuthenticatedRequest, res) => {
       try {
         const tenantId = req.tenantId!;
-        const userId = req.user!.id;
+        const userId = req.user!.userId;
         
         const validatedData = insertDeviationSchema.parse({
           ...req.body,
@@ -231,7 +231,7 @@ export default function deviationRoutes(app: Express) {
     async (req: AuthenticatedRequest, res) => {
       try {
         const tenantId = req.tenantId!;
-        const userId = req.user!.id;
+        const userId = req.user!.userId;
         const deviationId = parseInt(req.params.id);
         
         if (isNaN(deviationId)) {
