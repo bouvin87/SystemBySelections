@@ -26,30 +26,9 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     enabled: !!response?.checklistId,
   });
 
-  // Get all questions for this checklist's categories
+  // Get all questions for this checklist (fetch all at once)
   const { data: allQuestions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "for-checklist", response?.checklistId],
-    queryFn: async () => {
-      if (!categories.length) return [];
-      
-      const allQuestions: Question[] = [];
-      for (const category of categories) {
-        try {
-          const response = await fetch(`/api/questions?categoryId=${category.id}`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-          });
-          if (response.ok) {
-            const questions = await response.json();
-            allQuestions.push(...questions);
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch questions for category ${category.id}:`, error);
-        }
-      }
-      return allQuestions;
-    },
+    queryKey: ["/api/questions"],
     enabled: categories.length > 0,
   });
 
@@ -230,6 +209,8 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
               const categoryQuestions = allQuestions
                 .filter(q => q.categoryId === category.id)
                 .sort((a, b) => a.order - b.order);
+              
+              console.log(`Category ${category.name} (${category.id}): ${categoryQuestions.length} questions`);
 
               return (
                 <TabsContent key={category.id} value={category.id.toString()}>
