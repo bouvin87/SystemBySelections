@@ -34,6 +34,7 @@ import {
   type Shift,
   type Question,
   type Category,
+  type QuestionWorkTask,
 } from "@shared/schema";
 
 interface FormModalProps {
@@ -185,6 +186,52 @@ export default function FormModal({
     enabled: isOpen && formData.checklistId !== null && categories.length > 0,
   });
 
+  // Hämta alla frågornas arbetsmoment-kopplingar
+  const { data: allQuestionWorkTasks = [] } = useQuery<QuestionWorkTask[]>({
+    queryKey: ["/api/question-work-tasks", "for-checklist", formData.checklistId],
+    queryFn: async () => {
+      if (!questions || questions.length === 0) return [];
+      const allQuestionWorkTasks: QuestionWorkTask[] = [];
+      
+      // Hämta arbetsmoment-kopplingar för alla frågor
+      for (const question of questions) {
+        try {
+          const response = await apiRequest("GET", `/api/questions/${question.id}/work-tasks`);
+          const questionWorkTasks = await response.json();
+          allQuestionWorkTasks.push(...questionWorkTasks);
+        } catch (error) {
+          console.warn(
+            `Failed to fetch work tasks for question ${question.id}:`,
+            error,
+          );
+        }
+      }
+      return allQuestionWorkTasks;
+    },
+    enabled: isOpen && questions.length > 0,
+  });
+
+  // Filtrera frågor baserat på valt arbetsmoment
+  const filteredQuestions = useMemo(() => {
+    if (!formData.workTaskId || !currentChecklist?.includeWorkTasks) {
+      // Om inget arbetsmoment är valt eller checklistan inte använder arbetsmoment, visa alla frågor
+      return questions;
+    }
+
+    return questions.filter(question => {
+      // Kolla om frågan har några arbetsmoment-kopplingar
+      const questionWorkTasks = allQuestionWorkTasks.filter(qwt => qwt.questionId === question.id);
+      
+      // Om frågan inte har några kopplingar, visa den för alla arbetsmoment
+      if (questionWorkTasks.length === 0) {
+        return true;
+      }
+      
+      // Om frågan har kopplingar, visa bara om det valda arbetsmoment är inkluderat
+      return questionWorkTasks.some(qwt => qwt.workTaskId === formData.workTaskId);
+    });
+  }, [questions, allQuestionWorkTasks, formData.workTaskId, currentChecklist?.includeWorkTasks]);
+
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest("POST", "/api/responses", data);
@@ -220,9 +267,9 @@ export default function FormModal({
     });
   };
 
-  // Filter categories to only include those with questions
+  // Filter categories to only include those with questions (efter filtrering för arbetsmoment)
   const categoriesWithQuestions = categories.filter((category) =>
-    questions.some((question) => question.categoryId === category.id),
+    filteredQuestions.some((question) => question.categoryId === category.id),
   );
 
   const totalSteps = 1 + categoriesWithQuestions.length; // Identification step + category steps with questions
@@ -449,7 +496,7 @@ export default function FormModal({
     // Question steps
     const categoryIndex = currentStep - 3;
     const category = categoriesWithQuestions[categoryIndex];
-    const categoryQuestions = questions.filter(
+    const categoryQuestions = filteredQuestions.filter(
       (q) => q.categoryId === category?.id,
     );
 
