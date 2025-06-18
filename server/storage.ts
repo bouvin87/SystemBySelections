@@ -535,8 +535,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard Questions
-  async getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]> {
-    return await db.select().from(questions)
+  async getDashboardQuestions(checklistId: number, tenantId: number): Promise<any[]> {
+    const results = await db.select({
+      questions: questions,
+      categories: categories
+    }).from(questions)
       .innerJoin(categories, eq(questions.categoryId, categories.id))
       .where(
         and(
@@ -547,6 +550,8 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(questions.order);
+    
+    return results;
   }
 
   // Admin Settings
