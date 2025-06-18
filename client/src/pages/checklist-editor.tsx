@@ -104,7 +104,13 @@ export default function ChecklistEditor() {
         // Invalidate checklist data to update dashboard status
         queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
         queryClient.invalidateQueries({ queryKey: ["/api/checklists", parseInt(checklistId)] });
-        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/questions"] });
+        // Invalidate dashboard questions with specific checklistId pattern
+        queryClient.invalidateQueries({ 
+          predicate: (query) => 
+            query.queryKey[0] && 
+            typeof query.queryKey[0] === 'string' && 
+            query.queryKey[0].includes('/api/dashboard/questions')
+        });
       }
       setDialogOpen(false);
       setQuestionDialogOpen(false);
