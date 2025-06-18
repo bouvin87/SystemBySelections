@@ -14,7 +14,7 @@ import {
   type ActionComment, type InsertActionComment
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne, case } from "drizzle-orm";
+import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
 
 export interface IStorage {
   // === MULTI-TENANT CORE ===
