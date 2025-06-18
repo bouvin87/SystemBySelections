@@ -99,6 +99,17 @@ export const questions = pgTable("questions", {
   isRequired: boolean("is_required").notNull().default(false),
 });
 
+// Question Work Tasks - Many-to-many relation between questions and work tasks
+// If no entries exist for a question, it's shown for all work tasks
+export const questionWorkTasks = pgTable("question_work_tasks", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
+  questionId: integer("question_id").references(() => questions.id).notNull(),
+  workTaskId: integer("work_task_id").references(() => workTasks.id).notNull(),
+}, (table) => ({
+  uniqueQuestionWorkTask: unique().on(table.questionId, table.workTaskId),
+}));
+
 // Checklist Work Tasks (tenant-scoped junction table)
 export const checklistWorkTasks = pgTable("checklist_work_tasks", {
   id: serial("id").primaryKey(),
@@ -148,6 +159,11 @@ export const insertChecklistWorkTaskSchema = createInsertSchema(checklistWorkTas
 export const insertChecklistResponseSchema = createInsertSchema(checklistResponses).omit({ id: true, createdAt: true });
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true });
 
+// Question Work Tasks schemas
+export const insertQuestionWorkTaskSchema = createInsertSchema(questionWorkTasks).omit({
+  id: true,
+});
+
 // Login/Auth schemas
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -190,6 +206,8 @@ export type ChecklistResponse = typeof checklistResponses.$inferSelect;
 export type InsertChecklistResponse = z.infer<typeof insertChecklistResponseSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
+export type QuestionWorkTask = typeof questionWorkTasks.$inferSelect;
+export type InsertQuestionWorkTask = z.infer<typeof insertQuestionWorkTaskSchema>;
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;

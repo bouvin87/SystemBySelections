@@ -1,13 +1,14 @@
 import { 
   tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
-  checklistWorkTasks, checklistResponses, adminSettings,
+  checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
   type Question, type InsertQuestion, type Checklist, type InsertChecklist,
   type ChecklistWorkTask, type InsertChecklistWorkTask,
   type ChecklistResponse, type InsertChecklistResponse,
-  type AdminSetting, type InsertAdminSetting
+  type AdminSetting, type InsertAdminSetting,
+  type QuestionWorkTask, type InsertQuestionWorkTask
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count } from "drizzle-orm";
@@ -66,6 +67,12 @@ export interface IStorage {
   createQuestion(question: InsertQuestion): Promise<Question>;
   updateQuestion(id: number, question: Partial<InsertQuestion>, tenantId: number): Promise<Question>;
   deleteQuestion(id: number, tenantId: number): Promise<void>;
+
+  // Question Work Tasks (many-to-many relation)
+  getQuestionWorkTasks(questionId: number, tenantId: number): Promise<QuestionWorkTask[]>;
+  createQuestionWorkTask(questionWorkTask: InsertQuestionWorkTask): Promise<QuestionWorkTask>;
+  deleteQuestionWorkTask(questionId: number, workTaskId: number, tenantId: number): Promise<void>;
+  deleteAllQuestionWorkTasks(questionId: number, tenantId: number): Promise<void>;
 
   // Checklists (tenant-scoped)
   getChecklists(tenantId: number): Promise<Checklist[]>;
@@ -356,7 +363,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteQuestion(id: number, tenantId: number): Promise<void> {
+    // First delete all question work task relations
+    await db.delete(questionWorkTasks).where(and(eq(questionWorkTasks.questionId, id), eq(questionWorkTasks.tenantId, tenantId)));
+    // Then delete the question
     await db.delete(questions).where(and(eq(questions.id, id), eq(questions.tenantId, tenantId)));
+  }
+
+  // Question Work Tasks
+  async getQuestionWorkTasks(questionId: number, tenantId: number): Promise<QuestionWorkTask[]> {
+    return await db.select().from(questionWorkTasks).where(
+      and(eq(questionWorkTasks.questionId, questionId), eq(questionWorkTasks.tenantId, tenantId))
+    );
+  }
+
+  async createQuestionWorkTask(questionWorkTask: InsertQuestionWorkTask): Promise<QuestionWorkTask> {
+    const [created] = await db.insert(questionWorkTasks).values(questionWorkTask).returning();
+    return created;
+  }
+
+  async deleteQuestionWorkTask(questionId: number, workTaskId: number, tenantId: number): Promise<void> {
+    await db.delete(questionWorkTasks).where(
+      and(
+        eq(questionWorkTasks.questionId, questionId),
+        eq(questionWorkTasks.workTaskId, workTaskId),
+        eq(questionWorkTasks.tenantId, tenantId)
+      )
+    );
+  }
+
+  async deleteAllQuestionWorkTasks(questionId: number, tenantId: number): Promise<void> {
+    await db.delete(questionWorkTasks).where(
+      and(eq(questionWorkTasks.questionId, questionId), eq(questionWorkTasks.tenantId, tenantId))
+    );
   }
 
   // Checklists

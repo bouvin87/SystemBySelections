@@ -498,6 +498,7 @@ export default function ChecklistEditor() {
                       text: formData.get("text") as string,
                       type: formData.get("type") as string,
                       categoryId: selectedCategory || editingQuestion?.categoryId,
+                      tenantId: 1, // Will be set by backend from token
                       isRequired: formData.get("isRequired") === "on",
                       order: parseInt(formData.get("order") as string) || 0,
                       options: formData.get("options") ? JSON.parse(formData.get("options") as string) : undefined,
@@ -506,7 +507,10 @@ export default function ChecklistEditor() {
                       dashboardDisplayType: formData.get("dashboardDisplayType") as string || null,
                       hideInView: formData.get("hideInView") === "on",
                     };
-                    handleQuestionSubmit("/api/questions", data);
+
+                    // Get selected work tasks from form
+                    const selectedWorkTasks = Array.from(formData.getAll("workTasks")).map(Number);
+                    handleQuestionSubmit("/api/questions", data, selectedWorkTasks);
                   }}
                   className="space-y-4"
                 >
