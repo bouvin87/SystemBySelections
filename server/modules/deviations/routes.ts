@@ -1,242 +1,333 @@
-import { Router } from 'express';
-import { storage } from '../../storage';
-import { insertActionItemSchema, insertActionCommentSchema } from '@shared/schema';
-import { authenticateToken, enforceTenantIsolation } from '../../middleware/auth';
-import { z } from 'zod';
+/**
+ * DEVIATIONS MODULE ROUTES
+ * 
+ * Handles deviations - issues that need to be addressed and corrected
+ * based on checklist responses or other quality/safety issues.
+ */
 
-const router = Router();
+import type { Express } from "express";
+import { z } from "zod";
+import { storage } from "../../storage";
+import { 
+  authenticateToken, 
+  requireModule, 
+  validateTenantOwnership, 
+  enforceTenantIsolation 
+} from "../../middleware/auth";
+import type { AuthenticatedRequest } from "../../middleware/auth";
+import { insertDeviationTypeSchema, insertDeviationSchema, insertDeviationCommentSchema } from "@shared/schema";
 
-// Apply authentication and tenant isolation to all routes
-router.use(authenticateToken);
-router.use(enforceTenantIsolation);
-
-// GET /api/actions - List action items with filters
-router.get('/', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    
-    // Parse query parameters for filtering
-    const filters = {
-      status: req.query.status as string,
-      priority: req.query.priority as string,
-      assignedToUserId: req.query.assignedToUserId ? parseInt(req.query.assignedToUserId) : undefined,
-      createdByUserId: req.query.createdByUserId ? parseInt(req.query.createdByUserId) : undefined,
-      workTaskId: req.query.workTaskId ? parseInt(req.query.workTaskId) : undefined,
-      locationId: req.query.locationId ? parseInt(req.query.locationId) : undefined,
-      search: req.query.search as string,
-      limit: req.query.limit ? parseInt(req.query.limit) : undefined,
-      offset: req.query.offset ? parseInt(req.query.offset) : undefined,
-    };
-
-    // Remove undefined values
-    Object.keys(filters).forEach(key => 
-      filters[key as keyof typeof filters] === undefined && delete filters[key as keyof typeof filters]
-    );
-
-    const actionItems = await storage.getActionItems(tenantId, filters);
-    res.json(actionItems);
-  } catch (error) {
-    console.error('Error fetching action items:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// GET /api/actions/stats - Get action statistics
-router.get('/stats', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const stats = await storage.getActionStats(tenantId);
-    res.json(stats);
-  } catch (error) {
-    console.error('Error fetching action stats:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// GET /api/actions/:id - Get specific action item
-router.get('/:id', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const id = parseInt(req.params.id);
-    
-    if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid action item ID' });
+export default function deviationRoutes(app: Express) {
+  
+  // === DEVIATION TYPES ===
+  
+  // GET /api/deviations/types - List deviation types
+  app.get('/api/deviations/types', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationTypes = await storage.getDeviationTypes(tenantId);
+        res.json(deviationTypes);
+        
+      } catch (error) {
+        console.error('Error fetching deviation types:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    const actionItem = await storage.getActionItem(id, tenantId);
-    
-    if (!actionItem) {
-      return res.status(404).json({ message: 'Action item not found' });
+  // POST /api/deviations/types - Create deviation type
+  app.post('/api/deviations/types', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        
+        const validatedData = insertDeviationTypeSchema.parse({
+          ...req.body,
+          tenantId,
+        });
+        
+        const deviationType = await storage.createDeviationType(validatedData);
+        res.status(201).json(deviationType);
+        
+      } catch (error) {
+        console.error('Error creating deviation type:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    res.json(actionItem);
-  } catch (error) {
-    console.error('Error fetching action item:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// POST /api/actions - Create new action item
-router.post('/', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const userId = req.user.id;
-
-    // Validate request body
-    const validationResult = insertActionItemSchema.safeParse({
-      ...req.body,
-      tenantId,
-      createdByUserId: userId,
-    });
-
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: validationResult.error.errors 
-      });
+  // === GET /api/deviations - List deviations ===
+  app.get('/api/deviations', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        
+        // Parse query parameters
+        const filters = {
+          status: req.query.status as string | undefined,
+          priority: req.query.priority as string | undefined,
+          assignedToUserId: req.query.assignedToUserId ? parseInt(req.query.assignedToUserId as string) : undefined,
+          createdByUserId: req.query.createdByUserId ? parseInt(req.query.createdByUserId as string) : undefined,
+          workTaskId: req.query.workTaskId ? parseInt(req.query.workTaskId as string) : undefined,
+          locationId: req.query.locationId ? parseInt(req.query.locationId as string) : undefined,
+          deviationTypeId: req.query.deviationTypeId ? parseInt(req.query.deviationTypeId as string) : undefined,
+          search: req.query.search as string | undefined,
+          limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+          offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+        };
+        
+        const deviations = await storage.getDeviations(tenantId, filters);
+        res.json(deviations);
+        
+      } catch (error) {
+        console.error('Error fetching deviations:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    const actionItem = await storage.createActionItem(validationResult.data);
-    res.status(201).json(actionItem);
-  } catch (error) {
-    console.error('Error creating action item:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// PATCH /api/actions/:id - Update action item
-router.patch('/:id', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const id = parseInt(req.params.id);
-    
-    if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid action item ID' });
+  // === GET /api/deviations/stats - Get deviation statistics ===
+  app.get('/api/deviations/stats', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const stats = await storage.getDeviationStats(tenantId);
+        res.json(stats);
+        
+      } catch (error) {
+        console.error('Error fetching deviation stats:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    // Validate request body (partial update)
-    const updateSchema = insertActionItemSchema.partial().omit({ tenantId: true, createdByUserId: true });
-    const validationResult = updateSchema.safeParse(req.body);
-
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: validationResult.error.errors 
-      });
+  // === GET /api/deviations/:id - Get single deviation ===
+  app.get('/api/deviations/:id', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationId = parseInt(req.params.id);
+        
+        if (isNaN(deviationId)) {
+          return res.status(400).json({ message: 'Invalid deviation ID' });
+        }
+        
+        const deviation = await storage.getDeviation(deviationId, tenantId);
+        
+        if (!deviation) {
+          return res.status(404).json({ message: 'Deviation not found' });
+        }
+        
+        res.json(deviation);
+        
+      } catch (error) {
+        console.error('Error fetching deviation:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    const actionItem = await storage.updateActionItem(id, validationResult.data, tenantId);
-    res.json(actionItem);
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Action item not found') {
-      return res.status(404).json({ message: 'Action item not found' });
+  // === POST /api/deviations - Create deviation ===
+  app.post('/api/deviations', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const userId = req.user!.id;
+        
+        const validatedData = insertDeviationSchema.parse({
+          ...req.body,
+          tenantId,
+          createdByUserId: userId,
+        });
+        
+        const deviation = await storage.createDeviation(validatedData);
+        res.status(201).json(deviation);
+        
+      } catch (error) {
+        console.error('Error creating deviation:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
-    console.error('Error updating action item:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+  );
 
-// DELETE /api/actions/:id - Delete action item
-router.delete('/:id', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const id = parseInt(req.params.id);
-    
-    if (isNaN(id)) {
-      return res.status(400).json({ message: 'Invalid action item ID' });
+  // === PATCH /api/deviations/:id - Update deviation ===
+  app.patch('/api/deviations/:id', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationId = parseInt(req.params.id);
+        
+        if (isNaN(deviationId)) {
+          return res.status(400).json({ message: 'Invalid deviation ID' });
+        }
+        
+        // Parse the update data (allow partial updates)
+        const updateData = req.body;
+        delete updateData.id; // Don't allow updating ID
+        delete updateData.tenantId; // Don't allow updating tenant
+        delete updateData.createdAt; // Don't allow updating creation time
+        delete updateData.createdByUserId; // Don't allow changing creator
+        
+        const updatedDeviation = await storage.updateDeviation(deviationId, updateData, tenantId);
+        res.json(updatedDeviation);
+        
+      } catch (error) {
+        console.error('Error updating deviation:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    await storage.deleteActionItem(id, tenantId);
-    res.status(204).send();
-  } catch (error) {
-    console.error('Error deleting action item:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// GET /api/actions/:id/comments - Get comments for action item
-router.get('/:id/comments', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const actionItemId = parseInt(req.params.id);
-    
-    if (isNaN(actionItemId)) {
-      return res.status(400).json({ message: 'Invalid action item ID' });
+  // === DELETE /api/deviations/:id - Delete deviation ===
+  app.delete('/api/deviations/:id', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationId = parseInt(req.params.id);
+        
+        if (isNaN(deviationId)) {
+          return res.status(400).json({ message: 'Invalid deviation ID' });
+        }
+        
+        await storage.deleteDeviation(deviationId, tenantId);
+        res.status(204).send();
+        
+      } catch (error) {
+        console.error('Error deleting deviation:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    const comments = await storage.getActionComments(actionItemId, tenantId);
-    res.json(comments);
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Action item not found') {
-      return res.status(404).json({ message: 'Action item not found' });
+  // === GET /api/deviations/:id/comments - Get deviation comments ===
+  app.get('/api/deviations/:id/comments', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const deviationId = parseInt(req.params.id);
+        
+        if (isNaN(deviationId)) {
+          return res.status(400).json({ message: 'Invalid deviation ID' });
+        }
+        
+        const comments = await storage.getDeviationComments(deviationId, tenantId);
+        res.json(comments);
+        
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Deviation not found') {
+          return res.status(404).json({ message: 'Deviation not found' });
+        }
+        console.error('Error fetching deviation comments:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
-    console.error('Error fetching action comments:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+  );
 
-// POST /api/actions/:id/comments - Add comment to action item
-router.post('/:id/comments', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const userId = req.user.id;
-    const actionItemId = parseInt(req.params.id);
-    
-    if (isNaN(actionItemId)) {
-      return res.status(400).json({ message: 'Invalid action item ID' });
+  // === POST /api/deviations/:id/comments - Create deviation comment ===
+  app.post('/api/deviations/:id/comments', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const userId = req.user!.id;
+        const deviationId = parseInt(req.params.id);
+        
+        if (isNaN(deviationId)) {
+          return res.status(400).json({ message: 'Invalid deviation ID' });
+        }
+        
+        // Verify deviation exists and belongs to tenant
+        const deviation = await storage.getDeviation(deviationId, tenantId);
+        if (!deviation) {
+          return res.status(404).json({ message: 'Deviation not found' });
+        }
+        
+        const validatedData = insertDeviationCommentSchema.parse({
+          ...req.body,
+          deviationId,
+          userId,
+        });
+        
+        const comment = await storage.createDeviationComment(validatedData);
+        res.status(201).json(comment);
+        
+      } catch (error) {
+        console.error('Error creating deviation comment:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
+  );
 
-    // Verify action item exists and belongs to tenant
-    const actionItem = await storage.getActionItem(actionItemId, tenantId);
-    if (!actionItem) {
-      return res.status(404).json({ message: 'Action item not found' });
+  // === DELETE /api/deviations/:id/comments/:commentId - Delete deviation comment ===
+  app.delete('/api/deviations/:id/comments/:commentId', 
+    authenticateToken, 
+    requireModule('deviations'), 
+    validateTenantOwnership, 
+    enforceTenantIsolation, 
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const tenantId = req.tenantId!;
+        const commentId = parseInt(req.params.commentId);
+        
+        if (isNaN(commentId)) {
+          return res.status(400).json({ message: 'Invalid comment ID' });
+        }
+        
+        await storage.deleteDeviationComment(commentId, tenantId);
+        res.status(204).send();
+        
+      } catch (error) {
+        if (error instanceof Error && (
+          error.message === 'Comment not found' || 
+          error.message === 'Deviation not found'
+        )) {
+          return res.status(404).json({ message: error.message });
+        }
+        console.error('Error deleting deviation comment:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
-
-    // Validate comment data
-    const validationResult = insertActionCommentSchema.safeParse({
-      actionItemId,
-      userId,
-      comment: req.body.comment,
-    });
-
-    if (!validationResult.success) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: validationResult.error.errors 
-      });
-    }
-
-    const comment = await storage.createActionComment(validationResult.data);
-    res.status(201).json(comment);
-  } catch (error) {
-    console.error('Error creating action comment:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// DELETE /api/actions/comments/:commentId - Delete comment
-router.delete('/comments/:commentId', async (req: any, res) => {
-  try {
-    const tenantId = req.tenantId;
-    const commentId = parseInt(req.params.commentId);
-    
-    if (isNaN(commentId)) {
-      return res.status(400).json({ message: 'Invalid comment ID' });
-    }
-
-    await storage.deleteActionComment(commentId, tenantId);
-    res.status(204).send();
-  } catch (error) {
-    if (error instanceof Error && (
-      error.message === 'Comment not found' || 
-      error.message === 'Action item not found'
-    )) {
-      return res.status(404).json({ message: error.message });
-    }
-    console.error('Error deleting action comment:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+  );
 
   return app;
 }
