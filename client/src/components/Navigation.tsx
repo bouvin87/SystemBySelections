@@ -232,7 +232,7 @@ export default function Navigation() {
   const navItems = [
     { href: "/", label: "Dashboard" },
     ...(hasChecklistsModule ? [{ href: "/checklists", label: "Checklistor" }] : []),
-    ...(authData?.tenant?.modules?.includes('actions') ? [{ href: "/actions", label: "Åtgärder" }] : []),
+    ...(authData?.tenant?.modules?.includes('deviations') ? [{ href: "/deviations", label: "Avvikelser" }] : []),
   ];
 
   const openModal = (checklistId: number) => {
