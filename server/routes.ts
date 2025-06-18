@@ -585,6 +585,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Question Work Tasks routes
+  app.get("/api/questions/:id/work-tasks", authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const questionId = parseInt(req.params.id);
+      const questionWorkTasks = await storage.getQuestionWorkTasks(questionId, req.tenantId!);
+      res.json(questionWorkTasks);
+    } catch (error) {
+      console.error("Error fetching question work tasks:", error);
+      res.status(500).json({ message: "Failed to fetch question work tasks" });
+    }
+  });
+
+  app.post("/api/questions/:id/work-tasks", authenticateToken, requireModule('checklists'), async (req, res) => {
+    try {
+      const questionId = parseInt(req.params.id);
+      const { workTaskIds } = req.body;
+
+      // First delete all existing relations for this question
+      await storage.deleteAllQuestionWorkTasks(questionId, req.tenantId!);
+
+      // Then create new relations for each selected work task
+      const createdRelations = [];
+      for (const workTaskId of workTaskIds) {
+        const relation = await storage.createQuestionWorkTask({
+          tenantId: req.tenantId!,
+          questionId,
+          workTaskId
+        });
+        createdRelations.push(relation);
+      }
+
+      res.status(201).json(createdRelations);
+    } catch (error) {
+      console.error("Error creating question work tasks:", error);
+      res.status(500).json({ message: "Failed to create question work tasks" });
+    }
+  });
+
   // === MISSING BACKWARD COMPATIBILITY ROUTES ===
   
   // Individual checklist access

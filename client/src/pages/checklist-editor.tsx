@@ -28,6 +28,8 @@ import type {
   Question,
   InsertQuestion,
   Checklist,
+  WorkTask,
+  QuestionWorkTask
 } from "@shared/schema";
 import Navigation from "@/components/Navigation";
 
@@ -347,6 +349,7 @@ export default function ChecklistEditor() {
                       const data: InsertCategory = {
                         name: formData.get("name") as string,
                         checklistId: checklistId,
+                        tenantId: 1, // Will be set by backend from token
                         description: formData.get("description") as string || undefined,
                         order: parseInt(formData.get("order") as string) || 0,
                         isActive: formData.get("isActive") === "on",
