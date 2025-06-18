@@ -188,6 +188,7 @@ export default function Navigation() {
   const navItems = [{ href: "/dashboard", label: "Dashboard" }];
 
   const openModal = (checklistId: number) => {
+    console.log('Opening modal for checklist:', checklistId);
     setSelectedChecklistId(checklistId);
     setModalOpen(true);
     setMobileMenuOpen(false);
@@ -235,8 +236,14 @@ export default function Navigation() {
                 {menuChecklists.map((checklist) => (
                   <button
                     key={`checklist-${checklist.id}`}
-                    onClick={() => openModal(checklist.id)}
-                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Checklist button clicked:', checklist.id, checklist.name);
+                      openModal(checklist.id);
+                    }}
+                    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors cursor-pointer"
+                    type="button"
                   >
                     {renderIcon(checklist.icon, "h-4 w-4") || (
                       <CheckSquare className="h-4 w-4" />
@@ -247,7 +254,10 @@ export default function Navigation() {
 
                 {hasChecklistsModule && (
                   <button
-                    onClick={() => setChecklistSelectionOpen(true)}
+                    onClick={() => {
+                      console.log('Opening checklist selection modal');
+                      setChecklistSelectionOpen(true);
+                    }}
                     className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors"
                   >
                     <Plus className="h-4 w-4" />
@@ -335,7 +345,8 @@ export default function Navigation() {
       {/* Modals */}
       {modalOpen && selectedChecklistId && (
         <FormModal
-          checklistId={selectedChecklistId}
+          isOpen={modalOpen}
+          preselectedChecklistId={selectedChecklistId}
           onClose={() => {
             setModalOpen(false);
             setSelectedChecklistId(null);
@@ -345,8 +356,9 @@ export default function Navigation() {
 
       {checklistSelectionOpen && (
         <ChecklistSelectionModal
+          isOpen={checklistSelectionOpen}
           onClose={() => setChecklistSelectionOpen(false)}
-          onSelect={handleChecklistSelection}
+          onSelectChecklist={handleChecklistSelection}
         />
       )}
     </>
