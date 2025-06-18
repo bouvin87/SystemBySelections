@@ -218,15 +218,15 @@ export default function Navigation() {
             </Link>
 
             {/* Desktop navigation - left side after logo */}
-            <div className="hidden lg:flex items-center space-x-2 ml-8">
+            <div className="hidden lg:flex items-stretch space-x-1 ml-8 h-16">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 flex items-center text-sm font-medium transition-all duration-200 border-b-2 ${
                     location === item.href
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "text-blue-600 border-blue-600"
+                      : "text-gray-600 hover:text-gray-900 border-transparent hover:border-gray-300"
                   }`}
                 >
                   {item.label}
@@ -242,7 +242,7 @@ export default function Navigation() {
                     console.log('Checklist button clicked:', checklist.id, checklist.name);
                     openModal(checklist.id);
                   }}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors cursor-pointer"
+                  className="px-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all duration-200 cursor-pointer border-b-2 border-transparent hover:border-gray-300"
                   type="button"
                 >
                   {renderIcon(checklist.icon, "h-4 w-4") || (
@@ -258,7 +258,7 @@ export default function Navigation() {
                     console.log('Opening checklist selection modal');
                     setChecklistSelectionOpen(true);
                   }}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md flex items-center gap-2 transition-colors"
+                  className="px-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all duration-200 border-b-2 border-transparent hover:border-gray-300"
                 >
                   <Plus className="h-4 w-4" />
                   {t("navigation.startNewChecklist")}
