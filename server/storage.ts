@@ -1,7 +1,7 @@
 import { 
   tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
-  deviationTypes, deviations, deviationComments,
+  deviationTypes, deviations, deviationComments, deviationSettings,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
@@ -12,7 +12,8 @@ import {
   type QuestionWorkTask, type InsertQuestionWorkTask,
   type DeviationType, type InsertDeviationType,
   type Deviation, type InsertDeviation,
-  type DeviationComment, type InsertDeviationComment
+  type DeviationComment, type InsertDeviationComment,
+  type DeviationSetting, type InsertDeviationSetting
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -920,6 +921,36 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Deviation Settings
+  async getDeviationSettings(tenantId: number): Promise<DeviationSetting | undefined> {
+    const [setting] = await db.select().from(deviationSettings)
+      .where(eq(deviationSettings.tenantId, tenantId))
+      .limit(1);
+    return setting;
+  }
+
+  async updateDeviationSettings(tenantId: number, settings: Partial<InsertDeviationSetting>): Promise<DeviationSetting> {
+    const existingSettings = await this.getDeviationSettings(tenantId);
+    
+    if (existingSettings) {
+      const [updated] = await db.update(deviationSettings)
+        .set({ 
+          ...settings,
+          updatedAt: new Date()
+        })
+        .where(eq(deviationSettings.tenantId, tenantId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(deviationSettings)
+        .values({
+          tenantId,
+          ...settings
+        })
+        .returning();
+      return created;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

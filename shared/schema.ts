@@ -143,6 +143,15 @@ export const adminSettings = pgTable("admin_settings", {
   keyTenantUnique: unique().on(table.key, table.tenantId),
 }));
 
+// Deviation Settings (tenant-scoped)
+export const deviationSettings = pgTable("deviation_settings", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
+  showCreateButtonInMenu: boolean("show_create_button_in_menu").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // === INSERT SCHEMAS ===
 
 // Core multi-tenant schemas
@@ -159,6 +168,11 @@ export const insertChecklistSchema = createInsertSchema(checklists).omit({ id: t
 export const insertChecklistWorkTaskSchema = createInsertSchema(checklistWorkTasks).omit({ id: true });
 export const insertChecklistResponseSchema = createInsertSchema(checklistResponses).omit({ id: true, createdAt: true });
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true });
+export const insertDeviationSettingSchema = createInsertSchema(deviationSettings).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
 
 // Question Work Tasks schemas
 export const insertQuestionWorkTaskSchema = createInsertSchema(questionWorkTasks).omit({
@@ -207,6 +221,8 @@ export type ChecklistResponse = typeof checklistResponses.$inferSelect;
 export type InsertChecklistResponse = z.infer<typeof insertChecklistResponseSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
+export type DeviationSetting = typeof deviationSettings.$inferSelect;
+export type InsertDeviationSetting = z.infer<typeof insertDeviationSettingSchema>;
 export type QuestionWorkTask = typeof questionWorkTasks.$inferSelect;
 export type InsertQuestionWorkTask = z.infer<typeof insertQuestionWorkTaskSchema>;
 
@@ -323,6 +339,14 @@ export const insertDeviationCommentSchema = createInsertSchema(deviationComments
   id: true,
   createdAt: true,
 });
+
+export const insertDeviationSettingSchema = createInsertSchema(deviationSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertDeviationSetting = z.infer<typeof insertDeviationSettingSchema>;
+export type DeviationSetting = typeof deviationSettings.$inferSelect;
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;
