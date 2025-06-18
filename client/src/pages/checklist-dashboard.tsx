@@ -313,7 +313,7 @@ export default function ChecklistDashboard({
                       {t("dashboard.dateRange")}
                     </Label>
                     <div className="space-y-2">
-                      <div>
+                      <div className="relative">
                         <Input
                           type="date"
                           value={filters.startDate}
@@ -324,9 +324,11 @@ export default function ChecklistDashboard({
                             }))
                           }
                           placeholder={t("dashboard.fromDate")}
+                          className="pr-10"
                         />
+                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                       </div>
-                      <div>
+                      <div className="relative">
                         <Input
                           type="date"
                           value={filters.endDate}
@@ -337,7 +339,9 @@ export default function ChecklistDashboard({
                             }))
                           }
                           placeholder={t("dashboard.toDate")}
+                          className="pr-10"
                         />
+                        <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                       </div>
                     </div>
                   </div>
