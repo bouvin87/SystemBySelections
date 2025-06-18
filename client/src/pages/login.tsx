@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import logoSvg from "@/lib/logo.svg?url";
+import backgroundPng from "@/lib/background.png?url";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -238,16 +239,15 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right side - Gradient background with testimonial */}
+      {/* Right side - Background image with testimonial */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        {/* Gradient background - matching logo colors */}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(135deg, #FDC901 0%, #E33913 50%, #276388 100%)'
-        }}>
-          {/* Decorative circles */}
-          <div className="absolute top-20 right-20 w-80 h-80 rounded-full opacity-20 blur-3xl" style={{ backgroundColor: '#FDC901' }}></div>
-          <div className="absolute bottom-20 left-20 w-96 h-96 rounded-full opacity-15 blur-3xl" style={{ backgroundColor: '#E33913' }}></div>
-          <div className="absolute top-1/2 right-1/4 w-64 h-64 rounded-full opacity-25 blur-3xl" style={{ backgroundColor: '#276388' }}></div>
+        {/* Background image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${backgroundPng})` }}
+        >
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/20"></div>
         </div>
 
         {/* Testimonial card */}
