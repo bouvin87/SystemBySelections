@@ -1,7 +1,7 @@
 import { 
   tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
-  actionItems, actionComments,
+  deviationTypes, deviations, deviationComments,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
@@ -10,8 +10,9 @@ import {
   type ChecklistResponse, type InsertChecklistResponse,
   type AdminSetting, type InsertAdminSetting,
   type QuestionWorkTask, type InsertQuestionWorkTask,
-  type ActionItem, type InsertActionItem,
-  type ActionComment, type InsertActionComment
+  type DeviationType, type InsertDeviationType,
+  type Deviation, type InsertDeviation,
+  type DeviationComment, type InsertDeviationComment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -163,6 +164,40 @@ export interface IStorage {
   getAdminSettings(tenantId: number): Promise<AdminSetting[]>;
   getAdminSetting(key: string, tenantId: number): Promise<AdminSetting | undefined>;
   setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting>;
+
+  // === DEVIATIONS MODULE ===
+  getDeviationTypes(tenantId: number): Promise<DeviationType[]>;
+  getDeviationType(id: number, tenantId: number): Promise<DeviationType | undefined>;
+  createDeviationType(deviationType: InsertDeviationType): Promise<DeviationType>;
+  updateDeviationType(id: number, deviationType: Partial<InsertDeviationType>, tenantId: number): Promise<DeviationType>;
+  deleteDeviationType(id: number, tenantId: number): Promise<void>;
+  getDeviations(tenantId: number, filters?: {
+    status?: string;
+    priority?: string;
+    assignedToUserId?: number;
+    createdByUserId?: number;
+    workTaskId?: number;
+    locationId?: number;
+    deviationTypeId?: number;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Deviation[]>;
+  getDeviation(id: number, tenantId: number): Promise<Deviation | undefined>;
+  createDeviation(deviation: InsertDeviation): Promise<Deviation>;
+  updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number): Promise<Deviation>;
+  deleteDeviation(id: number, tenantId: number): Promise<void>;
+  getDeviationComments(deviationId: number, tenantId: number): Promise<DeviationComment[]>;
+  createDeviationComment(comment: InsertDeviationComment): Promise<DeviationComment>;
+  deleteDeviationComment(id: number, tenantId: number): Promise<void>;
+  getDeviationStats(tenantId: number): Promise<{
+    total: number;
+    new: number;
+    inProgress: number;
+    done: number;
+    overdue: number;
+    highPriority: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {

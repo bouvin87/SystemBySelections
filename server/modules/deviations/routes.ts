@@ -238,4 +238,5 @@ router.delete('/comments/:commentId', async (req: any, res) => {
   }
 });
 
-export default router;
+  return app;
+}

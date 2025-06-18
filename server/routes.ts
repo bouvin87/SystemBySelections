@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/modules/checklists', requireModule('checklists'), checklistRoutes);
   
   // Action items module - protected and tenant-scoped  
-  app.use('/api/actions', actionRoutes);
+  app.use('/api', deviationRoutes);
 
   // === USER MANAGEMENT ROUTES ===
   // Get all users for the tenant (admin only)
