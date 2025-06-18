@@ -445,25 +445,34 @@ export class DatabaseStorage implements IStorage {
     endDate?: string;
     search?: string;
   } = {}): Promise<ChecklistResponse[]> {
-    const { limit = 50, offset = 0, checklistId, workTaskId, workStationId, shiftId, search } = filters;
+    const { limit = 50, offset = 0, checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
     
-    let query = db.select().from(checklistResponses)
-      .where(eq(checklistResponses.tenantId, tenantId));
+    const conditions = [eq(checklistResponses.tenantId, tenantId)];
 
     if (checklistId) {
-      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.checklistId, checklistId)));
+      conditions.push(eq(checklistResponses.checklistId, checklistId));
     }
     if (workTaskId) {
-      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.workTaskId, workTaskId)));
+      conditions.push(eq(checklistResponses.workTaskId, workTaskId));
     }
     if (workStationId) {
-      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.workStationId, workStationId)));
+      conditions.push(eq(checklistResponses.workStationId, workStationId));
     }
     if (shiftId) {
-      query = query.where(and(eq(checklistResponses.tenantId, tenantId), eq(checklistResponses.shiftId, shiftId)));
+      conditions.push(eq(checklistResponses.shiftId, shiftId));
+    }
+    if (search) {
+      conditions.push(sql`${checklistResponses.operatorName} ILIKE ${`%${search}%`}`);
+    }
+    if (startDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) >= ${startDate}`);
+    }
+    if (endDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) <= ${endDate}`);
     }
 
-    return await query
+    return await db.select().from(checklistResponses)
+      .where(and(...conditions))
       .orderBy(desc(checklistResponses.createdAt))
       .limit(limit)
       .offset(offset);
@@ -505,31 +514,49 @@ export class DatabaseStorage implements IStorage {
     endDate?: string;
     search?: string;
   } = {}): Promise<any> {
-    const { checklistId } = filters;
-    
-    // Build base where condition with tenant filtering
-    let whereCondition = eq(checklistResponses.tenantId, tenantId);
+    const { checklistId, workTaskId, workStationId, shiftId, startDate, endDate, search } = filters;
+    const conditions = [eq(checklistResponses.tenantId, tenantId)];
     
     if (checklistId) {
-      whereCondition = and(whereCondition, eq(checklistResponses.checklistId, checklistId));
+      conditions.push(eq(checklistResponses.checklistId, checklistId));
+    }
+    
+    if (workTaskId) {
+      conditions.push(eq(checklistResponses.workTaskId, workTaskId));
+    }
+    
+    if (workStationId) {
+      conditions.push(eq(checklistResponses.workStationId, workStationId));
+    }
+    
+    if (shiftId) {
+      conditions.push(eq(checklistResponses.shiftId, shiftId));
+    }
+    
+    if (search) {
+      conditions.push(sql`${checklistResponses.operatorName} ILIKE ${`%${search}%`}`);
+    }
+    
+    if (startDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) >= ${startDate}`);
+    }
+    
+    if (endDate) {
+      conditions.push(sql`DATE(${checklistResponses.createdAt}) <= ${endDate}`);
     }
 
-    // Get total responses count
-    const totalQuery = await db.select({ count: count() })
-      .from(checklistResponses)
+    const whereCondition = and(...conditions);
+    
+    const [totalResult] = await db.select({ count: sql<number>`count(*)` }).from(checklistResponses)
       .where(whereCondition);
     
-    const totalResponses = totalQuery[0]?.count || 0;
-
-    // Get recent responses
-    const recentResponses = await db.select()
-      .from(checklistResponses)
+    const recentResponses = await db.select().from(checklistResponses)
       .where(whereCondition)
       .orderBy(desc(checklistResponses.createdAt))
       .limit(10);
 
     return {
-      totalResponses,
+      totalResponses: totalResult?.count || 0,
       recentResponses,
     };
   }
