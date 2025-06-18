@@ -29,8 +29,16 @@ import { renderIcon } from "@/lib/icon-utils";
 import { useAuth } from "@/hooks/useAuth";
 import LanguageSelector from "@/components/LanguageSelector";
 
-// Mobile User Section Component - embedded directly in mobile menu
-function MobileUserSection({ onClose }: { onClose: () => void }) {
+// Mobile User Section Component - embedded directly in mobile menu with collapsible functionality
+function MobileUserSection({ 
+  onClose, 
+  accountSectionExpanded, 
+  setAccountSectionExpanded 
+}: { 
+  onClose: () => void;
+  accountSectionExpanded: boolean;
+  setAccountSectionExpanded: (expanded: boolean) => void;
+}) {
   const { user, logout } = useAuth();
   const { i18n } = useTranslation();
   const [, setLocation] = useLocation();
@@ -62,82 +70,97 @@ function MobileUserSection({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="space-y-3">
-      {/* User info card - modern design */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-            <span className="text-sm font-medium text-blue-700">{initials}</span>
-          </div>
-          <div className="flex-1">
-            <p className="text-white font-medium text-base">{displayName}</p>
-            <p className="text-blue-200 text-sm">{user.email}</p>
-          </div>
-        </div>
-
-        {/* User details */}
-        <div className="space-y-2 text-sm">
-          {tenant && (
-            <div className="flex items-center gap-2 text-blue-100">
-              <Building2 className="h-4 w-4" />
-              <span>{tenant.name}</span>
+      {/* Collapsible User Account Section */}
+      <div className="bg-gray-50 rounded-lg overflow-hidden">
+        <button
+          onClick={() => setAccountSectionExpanded(!accountSectionExpanded)}
+          className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-xs font-medium text-blue-700">{initials}</span>
             </div>
-          )}
-          <div className="flex items-center gap-2 text-blue-100">
-            <User className="h-4 w-4" />
-            <span className="capitalize">
-              {user.role === "superadmin"
-                ? "Super Admin"
-                : user.role === "admin"
-                  ? "Administrator"
-                  : "Användare"}
-            </span>
+            <div>
+              <div className="text-sm font-medium text-gray-900">{displayName}</div>
+              <div className="text-xs text-gray-500">{user.email}</div>
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* Language selection - modern */}
-      <div className="bg-gray-50 rounded-lg p-3">
-        <LanguageSelector />
-      </div>
-
-      {/* Admin links */}
-      {user.role === "admin" && (
-        <button
-          onClick={() => {
-            setLocation("/admin");
-            onClose();
-          }}
-          className="flex items-center w-full px-3 py-3 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors rounded-md"
-        >
-          <Settings className="mr-3 h-5 w-5" />
-          Administration
+          {accountSectionExpanded ? (
+            <ChevronUp className="h-5 w-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-gray-400" />
+          )}
         </button>
-      )}
 
-      {user.role === "superadmin" && (
-        <button
-          onClick={() => {
-            setLocation("/super-admin");
-            onClose();
-          }}
-          className="flex items-center w-full px-3 py-3 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors rounded-md"
-        >
-          <Crown className="mr-3 h-5 w-5" />
-          Super Admin
-        </button>
-      )}
+        {/* Expanded account section */}
+        {accountSectionExpanded && (
+          <div className="px-4 pb-4 space-y-3 border-t border-gray-200">
+            {/* User details */}
+            <div className="pt-3 space-y-2 text-sm">
+              {tenant && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Building2 className="h-4 w-4" />
+                  <span>{tenant.name}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-gray-600">
+                <User className="h-4 w-4" />
+                <span className="capitalize">
+                  {user.role === "superadmin"
+                    ? "Super Admin"
+                    : user.role === "admin"
+                      ? "Administrator"
+                      : "Användare"}
+                </span>
+              </div>
+            </div>
 
-      {/* Logout button */}
-      <button
-        onClick={() => {
-          logout();
-          onClose();
-        }}
-        className="flex items-center w-full px-3 py-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors rounded-md font-medium"
-      >
-        <LogOut className="mr-3 h-5 w-5" />
-        Logga ut
-      </button>
+            {/* Language selection */}
+            <div className="pt-2">
+              <LanguageSelector />
+            </div>
+
+            {/* Admin links */}
+            {user.role === "admin" && (
+              <button
+                onClick={() => {
+                  setLocation("/admin");
+                  onClose();
+                }}
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors rounded-md"
+              >
+                <Settings className="mr-3 h-4 w-4" />
+                Administration
+              </button>
+            )}
+
+            {user.role === "superadmin" && (
+              <button
+                onClick={() => {
+                  setLocation("/super-admin");
+                  onClose();
+                }}
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors rounded-md"
+              >
+                <Crown className="mr-3 h-4 w-4" />
+                Super Admin
+              </button>
+            )}
+
+            {/* Logout button */}
+            <button
+              onClick={() => {
+                logout();
+                onClose();
+              }}
+              className="flex items-center w-full px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors rounded-md font-medium"
+            >
+              <LogOut className="mr-3 h-4 w-4" />
+              Logga ut
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -151,6 +174,7 @@ export default function Navigation() {
   const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(
     null,
   );
+  const [accountSectionExpanded, setAccountSectionExpanded] = useState(false);
 
   // Fetch user data to check module access
   const { data: authData } = useQuery({
@@ -188,7 +212,7 @@ export default function Navigation() {
   const navItems = [{ href: "/dashboard", label: "Dashboard" }];
 
   const openModal = (checklistId: number) => {
-    console.log('Opening modal for checklist:', checklistId);
+    console.log("Opening modal for checklist:", checklistId);
     setSelectedChecklistId(checklistId);
     setModalOpen(true);
     setMobileMenuOpen(false);
@@ -239,7 +263,11 @@ export default function Navigation() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Checklist button clicked:', checklist.id, checklist.name);
+                    console.log(
+                      "Checklist button clicked:",
+                      checklist.id,
+                      checklist.name,
+                    );
                     openModal(checklist.id);
                   }}
                   className="px-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all duration-200 cursor-pointer border-b-2 border-transparent hover:border-gray-300"
@@ -255,7 +283,7 @@ export default function Navigation() {
               {hasChecklistsModule && (
                 <button
                   onClick={() => {
-                    console.log('Opening checklist selection modal');
+                    console.log("Opening checklist selection modal");
                     setChecklistSelectionOpen(true);
                   }}
                   className="px-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all duration-200 border-b-2 border-transparent hover:border-gray-300"
@@ -270,7 +298,6 @@ export default function Navigation() {
             <div className="flex items-center gap-3 ml-auto">
               {/* User menu - always visible on desktop */}
               <div className="hidden lg:flex items-center space-x-4">
-                <LanguageSelector />
                 <UserMenu />
               </div>
 
@@ -336,7 +363,11 @@ export default function Navigation() {
 
                 {/* Mobile user section */}
                 <div className="border-t border-gray-100 pt-4">
-                  <MobileUserSection onClose={() => setMobileMenuOpen(false)} />
+                  <MobileUserSection 
+                    onClose={() => setMobileMenuOpen(false)} 
+                    accountSectionExpanded={accountSectionExpanded}
+                    setAccountSectionExpanded={setAccountSectionExpanded}
+                  />
                 </div>
               </div>
             </div>
