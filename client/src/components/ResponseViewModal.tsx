@@ -14,35 +14,27 @@ interface ResponseViewModalProps {
 
 export default function ResponseViewModal({ isOpen, onClose, responseId }: ResponseViewModalProps) {
   const { data: response } = useQuery<ChecklistResponse>({
-    queryKey: ["/api/responses", responseId],
-    queryFn: async () => {
-      if (!responseId) return null;
-      const result = await fetch(`/api/responses/${responseId}`);
-      if (!result.ok) throw new Error("Failed to fetch response");
-      return result.json();
-    },
+    queryKey: [`/api/responses/${responseId}`],
     enabled: !!responseId,
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories", response?.checklistId],
-    queryFn: async () => {
-      if (!response?.checklistId) return [];
-      const result = await fetch(`/api/categories?checklistId=${response.checklistId}`);
-      if (!result.ok) throw new Error("Failed to fetch categories");
-      return result.json();
-    },
+    queryKey: [`/api/categories?checklistId=${response?.checklistId}`],
     enabled: !!response?.checklistId,
   });
 
   const { data: allQuestions = [] } = useQuery<Question[]>({
-    queryKey: ["/api/questions", "for-response", response?.checklistId],
+    queryKey: ["/api/questions", "for-response", response?.checklistId, categories.length],
     queryFn: async () => {
       if (!response?.checklistId || categories.length === 0) return [];
       const questionPromises = categories.map(async (category) => {
-        const result = await fetch(`/api/questions?categoryId=${category.id}`);
-        if (!result.ok) return [];
-        return result.json();
+        const response = await fetch(`/api/questions?categoryId=${category.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        if (!response.ok) return [];
+        return response.json();
       });
       const questionArrays = await Promise.all(questionPromises);
       return questionArrays.flat();
@@ -50,38 +42,23 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
     enabled: !!response?.checklistId && categories.length > 0,
   });
 
-  const { data: workTask } = useQuery<WorkTask>({
-    queryKey: ["/api/work-tasks", response?.workTaskId],
-    queryFn: async () => {
-      if (!response?.workTaskId) return null;
-      const result = await fetch(`/api/work-tasks/${response.workTaskId}`);
-      if (!result.ok) return null;
-      return result.json();
-    },
-    enabled: !!response?.workTaskId,
+  // Fetch related data using existing queries that have auth handled
+  const { data: workTasks = [] } = useQuery<WorkTask[]>({
+    queryKey: ["/api/work-tasks"],
   });
 
-  const { data: workStation } = useQuery<WorkStation>({
-    queryKey: ["/api/work-stations", response?.workStationId],
-    queryFn: async () => {
-      if (!response?.workStationId) return null;
-      const result = await fetch(`/api/work-stations/${response.workStationId}`);
-      if (!result.ok) return null;
-      return result.json();
-    },
-    enabled: !!response?.workStationId,
+  const { data: workStations = [] } = useQuery<WorkStation[]>({
+    queryKey: ["/api/work-stations"],
   });
 
-  const { data: shift } = useQuery<Shift>({
-    queryKey: ["/api/shifts", response?.shiftId],
-    queryFn: async () => {
-      if (!response?.shiftId) return null;
-      const result = await fetch(`/api/shifts/${response.shiftId}`);
-      if (!result.ok) return null;
-      return result.json();
-    },
-    enabled: !!response?.shiftId,
+  const { data: shifts = [] } = useQuery<Shift[]>({
+    queryKey: ["/api/shifts"],
   });
+
+  // Find the related objects
+  const workTask = workTasks.find(wt => wt.id === response?.workTaskId);
+  const workStation = workStations.find(ws => ws.id === response?.workStationId);
+  const shift = shifts.find(s => s.id === response?.shiftId);
 
   const renderQuestionValue = (question: Question, value: any) => {
     if (question.hideInView) {
