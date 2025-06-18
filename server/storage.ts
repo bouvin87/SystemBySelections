@@ -834,11 +834,9 @@ export class DatabaseStorage implements IStorage {
     limit?: number;
     offset?: number;
   }): Promise<Deviation[]> {
-    let query = db.select().from(deviations).where(eq(deviations.tenantId, tenantId));
-
+    const conditions = [eq(deviations.tenantId, tenantId)];
+    
     if (filters) {
-      const conditions = [eq(deviations.tenantId, tenantId)];
-      
       if (filters.status) {
         conditions.push(eq(deviations.statusId, parseInt(filters.status)));
       }
@@ -866,11 +864,11 @@ export class DatabaseStorage implements IStorage {
           ilike(deviations.description, `%${filters.search}%`)
         ));
       }
-
-      query = db.select().from(deviations).where(and(...conditions));
     }
 
-    query = query.orderBy(desc(deviations.createdAt));
+    let query = db.select().from(deviations)
+      .where(conditions.length > 1 ? and(...conditions) : conditions[0])
+      .orderBy(desc(deviations.createdAt));
 
     if (filters?.limit) {
       query = query.limit(filters.limit);

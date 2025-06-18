@@ -54,14 +54,33 @@ interface DeviationType {
   updatedAt: string;
 }
 
+interface DeviationPriority {
+  id: number;
+  tenantId: number;
+  name: string;
+  color: string;
+  order: number;
+  isActive: boolean;
+}
+
+interface DeviationStatus {
+  id: number;
+  tenantId: number;
+  name: string;
+  color: string;
+  order: number;
+  isActive: boolean;
+  isDefault: boolean;
+}
+
 interface Deviation {
   id: number;
   tenantId: number;
   title: string;
   description?: string;
   deviationTypeId: number;
-  priority: "low" | "medium" | "high" | "critical";
-  status: "new" | "in_progress" | "done";
+  priorityId?: number;
+  statusId?: number;
   assignedToUserId?: number;
   createdByUserId: number;
   dueDate?: string;
@@ -98,31 +117,7 @@ interface DeviationUser {
   lastName?: string;
 }
 
-const priorityColors = {
-  low: "bg-blue-100 text-blue-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-orange-100 text-orange-800",
-  critical: "bg-red-100 text-red-800",
-};
 
-const statusColors = {
-  new: "bg-gray-100 text-gray-800",
-  in_progress: "bg-blue-100 text-blue-800",
-  done: "bg-green-100 text-green-800",
-};
-
-const priorityLabels = {
-  low: "Låg",
-  medium: "Medium",
-  high: "Hög",
-  critical: "Kritisk",
-};
-
-const statusLabels = {
-  new: "Ny",
-  in_progress: "Pågående",
-  done: "Klar",
-};
 
 export default function DeviationsPage() {
   const { toast } = useToast();
@@ -147,6 +142,16 @@ export default function DeviationsPage() {
   // Fetch deviation types
   const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
     queryKey: ["/api/deviations/types"],
+  });
+
+  // Fetch deviation priorities
+  const { data: deviationPriorities = [] } = useQuery<DeviationPriority[]>({
+    queryKey: ["/api/deviations/priorities"],
+  });
+
+  // Fetch deviation statuses
+  const { data: deviationStatuses = [] } = useQuery<DeviationStatus[]>({
+    queryKey: ["/api/deviations/statuses"],
   });
 
   // Fetch work tasks
@@ -317,9 +322,20 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Alla statusar</SelectItem>
-                    <SelectItem value="new">Nya</SelectItem>
-                    <SelectItem value="in_progress">Pågående</SelectItem>
-                    <SelectItem value="done">Klara</SelectItem>
+                    {deviationStatuses
+                      .filter(status => status.isActive)
+                      .sort((a, b) => a.order - b.order)
+                      .map((status) => (
+                      <SelectItem key={status.id} value={status.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: status.color }}
+                          />
+                          {status.name}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -337,10 +353,20 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Alla prioriteter</SelectItem>
-                    <SelectItem value="critical">Kritisk</SelectItem>
-                    <SelectItem value="high">Hög</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Låg</SelectItem>
+                    {deviationPriorities
+                      .filter(priority => priority.isActive)
+                      .sort((a, b) => a.order - b.order)
+                      .map((priority) => (
+                      <SelectItem key={priority.id} value={priority.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: priority.color }}
+                          />
+                          {priority.name}
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -410,6 +436,12 @@ export default function DeviationsPage() {
               const deviationType = deviationTypes.find(
                 (t) => t.id === deviation.deviationTypeId,
               );
+              const priority = deviationPriorities.find(
+                (p) => p.id === deviation.priorityId,
+              );
+              const status = deviationStatuses.find(
+                (s) => s.id === deviation.statusId,
+              );
               return (
                 <Card
                   key={deviation.id}
@@ -427,12 +459,16 @@ export default function DeviationsPage() {
                             />
                           )}
                           <h3 className="font-semibold">{deviation.title}</h3>
-                          <Badge className={priorityColors[deviation.priority]}>
-                            {priorityLabels[deviation.priority]}
-                          </Badge>
-                          <Badge className={statusColors[deviation.status]}>
-                            {statusLabels[deviation.status]}
-                          </Badge>
+                          {priority && (
+                            <Badge style={{ backgroundColor: priority.color, color: 'white' }}>
+                              {priority.name}
+                            </Badge>
+                          )}
+                          {status && (
+                            <Badge style={{ backgroundColor: status.color, color: 'white' }}>
+                              {status.name}
+                            </Badge>
+                          )}
                         </div>
 
                         {deviation.description && (
@@ -486,12 +522,28 @@ export default function DeviationsPage() {
 
               <div className="space-y-4">
                 <div className="flex gap-2">
-                  <Badge className={priorityColors[selectedDeviation.priority]}>
-                    {priorityLabels[selectedDeviation.priority]}
-                  </Badge>
-                  <Badge className={statusColors[selectedDeviation.status]}>
-                    {statusLabels[selectedDeviation.status]}
-                  </Badge>
+                  {(() => {
+                    const priority = deviationPriorities.find(
+                      (p) => p.id === selectedDeviation.priorityId,
+                    );
+                    const status = deviationStatuses.find(
+                      (s) => s.id === selectedDeviation.statusId,
+                    );
+                    return (
+                      <>
+                        {priority && (
+                          <Badge style={{ backgroundColor: priority.color, color: 'white' }}>
+                            {priority.name}
+                          </Badge>
+                        )}
+                        {status && (
+                          <Badge style={{ backgroundColor: status.color, color: 'white' }}>
+                            {status.name}
+                          </Badge>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {selectedDeviation.description && (
