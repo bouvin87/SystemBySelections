@@ -106,7 +106,7 @@ export default function ChecklistEditor() {
       const result = await apiRequest("GET", `/api/questions/${editingQuestion.id}/work-tasks`);
       return await result.json();
     },
-    enabled: !!editingQuestion?.id,
+    enabled: !!editingQuestion?.id && questionDialogOpen,
   });
 
   // Mutations
@@ -224,6 +224,11 @@ export default function ChecklistEditor() {
     setSelectedCategory(categoryId || null);
     setSelectedQuestionType(question?.type || "text");
     setQuestionDialogOpen(true);
+    
+    // Invalidate the work tasks query to refresh when opening dialog
+    if (question?.id) {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions", question.id, "work-tasks"] });
+    }
   };
 
   const handleSubmit = (endpoint: string, data: any) => {
@@ -690,17 +695,18 @@ export default function ChecklistEditor() {
                           {workTasks.map((workTask) => {
                             const isSelected = questionWorkTasks.some((qwt: QuestionWorkTask) => qwt.workTaskId === workTask.id);
                             return (
-                              <div key={workTask.id} className="flex items-center space-x-2">
+                              <div key={`${workTask.id}-${editingQuestion?.id || 'new'}`} className="flex items-center space-x-2">
                                 <input
                                   type="checkbox"
-                                  id={`workTask-${workTask.id}`}
+                                  id={`workTask-${workTask.id}-${editingQuestion?.id || 'new'}`}
                                   name="workTasks"
                                   value={workTask.id}
                                   defaultChecked={isSelected}
+                                  key={`checkbox-${workTask.id}-${editingQuestion?.id}-${isSelected}`}
                                   className="rounded border border-input"
                                 />
                                 <label 
-                                  htmlFor={`workTask-${workTask.id}`}
+                                  htmlFor={`workTask-${workTask.id}-${editingQuestion?.id || 'new'}`}
                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
                                   {workTask.name}
