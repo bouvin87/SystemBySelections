@@ -128,37 +128,7 @@ export interface IStorage {
   createQuestionWorkTask(questionWorkTask: InsertQuestionWorkTask): Promise<QuestionWorkTask>;
   deleteQuestionWorkTask(questionId: number, workTaskId: number, tenantId: number): Promise<void>;
 
-  // Action Items (tenant-scoped)
-  getActionItems(tenantId: number, filters?: {
-    status?: string;
-    priority?: string;
-    assignedToUserId?: number;
-    createdByUserId?: number;
-    workTaskId?: number;
-    locationId?: number;
-    search?: string;
-    limit?: number;
-    offset?: number;
-  }): Promise<ActionItem[]>;
-  getActionItem(id: number, tenantId: number): Promise<ActionItem | undefined>;
-  createActionItem(actionItem: InsertActionItem): Promise<ActionItem>;
-  updateActionItem(id: number, actionItem: Partial<InsertActionItem>, tenantId: number): Promise<ActionItem>;
-  deleteActionItem(id: number, tenantId: number): Promise<void>;
 
-  // Action Comments (tenant-scoped via action item)
-  getActionComments(actionItemId: number, tenantId: number): Promise<ActionComment[]>;
-  createActionComment(comment: InsertActionComment): Promise<ActionComment>;
-  deleteActionComment(id: number, tenantId: number): Promise<void>;
-
-  // Action Statistics
-  getActionStats(tenantId: number): Promise<{
-    total: number;
-    new: number;
-    inProgress: number;
-    done: number;
-    overdue: number;
-    highPriority: number;
-  }>;
 
   // Admin Settings (tenant-scoped)
   getAdminSettings(tenantId: number): Promise<AdminSetting[]>;
@@ -734,6 +704,221 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // === DEVIATIONS MODULE IMPLEMENTATION ===
+  
+  async getDeviationTypes(tenantId: number): Promise<DeviationType[]> {
+    return await db.select().from(deviationTypes).where(eq(deviationTypes.tenantId, tenantId));
+  }
+
+  async getDeviationType(id: number, tenantId: number): Promise<DeviationType | undefined> {
+    const result = await db.select().from(deviationTypes)
+      .where(and(eq(deviationTypes.id, id), eq(deviationTypes.tenantId, tenantId)))
+      .limit(1);
+    return result[0];
+  }
+
+  async createDeviationType(deviationType: InsertDeviationType): Promise<DeviationType> {
+    const result = await db.insert(deviationTypes).values(deviationType).returning();
+    return result[0];
+  }
+
+  async updateDeviationType(id: number, deviationType: Partial<InsertDeviationType>, tenantId: number): Promise<DeviationType> {
+    const result = await db.update(deviationTypes)
+      .set({ ...deviationType, updatedAt: new Date().toISOString() })
+      .where(and(eq(deviationTypes.id, id), eq(deviationTypes.tenantId, tenantId)))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Deviation type not found');
+    }
+    return result[0];
+  }
+
+  async deleteDeviationType(id: number, tenantId: number): Promise<void> {
+    const result = await db.delete(deviationTypes)
+      .where(and(eq(deviationTypes.id, id), eq(deviationTypes.tenantId, tenantId)))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Deviation type not found');
+    }
+  }
+
+  async getDeviations(tenantId: number, filters?: {
+    status?: string;
+    priority?: string;
+    assignedToUserId?: number;
+    createdByUserId?: number;
+    workTaskId?: number;
+    locationId?: number;
+    deviationTypeId?: number;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Deviation[]> {
+    let query = db.select().from(deviations).where(eq(deviations.tenantId, tenantId));
+
+    if (filters) {
+      const conditions = [eq(deviations.tenantId, tenantId)];
+      
+      if (filters.status) {
+        conditions.push(eq(deviations.status, filters.status as any));
+      }
+      if (filters.priority) {
+        conditions.push(eq(deviations.priority, filters.priority as any));
+      }
+      if (filters.assignedToUserId) {
+        conditions.push(eq(deviations.assignedToUserId, filters.assignedToUserId));
+      }
+      if (filters.createdByUserId) {
+        conditions.push(eq(deviations.createdByUserId, filters.createdByUserId));
+      }
+      if (filters.workTaskId) {
+        conditions.push(eq(deviations.workTaskId, filters.workTaskId));
+      }
+      if (filters.locationId) {
+        conditions.push(eq(deviations.locationId, filters.locationId));
+      }
+      if (filters.deviationTypeId) {
+        conditions.push(eq(deviations.deviationTypeId, filters.deviationTypeId));
+      }
+      if (filters.search) {
+        conditions.push(or(
+          ilike(deviations.title, `%${filters.search}%`),
+          ilike(deviations.description, `%${filters.search}%`)
+        ));
+      }
+
+      query = db.select().from(deviations).where(and(...conditions));
+    }
+
+    query = query.orderBy(desc(deviations.createdAt));
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+    if (filters?.offset) {
+      query = query.offset(filters.offset);
+    }
+
+    return await query;
+  }
+
+  async getDeviation(id: number, tenantId: number): Promise<Deviation | undefined> {
+    const result = await db.select().from(deviations)
+      .where(and(eq(deviations.id, id), eq(deviations.tenantId, tenantId)))
+      .limit(1);
+    return result[0];
+  }
+
+  async createDeviation(deviation: InsertDeviation): Promise<Deviation> {
+    const result = await db.insert(deviations).values(deviation).returning();
+    return result[0];
+  }
+
+  async updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number): Promise<Deviation> {
+    const result = await db.update(deviations)
+      .set({ ...deviation, updatedAt: new Date().toISOString() })
+      .where(and(eq(deviations.id, id), eq(deviations.tenantId, tenantId)))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Deviation not found');
+    }
+    return result[0];
+  }
+
+  async deleteDeviation(id: number, tenantId: number): Promise<void> {
+    const result = await db.delete(deviations)
+      .where(and(eq(deviations.id, id), eq(deviations.tenantId, tenantId)))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Deviation not found');
+    }
+  }
+
+  async getDeviationComments(deviationId: number, tenantId: number): Promise<DeviationComment[]> {
+    // First verify deviation exists and belongs to tenant
+    const deviation = await this.getDeviation(deviationId, tenantId);
+    if (!deviation) {
+      throw new Error('Deviation not found');
+    }
+
+    return await db.select().from(deviationComments)
+      .where(eq(deviationComments.deviationId, deviationId))
+      .orderBy(desc(deviationComments.createdAt));
+  }
+
+  async createDeviationComment(comment: InsertDeviationComment): Promise<DeviationComment> {
+    const result = await db.insert(deviationComments).values(comment).returning();
+    return result[0];
+  }
+
+  async deleteDeviationComment(id: number, tenantId: number): Promise<void> {
+    // First get the comment to verify it exists and get the deviation ID
+    const comment = await db.select().from(deviationComments)
+      .where(eq(deviationComments.id, id))
+      .limit(1);
+    
+    if (comment.length === 0) {
+      throw new Error('Comment not found');
+    }
+
+    // Verify the deviation belongs to the tenant
+    const deviation = await this.getDeviation(comment[0].deviationId, tenantId);
+    if (!deviation) {
+      throw new Error('Deviation not found');
+    }
+
+    await db.delete(deviationComments).where(eq(deviationComments.id, id));
+  }
+
+  async getDeviationStats(tenantId: number): Promise<{
+    total: number;
+    new: number;
+    inProgress: number;
+    done: number;
+    overdue: number;
+    highPriority: number;
+  }> {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const [totalResult] = await db.select({ count: count() }).from(deviations)
+      .where(eq(deviations.tenantId, tenantId));
+    
+    const [newResult] = await db.select({ count: count() }).from(deviations)
+      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.status, 'new')));
+    
+    const [inProgressResult] = await db.select({ count: count() }).from(deviations)
+      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.status, 'in_progress')));
+    
+    const [doneResult] = await db.select({ count: count() }).from(deviations)
+      .where(and(eq(deviations.tenantId, tenantId), eq(deviations.status, 'done')));
+    
+    const [overdueResult] = await db.select({ count: count() }).from(deviations)
+      .where(and(
+        eq(deviations.tenantId, tenantId),
+        ne(deviations.status, 'done'),
+        isNotNull(deviations.dueDate),
+        lt(deviations.dueDate, today)
+      ));
+    
+    const [highPriorityResult] = await db.select({ count: count() }).from(deviations)
+      .where(and(
+        eq(deviations.tenantId, tenantId),
+        or(eq(deviations.priority, 'high'), eq(deviations.priority, 'critical'))
+      ));
+
+    return {
+      total: totalResult.count,
+      new: newResult.count,
+      inProgress: inProgressResult.count,
+      done: doneResult.count,
+      overdue: overdueResult.count,
+      highPriority: highPriorityResult.count,
+    };
+  }
 
 }
 
