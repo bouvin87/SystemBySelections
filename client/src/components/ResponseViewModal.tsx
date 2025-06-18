@@ -131,6 +131,7 @@ export default function ResponseViewModal({ isOpen, onClose, responseId }: Respo
   // Debug logging
   console.log('Modal state:', { 
     response: !!response, 
+    responseData: response,
     responseLoading,
     responseError,
     categories: categories.length, 
