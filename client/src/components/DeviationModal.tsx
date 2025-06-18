@@ -38,6 +38,25 @@ interface DeviationUser {
   isActive: boolean;
 }
 
+interface DeviationPriority {
+  id: number;
+  tenantId: number;
+  name: string;
+  color: string;
+  order: number;
+  isActive: boolean;
+}
+
+interface DeviationStatus {
+  id: number;
+  tenantId: number;
+  name: string;
+  color: string;
+  description?: string;
+  order: number;
+  isActive: boolean;
+}
+
 interface DeviationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -112,7 +131,8 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priority: formData.get("priority"),
+      priorityId: formData.get("priorityId") ? parseInt(formData.get("priorityId") as string) : undefined,
+      statusId: formData.get("statusId") ? parseInt(formData.get("statusId") as string) : undefined,
       assignedToUserId: formData.get("assignedToUserId") ? parseInt(formData.get("assignedToUserId") as string) : undefined,
       workTaskId: formData.get("workTaskId") ? parseInt(formData.get("workTaskId") as string) : undefined,
       locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
@@ -166,16 +186,51 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
             </div>
             
             <div>
-              <Label htmlFor="priority">Prioritet</Label>
-              <Select name="priority" defaultValue="medium">
+              <Label htmlFor="priorityId">Prioritet</Label>
+              <Select name="priorityId">
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Välj prioritet" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Låg</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">Hög</SelectItem>
-                  <SelectItem value="critical">Kritisk</SelectItem>
+                  {deviationPriorities
+                    .filter(priority => priority.isActive)
+                    .sort((a, b) => a.order - b.order)
+                    .map((priority) => (
+                    <SelectItem key={priority.id} value={priority.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: priority.color }}
+                        />
+                        {priority.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="statusId">Status</Label>
+              <Select name="statusId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {deviationStatuses
+                    .filter(status => status.isActive)
+                    .sort((a, b) => a.order - b.order)
+                    .map((status) => (
+                    <SelectItem key={status.id} value={status.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: status.color }}
+                        />
+                        {status.name}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
