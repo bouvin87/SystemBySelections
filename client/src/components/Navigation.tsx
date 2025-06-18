@@ -232,7 +232,7 @@ export default function Navigation() {
 
   return (
     <>
-      <nav className="bg-primary text-white shadow-lg sticky top-0 z-50">
+      <nav className="bg-blue-700 text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto">
           {/* Mobile-first header */}
           <div className="flex justify-between items-center h-16 px-4">
@@ -306,7 +306,7 @@ export default function Navigation() {
 
           {/* Mobile slide-down menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden border-t bg-slate-800 border-slate-800">
+            <div className="lg:hidden border-t bg-blue-600 border-blue-600">
               <div className="px-4 py-3 space-y-1">
                 {/* Navigation links */}
                 <div className="space-y-1 mb-4">

@@ -73,7 +73,22 @@
     "latestResponses": "Senaste svar",
     "noResponsesYet": "Inga svar ännu",
     "positiveAnswers": "{{positive}} av {{total}} svar",
-    "averageFromAnswers": "Medelvärde av {{count}} svar"
+    "averageFromAnswers": "Medelvärde av {{count}} svar",
+    "responsesSinceStart": "Svar sedan start",
+    "recentActivity": "Senaste aktivitet",
+    "responsesToday": "Svar idag",
+    "questionMetrics": "Frågemetrik",
+    "questionsTracked": "Frågor spårade",
+    "overview": "Översikt",
+    "responseHistory": "Svarshistorik",
+    "quickSummary": "Snabbsammanfattning",
+    "questionsWithData": "Frågor med data",
+    "checklistStatus": "Checklistans status",
+    "latestActivity": "Senaste aktivitet",
+    "noRecentActivity": "Ingen senaste aktivitet",
+    "noQuestionsForDashboard": "Inga frågor för dashboard",
+    "noQuestionsDescription": "Inga frågor är konfigurerade för att visas i dashboarden.",
+    "allResponses": "Alla svar"
   },
   "navigation": {
     "dashboard": "Dashboard",
