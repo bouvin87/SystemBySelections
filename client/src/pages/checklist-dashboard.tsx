@@ -429,33 +429,24 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                               </div>
                             </td>
                             <td className="py-4 px-4">
-                              <div className="space-y-1">
+                              <div className="flex flex-wrap gap-1">
                                 {response.workTaskId && (
-                                  <div className="text-sm">
-                                    <span className="text-gray-600">Arbetsmoment:</span>
-                                    <span className="ml-1 font-medium">
-                                      {workTasks.find(wt => wt.id === response.workTaskId)?.name || `ID: ${response.workTaskId}`}
-                                    </span>
-                                  </div>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                    {workTasks.find(wt => wt.id === response.workTaskId)?.name || `ID: ${response.workTaskId}`}
+                                  </span>
                                 )}
                                 {response.workStationId && (
-                                  <div className="text-sm">
-                                    <span className="text-gray-600">Station:</span>
-                                    <span className="ml-1 font-medium">
-                                      {workStations.find(ws => ws.id === response.workStationId)?.name || `ID: ${response.workStationId}`}
-                                    </span>
-                                  </div>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                                    {workStations.find(ws => ws.id === response.workStationId)?.name || `ID: ${response.workStationId}`}
+                                  </span>
                                 )}
                                 {response.shiftId && (
-                                  <div className="text-sm">
-                                    <span className="text-gray-600">Skift:</span>
-                                    <span className="ml-1 font-medium">
-                                      {shifts.find(s => s.id === response.shiftId)?.name || `ID: ${response.shiftId}`}
-                                    </span>
-                                  </div>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
+                                    {shifts.find(s => s.id === response.shiftId)?.name || `ID: ${response.shiftId}`}
+                                  </span>
                                 )}
                                 {!response.workTaskId && !response.workStationId && !response.shiftId && (
-                                  <div className="text-sm text-gray-400">Inga detaljer tillgängliga</div>
+                                  <span className="text-xs text-gray-400">Inga detaljer</span>
                                 )}
                               </div>
                             </td>
