@@ -120,6 +120,16 @@ export default function Actions() {
 
   const { data: users = [] } = useQuery<ActionUser[]>({
     queryKey: ["/api/users"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/users");
+        return response.json();
+      } catch (error) {
+        // If no access to users endpoint, return empty array
+        console.warn("No access to users endpoint:", error);
+        return [];
+      }
+    },
   });
 
   // Create action mutation
@@ -414,7 +424,7 @@ export default function Actions() {
                     <SelectValue placeholder="Alla prioriteter" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alla prioriteter</SelectItem>
+                    <SelectItem value="all">Alla prioriteter</SelectItem>
                     <SelectItem value="critical">Kritisk</SelectItem>
                     <SelectItem value="high">Hög</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
@@ -430,7 +440,7 @@ export default function Actions() {
                     <SelectValue placeholder="Alla användare" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alla användare</SelectItem>
+                    <SelectItem value="all">Alla användare</SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.firstName} {user.lastName} ({user.email})
@@ -447,7 +457,7 @@ export default function Actions() {
                     <SelectValue placeholder="Alla arbetsmoment" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alla arbetsmoment</SelectItem>
+                    <SelectItem value="all">Alla arbetsmoment</SelectItem>
                     {workTasks.map((task) => (
                       <SelectItem key={task.id} value={task.id.toString()}>
                         {task.name}
