@@ -91,6 +91,22 @@ export default function ChecklistEditor() {
     enabled: categories.length > 0,
   });
 
+  // Fetch work tasks for the work task selector
+  const { data: workTasks = [] } = useQuery<WorkTask[]>({
+    queryKey: ["/api/work-tasks"],
+  });
+
+  // Fetch work task associations for current question
+  const { data: questionWorkTasks = [] } = useQuery({
+    queryKey: ["/api/questions", editingQuestion?.id, "work-tasks"],
+    queryFn: async () => {
+      if (!editingQuestion?.id) return [];
+      const result = await apiRequest("GET", `/api/questions/${editingQuestion.id}/work-tasks`);
+      return await result.json();
+    },
+    enabled: !!editingQuestion?.id,
+  });
+
   // Mutations
   const createMutation = useMutation({
     mutationFn: async ({ endpoint, data }: { endpoint: string; data: any }) => {
@@ -216,11 +232,51 @@ export default function ChecklistEditor() {
     }
   };
 
-  const handleQuestionSubmit = (endpoint: string, data: any) => {
-    if (editingQuestion) {
-      updateMutation.mutate({ endpoint, id: editingQuestion.id, data });
-    } else {
-      createMutation.mutate({ endpoint, data });
+  const handleQuestionSubmit = async (endpoint: string, data: any, selectedWorkTasks?: number[]) => {
+    try {
+      if (editingQuestion) {
+        // Update existing question
+        const response = await apiRequest("PATCH", `${endpoint}/${editingQuestion.id}`, data);
+        
+        // Update work task associations if provided
+        if (selectedWorkTasks !== undefined) {
+          await apiRequest("POST", `/api/questions/${editingQuestion.id}/work-tasks`, {
+            workTaskIds: selectedWorkTasks
+          });
+        }
+        
+        // Invalidate queries
+        queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+        
+      } else {
+        // Create new question
+        const response = await apiRequest("POST", endpoint, data);
+        const newQuestion = await response.json();
+        
+        // Add work task associations if provided
+        if (selectedWorkTasks && selectedWorkTasks.length > 0) {
+          await apiRequest("POST", `/api/questions/${newQuestion.id}/work-tasks`, {
+            workTaskIds: selectedWorkTasks
+          });
+        }
+        
+        // Invalidate queries
+        queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      }
+      
+      setQuestionDialogOpen(false);
+      setEditingQuestion(null);
+      toast({ title: "Sparat!", description: "Frågan har sparats." });
+      
+    } catch (error) {
+      console.error("Error saving question:", error);
+      toast({
+        title: "Fel",
+        description: "Kunde inte spara frågan.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -616,6 +672,43 @@ export default function ChecklistEditor() {
                       )}
                     </div>
                   )}
+                  
+                  {/* Work Task Selection */}
+                  <div>
+                    <Label>Tillgänglig för arbetsmoment</Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Välj vilka arbetsmoment denna fråga ska visas för. Om inget väljs visas frågan för alla arbetsmoment.
+                    </p>
+                    <div className="border rounded-md p-3 max-h-40 overflow-y-auto">
+                      {workTasks.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Inga arbetsmoment tillgängliga</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {workTasks.map((workTask) => {
+                            const isSelected = questionWorkTasks.some((qwt: QuestionWorkTask) => qwt.workTaskId === workTask.id);
+                            return (
+                              <div key={workTask.id} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`workTask-${workTask.id}`}
+                                  name="workTasks"
+                                  value={workTask.id}
+                                  defaultChecked={isSelected}
+                                  className="rounded border border-input"
+                                />
+                                <label 
+                                  htmlFor={`workTask-${workTask.id}`}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  {workTask.name}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   
                   <Button type="submit" className="w-full">
                     <Save className="mr-2 h-4 w-4" />
