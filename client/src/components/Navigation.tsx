@@ -19,6 +19,7 @@ import {
   ChevronUp,
   Building,
   HelpCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -227,7 +228,12 @@ export default function Navigation() {
     },
   });
 
-  const navItems = [{ href: "/dashboard", label: "Dashboard" }];
+  // Build navigation items based on user access
+  const navItems = [
+    { href: "/", label: "Dashboard" },
+    ...(hasChecklistsModule ? [{ href: "/checklists", label: "Checklistor" }] : []),
+    ...(authData?.tenant?.modules?.includes('actions') ? [{ href: "/actions", label: "Åtgärder" }] : []),
+  ];
 
   const openModal = (checklistId: number) => {
     console.log("Opening modal for checklist:", checklistId);
