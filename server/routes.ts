@@ -633,6 +633,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single response by ID
+  app.get('/api/responses/:id', authenticateToken, requireModule('checklists'), async (req: AuthenticatedRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const response = await storage.getChecklistResponse(id, req.tenantId!);
+      if (!response) {
+        return res.status(404).json({ message: "Response not found" });
+      }
+      res.json(response);
+    } catch (error) {
+      console.error('Get response error:', error);
+      res.status(500).json({ message: "Failed to fetch response" });
+    }
+  });
+
   app.post('/api/responses', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {
       const { tenantId, ...validatedData } = insertChecklistResponseSchema.parse({
