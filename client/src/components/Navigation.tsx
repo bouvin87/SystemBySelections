@@ -230,8 +230,8 @@ export default function Navigation() {
 
   // Build navigation items based on user access
   const navItems = [
-    { href: "/", label: "Dashboard" },
-    ...(hasChecklistsModule ? [{ href: "/checklists", label: "Checklistor" }] : []),
+    { href: "/", label: "Hem" },
+    ...(hasChecklistsModule ? [{ href: "/dashboard", label: "Checklistor" }] : []),
     ...(authData?.tenant?.modules?.includes('deviations') ? [{ href: "/deviations", label: "Avvikelser" }] : []),
   ];
 
