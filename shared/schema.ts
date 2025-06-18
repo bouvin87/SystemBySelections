@@ -245,72 +245,81 @@ export const actionComments = pgTable("action_comments", {
 });
 
 // Relations for Action Items
-export const actionItemsRelations = relations(actionItems, ({ one, many }) => ({
+export const deviationTypesRelations = relations(deviationTypes, ({ one, many }) => ({
   tenant: one(tenants, {
-    fields: [actionItems.tenantId],
+    fields: [deviationTypes.tenantId],
     references: [tenants.id],
   }),
+  deviations: many(deviations),
+}));
+
+export const deviationsRelations = relations(deviations, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [deviations.tenantId],
+    references: [tenants.id],
+  }),
+  deviationType: one(deviationTypes, {
+    fields: [deviations.deviationTypeId],
+    references: [deviationTypes.id],
+  }),
   createdBy: one(users, {
-    fields: [actionItems.createdByUserId],
+    fields: [deviations.createdByUserId],
     references: [users.id],
-    relationName: "actionItemCreatedBy",
+    relationName: "deviationCreatedBy",
   }),
   assignedTo: one(users, {
-    fields: [actionItems.assignedToUserId],
+    fields: [deviations.assignedToUserId],
     references: [users.id],
-    relationName: "actionItemAssignedTo",
-  }),
-  checklistResponse: one(checklistResponses, {
-    fields: [actionItems.checklistResponseId],
-    references: [checklistResponses.id],
-  }),
-  question: one(questions, {
-    fields: [actionItems.questionId],
-    references: [questions.id],
+    relationName: "deviationAssignedTo",
   }),
   location: one(workStations, {
-    fields: [actionItems.locationId],
+    fields: [deviations.locationId],
     references: [workStations.id],
   }),
   workTask: one(workTasks, {
-    fields: [actionItems.workTaskId],
+    fields: [deviations.workTaskId],
     references: [workTasks.id],
   }),
-  comments: many(actionComments),
+  comments: many(deviationComments),
 }));
 
-export const actionCommentsRelations = relations(actionComments, ({ one }) => ({
-  actionItem: one(actionItems, {
-    fields: [actionComments.actionItemId],
-    references: [actionItems.id],
+export const deviationCommentsRelations = relations(deviationComments, ({ one }) => ({
+  deviation: one(deviations, {
+    fields: [deviationComments.deviationId],
+    references: [deviations.id],
   }),
   user: one(users, {
-    fields: [actionComments.userId],
+    fields: [deviationComments.userId],
     references: [users.id],
   }),
 }));
 
-// Schemas for Action Items
-export const insertActionItemSchema = createInsertSchema(actionItems).omit({
+// Deviation types
+export type DeviationType = typeof deviationTypes.$inferSelect;
+export type InsertDeviationType = z.infer<typeof insertDeviationTypeSchema>;
+export type Deviation = typeof deviations.$inferSelect;
+export type InsertDeviation = z.infer<typeof insertDeviationSchema>;
+export type DeviationComment = typeof deviationComments.$inferSelect;
+export type InsertDeviationComment = z.infer<typeof insertDeviationCommentSchema>;
+
+// Deviation schemas
+export const insertDeviationTypeSchema = createInsertSchema(deviationTypes).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const selectActionItemSchema = createInsertSchema(actionItems);
+export const insertDeviationSchema = createInsertSchema(deviations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
 
-export const insertActionCommentSchema = createInsertSchema(actionComments).omit({
+export const insertDeviationCommentSchema = createInsertSchema(deviationComments).omit({
   id: true,
   createdAt: true,
 });
-
-export const selectActionCommentSchema = createInsertSchema(actionComments);
-
-// Types for Action Items
-export type ActionItem = typeof actionItems.$inferSelect;
-export type InsertActionItem = z.infer<typeof insertActionItemSchema>;
-export type ActionComment = typeof actionComments.$inferSelect;
-export type InsertActionComment = z.infer<typeof insertActionCommentSchema>;
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;
