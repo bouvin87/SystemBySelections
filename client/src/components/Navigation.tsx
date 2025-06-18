@@ -53,7 +53,7 @@ function MobileUserSection({
     retry: false,
   }).data;
 
-  const tenant = authData?.tenant;
+  const tenant = authData?.tenant || { name: 'System by Selection' };
 
   const displayName =
     (user as any).firstName && (user as any).lastName

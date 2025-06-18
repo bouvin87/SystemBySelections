@@ -14,7 +14,12 @@ import {
   validateTenantOwnership, 
   enforceTenantIsolation 
 } from "../../middleware/auth";
-import type { AuthenticatedRequest } from "../../middleware/auth";
+// Define AuthenticatedRequest type locally
+interface AuthenticatedRequest extends Request {
+  user?: any;
+  tenantId?: number;
+  tenant?: any;
+}
 import { insertDeviationTypeSchema, insertDeviationSchema, insertDeviationCommentSchema } from "@shared/schema";
 
 export default function deviationRoutes(app: Express) {
