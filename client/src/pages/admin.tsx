@@ -1417,7 +1417,8 @@ export default function Admin() {
                               
                               if (editingItem) {
                                 updateMutation.mutate({
-                                  endpoint: `/api/deviations/types/${editingItem.id}`,
+                                  endpoint: "/api/deviations/types",
+                                  id: editingItem.id,
                                   data,
                                 });
                               } else {
@@ -1478,7 +1479,7 @@ export default function Admin() {
                     </div>
 
                     <div className="grid gap-4">
-                      {deviationTypes.map((type) => (
+                      {deviationTypes.map((type: any) => (
                         <Card key={type.id}>
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
