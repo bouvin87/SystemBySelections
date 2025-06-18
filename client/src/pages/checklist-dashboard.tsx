@@ -10,8 +10,9 @@ import DashboardQuestionCard from "@/components/DashboardQuestionCard";
 import ResponseViewModal from "@/components/ResponseViewModal";
 import { Link } from "wouter";
 import { ArrowLeft, Filter, Search, Calendar, Eye, Activity, BarChart3 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
+import { useLocation } from "wouter";
 import type { ChecklistResponse, Checklist, WorkTask, WorkStation, Shift, Question } from "@shared/schema";
 
 interface DashboardStats {
@@ -23,18 +24,77 @@ interface ChecklistDashboardProps {
   checklistId: string;
 }
 
+// Utility function to parse relative dates
+function parseRelativeDate(dateStr: string): string {
+  if (!dateStr) return "";
+  
+  const today = new Date();
+  
+  if (dateStr === "t") {
+    // Today
+    return today.toISOString().split('T')[0];
+  } else if (dateStr.startsWith("t-")) {
+    // Days ago
+    const daysAgo = parseInt(dateStr.substring(2));
+    if (!isNaN(daysAgo)) {
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() - daysAgo);
+      return targetDate.toISOString().split('T')[0];
+    }
+  } else if (dateStr.startsWith("t+")) {
+    // Days ahead
+    const daysAhead = parseInt(dateStr.substring(2));
+    if (!isNaN(daysAhead)) {
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() + daysAhead);
+      return targetDate.toISOString().split('T')[0];
+    }
+  }
+  
+  // Return as-is if it's already a date or invalid format
+  return dateStr;
+}
+
+// Utility function to parse URL search params and set filters
+function parseUrlFilters(search: string) {
+  const params = new URLSearchParams(search);
+  return {
+    workTaskId: params.get('workTaskId') || "all",
+    workStationId: params.get('workStationId') || "all",
+    shiftId: params.get('shiftId') || "all",
+    startDate: parseRelativeDate(params.get('startDate') || ""),
+    endDate: parseRelativeDate(params.get('endDate') || ""),
+    search: params.get('search') || "",
+  };
+}
+
+// Utility function to update URL with current filters
+function updateUrlWithFilters(filters: any, checklistId: string) {
+  const params = new URLSearchParams();
+  
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value && typeof value === 'string' && value.trim() !== '' && value !== 'all') {
+      params.set(key, value as string);
+    }
+  });
+  
+  const queryString = params.toString();
+  const basePath = `/checklist/${checklistId}/dashboard`;
+  const newPath = queryString ? `${basePath}?${queryString}` : basePath;
+  
+  // Update URL without navigation
+  window.history.replaceState({}, '', newPath);
+}
+
 export default function ChecklistDashboard({ checklistId }: ChecklistDashboardProps) {
   const { t } = useTranslation();
+  const [location] = useLocation();
   const id = parseInt(checklistId);
   
-  // Filter state
-  const [filters, setFilters] = useState({
-    workTaskId: "all",
-    workStationId: "all",
-    shiftId: "all",
-    startDate: "",
-    endDate: "",
-    search: "",
+  // Initialize filters from URL parameters
+  const [filters, setFilters] = useState(() => {
+    const urlParams = new URL(window.location.href).search;
+    return parseUrlFilters(urlParams);
   });
 
   // Response view modal state
@@ -42,6 +102,22 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
   const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
 
   const [showFilters, setShowFilters] = useState(false);
+
+  // Update URL when filters change
+  useEffect(() => {
+    updateUrlWithFilters(filters, checklistId);
+  }, [filters, checklistId]);
+
+  // Update filters when URL changes (browser back/forward)
+  useEffect(() => {
+    const urlParams = new URL(window.location.href).search;
+    const urlFilters = parseUrlFilters(urlParams);
+    
+    // Only update if filters are different to avoid infinite loops
+    if (JSON.stringify(urlFilters) !== JSON.stringify(filters)) {
+      setFilters(urlFilters);
+    }
+  }, [location]);
 
   const { data: checklist } = useQuery<Checklist>({
     queryKey: [`/api/checklists/${id}`],
@@ -197,18 +273,28 @@ export default function ChecklistDashboard({ checklistId }: ChecklistDashboardPr
                       {t('dashboard.dateRange')}
                     </Label>
                     <div className="space-y-2">
-                      <Input
-                        type="date"
-                        value={filters.startDate}
-                        onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
-                        placeholder={t('dashboard.fromDate')}
-                      />
-                      <Input
-                        type="date"
-                        value={filters.endDate}
-                        onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
-                        placeholder={t('dashboard.toDate')}
-                      />
+                      <div>
+                        <Input
+                          type="date"
+                          value={filters.startDate}
+                          onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                          placeholder={t('dashboard.fromDate')}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Använd 't' för idag, 't-1' för igår, 't-7' för en vecka sedan
+                        </p>
+                      </div>
+                      <div>
+                        <Input
+                          type="date"
+                          value={filters.endDate}
+                          onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                          placeholder={t('dashboard.toDate')}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Använd 't' för idag, 't-1' för igår, 't+1' för imorgon
+                        </p>
+                      </div>
                     </div>
                   </div>
 
