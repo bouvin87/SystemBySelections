@@ -1,5 +1,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   LineChart,
   Line,
@@ -156,25 +158,36 @@ export default function DashboardQuestionCard({
     };
 
     return (
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-sm font-medium leading-none">{question.text}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">Medelvärde</Badge>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {renderAverageDisplay()}
-
-          <p className="text-xs text-muted-foreground mt-3 text-center">
-            {question.type === "ja_nej" || (question.type as string) === "check" 
-              ? t('dashboard.positiveAnswers', { 
-                  positive: values.filter(v => v === true).length, 
-                  total: values.length 
-                })
-              : t('dashboard.averageFromAnswers', { count: values.length })
-            }
-          </p>
+          
+          <Separator />
+          
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              {question.type === "ja_nej" || (question.type as string) === "check" 
+                ? t('dashboard.positiveAnswers', { 
+                    positive: values.filter(v => v === true).length, 
+                    total: values.length 
+                  })
+                : t('dashboard.averageFromAnswers', { count: values.length })
+              }
+            </span>
+            <Badge variant="outline" className="text-xs">
+              {question.type === "ja_nej" ? "Ja/Nej" : 
+               question.type === "stjärnor" ? "Stjärnor" :
+               question.type === "humör" ? "Humör" : "Nummer"}
+            </Badge>
+          </div>
         </CardContent>
-
       </Card>
     );
   };
@@ -214,12 +227,15 @@ export default function DashboardQuestionCard({
     if (chartData.length === 0) return null;
 
     return (
-      <Card className="col-span-2">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
-          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+      <Card className="col-span-2 hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-sm font-medium leading-none">{question.text}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">Trendgraf</Badge>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="h-[108px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 5, left: -45, bottom: -10 }}>
@@ -257,6 +273,15 @@ export default function DashboardQuestionCard({
                 />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+          
+          <Separator />
+          
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Senaste 7 dagarna</span>
+            <Badge variant="outline" className="text-xs">
+              {chartData.length} datapunkter
+            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -334,12 +359,15 @@ export default function DashboardQuestionCard({
     };
 
     return (
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
-          <Target className="h-4 w-4 text-muted-foreground" />
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-sm font-medium leading-none">{question.text}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">Progress</Badge>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -348,14 +376,22 @@ export default function DashboardQuestionCard({
                 </span>
                 {renderVisualIndicator()}
               </div>
-              <span className="text-sm font-medium">
+              <Badge variant="outline" className="text-xs">
                 {question.type === "ja_nej" ? `${average.toFixed(1)}%` : `${average.toFixed(1)} / ${maxValue}`}
-              </span>
+              </Badge>
             </div>
             <Progress value={percentage} className="h-3" />
-            <p className="text-xs text-muted-foreground text-center">
+          </div>
+          
+          <Separator />
+          
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
               {question.type === "ja_nej" ? `${percentage.toFixed(1)}% Ja-svar` : `${percentage.toFixed(1)}% av maxvärdet`}
-            </p>
+            </span>
+            <Badge variant="outline" className="text-xs">
+              {values.length} svar
+            </Badge>
           </div>
         </CardContent>
       </Card>
@@ -386,20 +422,42 @@ export default function DashboardQuestionCard({
     }
 
     return (
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
-          <Hash className="h-4 w-4 text-muted-foreground" />
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-sm font-medium leading-none">{question.text}</CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">Antal</Badge>
+            <Hash className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-center space-y-2">
-            <div className="text-4xl font-bold">{count}</div>
-            <p className="text-sm text-muted-foreground">{label} totalt</p>
-            {question.type === "ja_nej" && (
-              <div className="text-sm text-muted-foreground">
-                {relevantResponses.length - count} Nej-svar
+        <CardContent className="space-y-4">
+          <div className="text-center space-y-3">
+            <div className="text-4xl font-bold text-primary">{count}</div>
+            <Badge variant="outline" className="text-sm">{label} totalt</Badge>
+          </div>
+          
+          {question.type === "ja_nej" && (
+            <>
+              <Separator />
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-600">✓ Ja-svar:</span>
+                  <Badge variant="default" className="text-xs">{count}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-red-600">✗ Nej-svar:</span>
+                  <Badge variant="destructive" className="text-xs">{relevantResponses.length - count}</Badge>
+                </div>
               </div>
-            )}
+            </>
+          )}
+          
+          <Separator />
+          
+          <div className="flex items-center justify-center">
+            <Badge variant="outline" className="text-xs">
+              {relevantResponses.length} totala svar
+            </Badge>
           </div>
         </CardContent>
       </Card>
