@@ -236,13 +236,11 @@ export default function Navigation() {
               href="/"
               className="flex items-center text-gray-900 hover:text-blue-600 transition-colors"
             >
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 p-1">
-                <img 
-                  src={logoSvg} 
-                  alt="ProductionLog" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <img 
+                src={logoSvg} 
+                alt="ProductionLog" 
+                className="w-100 h-100 mr-3"
+              />
               <h1 className="text-lg font-semibold">ProductionLog</h1>
             </Link>
 
