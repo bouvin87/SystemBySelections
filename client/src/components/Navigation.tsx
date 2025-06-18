@@ -287,28 +287,7 @@ export default function Navigation() {
                 </Link>
               ))}
 
-              {menuChecklists.map((checklist) => (
-                <button
-                  key={`checklist-${checklist.id}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(
-                      "Checklist button clicked:",
-                      checklist.id,
-                      checklist.name,
-                    );
-                    openModal(checklist.id);
-                  }}
-                  className="px-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-all duration-200 cursor-pointer border-b-2 border-transparent hover:border-gray-300"
-                  type="button"
-                >
-                  {renderIcon(checklist.icon, "h-4 w-4") || (
-                    <CheckSquare className="h-4 w-4" />
-                  )}
-                  {checklist.name}
-                </button>
-              ))}
+
 
               {hasChecklistsModule && (
                 <button
