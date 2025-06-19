@@ -257,6 +257,11 @@ export default function Admin() {
     enabled: activeTab === "basic-data",
   });
 
+  const { data: departments = [] } = useQuery<any[]>({
+    queryKey: ["/api/departments"],
+    enabled: activeTab === "basic-data",
+  });
+
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories", selectedChecklistId],
     enabled: selectedChecklistId !== null,
@@ -290,6 +295,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
       setDialogOpen(false);
       setEditingItem(null);
       setSelectedIcon("");
@@ -357,6 +363,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/work-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/deviations/types"] });
       toast({ title: "Borttaget!", description: "Objektet har tagits bort." });
     },
