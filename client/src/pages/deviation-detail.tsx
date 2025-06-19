@@ -242,8 +242,21 @@ function DeviationComments({ deviationId }: { deviationId: number }) {
   });
 
   const createCommentMutation = useMutation({
-    mutationFn: (comment: string) =>
-      apiRequest(`/api/deviations/${deviationId}/comments`, "POST", { comment }),
+    mutationFn: async (comment: string) => {
+      const response = await fetch(`/api/deviations/${deviationId}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ comment }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to create comment");
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [`/api/deviations/${deviationId}/comments`],
