@@ -62,6 +62,13 @@ export interface IStorage {
   updateShift(id: number, shift: Partial<InsertShift>, tenantId: number): Promise<Shift>;
   deleteShift(id: number, tenantId: number): Promise<void>;
 
+  // Departments (tenant-scoped)
+  getDepartments(tenantId: number): Promise<Department[]>;
+  getDepartment(id: number, tenantId: number): Promise<Department | undefined>;
+  createDepartment(department: InsertDepartment): Promise<Department>;
+  updateDepartment(id: number, department: Partial<InsertDepartment>, tenantId: number): Promise<Department>;
+  deleteDepartment(id: number, tenantId: number): Promise<void>;
+
   // Categories (tenant-scoped, belonging to checklists)
   getCategories(checklistId: number, tenantId: number): Promise<Category[]>;
   getCategory(id: number, tenantId: number): Promise<Category | undefined>;
@@ -356,6 +363,33 @@ export class DatabaseStorage implements IStorage {
 
   async deleteShift(id: number, tenantId: number): Promise<void> {
     await db.delete(shifts).where(and(eq(shifts.id, id), eq(shifts.tenantId, tenantId)));
+  }
+
+  // Departments
+  async getDepartments(tenantId: number): Promise<Department[]> {
+    return await db.select().from(departments).where(eq(departments.tenantId, tenantId)).orderBy(departments.order, departments.name);
+  }
+
+  async getDepartment(id: number, tenantId: number): Promise<Department | undefined> {
+    const result = await db.select().from(departments).where(and(eq(departments.id, id), eq(departments.tenantId, tenantId)));
+    return result[0];
+  }
+
+  async createDepartment(department: InsertDepartment): Promise<Department> {
+    const result = await db.insert(departments).values(department).returning();
+    return result[0];
+  }
+
+  async updateDepartment(id: number, department: Partial<InsertDepartment>, tenantId: number): Promise<Department> {
+    const result = await db.update(departments)
+      .set(department)
+      .where(and(eq(departments.id, id), eq(departments.tenantId, tenantId)))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDepartment(id: number, tenantId: number): Promise<void> {
+    await db.delete(departments).where(and(eq(departments.id, id), eq(departments.tenantId, tenantId)));
   }
 
   // Categories

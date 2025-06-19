@@ -56,6 +56,16 @@ export const shifts = pgTable("shifts", {
   order: integer("order").notNull().default(0),
 });
 
+// Departments (tenant-scoped)
+export const departments = pgTable("departments", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  order: integer("order").notNull().default(0),
+});
+
 // Checklists (tenant-scoped)
 export const checklists = pgTable("checklists", {
   id: serial("id").primaryKey(),
