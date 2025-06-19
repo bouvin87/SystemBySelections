@@ -1917,6 +1917,22 @@ export default function Admin() {
                                 defaultValue={editingItem?.order || 0}
                               />
                             </div>
+                            <div>
+                              <Label htmlFor="responsibleUserId">Ansvarig användare</Label>
+                              <select
+                                id="responsibleUserId"
+                                name="responsibleUserId"
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                                defaultValue={editingItem?.responsibleUserId?.toString() || "0"}
+                              >
+                                <option value="0">Ingen vald</option>
+                                {users.filter(user => user.isActive).map((user) => (
+                                  <option key={user.id} value={user.id.toString()}>
+                                    {user.firstName} {user.lastName} ({user.email})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                             <Button type="submit" className="w-full">
                               <Save className="mr-2 h-4 w-4" />
                               Spara
