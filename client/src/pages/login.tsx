@@ -56,7 +56,7 @@ export default function Login() {
 
         if (response.ok && data.token) {
           localStorage.setItem("authToken", data.token);
-          window.location.href = "/dashboard";
+          window.location.href = "/checklists";
         } else {
           setError(data.message || "Login failed");
         }
