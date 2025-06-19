@@ -23,6 +23,8 @@ import {
   AlertTriangle,
   History,
   Send,
+    CheckCircle,
+    Edit3,
 } from "lucide-react";
 import {
   VerticalTimeline,
@@ -116,6 +118,26 @@ interface WorkStation {
   id: number;
   name: string;
 }
+function getIconForLog(log: DeviationLog): { icon: JSX.Element; color: string } {
+  if (log.action?.toLowerCase().includes("kommentar")) {
+    return { icon: <MessageSquare size={16} />, color: "#10b981" }; // grön
+  }
+
+  if (log.field === "statusId") {
+    return { icon: <CheckCircle size={16} />, color: "#3b82f6" }; // blå
+  }
+
+  if (log.field === "assignedToUserId") {
+    return { icon: <User size={16} />, color: "#eab308" }; // gul
+  }
+
+  if (log.field === "priorityId") {
+    return { icon: <AlertTriangle size={16} />, color: "#f97316" }; // orange
+  }
+
+  // Standard
+  return { icon: <Edit3 size={16} />, color: "#9ca3af" }; // grå
+}
 
 // Activity Log Component
 function DeviationActivityLog({ deviationId }: { deviationId: number }) {
@@ -138,6 +160,7 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
   return (
     <div className="space-y-3 max-h-64 overflow-y-auto">
       {logs.map((log) => {
+        
         const user = users.find((u) => u.id === log.userId);
         const userName = user
           ? `${user.firstName} ${user.lastName}`.trim() || user.email
@@ -167,64 +190,91 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
 }
 
 function DeviationTimeline({ deviationId }: { deviationId: number }) {
-  const { data: logs = [], isLoading } = useQuery<DeviationLog[]>({
+  const { data: logs = [] } = useQuery<DeviationLog[]>({
     queryKey: [`/api/deviations/${deviationId}/logs`],
+  });
+
+  const { data: comments = [] } = useQuery<DeviationComment[]>({
+    queryKey: [`/api/deviations/${deviationId}/comments`],
   });
 
   const { data: users = [] } = useQuery<DeviationUser[]>({
     queryKey: ["/api/users"],
   });
 
-  if (isLoading) {
-    return (
-      <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>
-    );
-  }
+  const timeline: TimelineEntry[] = [
+    ...logs.map((log) => ({
+      id: `log-${log.id}`,
+      type: "log",
+      createdAt: log.createdAt,
+      userId: log.userId,
+      content: log.description || log.action,
+      extra: log.oldValue && log.newValue ? {
+        oldValue: log.oldValue,
+        newValue: log.newValue,
+      } : undefined,
+    })),
+    ...comments.map((comment) => ({
+      id: `comment-${comment.id}`,
+      type: "comment",
+      createdAt: comment.createdAt,
+      userId: comment.userId,
+      content: comment.comment,
+    })),
+  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-  if (!logs.length) {
-    return <div className="text-sm text-gray-500">Inga aktiviteter ännu</div>;
-  }
+  const getIcon = (entry: TimelineEntry): { icon: JSX.Element; color: string } => {
+    if (entry.type === "comment") {
+      return { icon: <MessageSquare size={16} />, color: "#10b981" };
+    }
+    if (entry.extra?.oldValue && entry.extra?.newValue) {
+      if (entry.content.toLowerCase().includes("status")) {
+        return { icon: <CheckCircle size={16} />, color: "#3b82f6" };
+      }
+      if (entry.content.toLowerCase().includes("prioritet")) {
+        return { icon: <AlertTriangle size={16} />, color: "#f97316" };
+      }
+      if (entry.content.toLowerCase().includes("tilldelad")) {
+        return { icon: <User size={16} />, color: "#eab308" };
+      }
+    }
+    return { icon: <Edit3 size={16} />, color: "#6b7280" };
+  };
 
   return (
-    <div className="bg-white rounded-md">
-      <VerticalTimeline layout="1-column" lineColor="#e5e7eb">
-        {logs.map((log) => {
-          const user = users.find((u) => u.id === log.userId);
-          const userName = user
-            ? `${user.firstName} ${user.lastName}`.trim() || user.email
-            : "Okänd användare";
+    <VerticalTimeline layout="1-column" lineColor="#e5e7eb">
+      {timeline.map((entry) => {
+        const user = users.find((u) => u.id === entry.userId);
+        const userName = user
+          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+          : "Okänd användare";
 
-          return (
-            <VerticalTimelineElement
-              key={log.id}
-              contentStyle={{ background: "#f9fafb", color: "#111827" }}
-              contentArrowStyle={{ borderRight: "7px solid #f9fafb" }}
-              date={format(new Date(log.createdAt), "d MMM yyyy HH:mm", {
-                locale: sv,
-              })}
-              icon={<Clock size={10} />}
-              iconStyle={{
-                background: "#0ea5e9",
-                  color: "#fff",
+        const { icon, color } = getIcon(entry);
 
-              }}
-            >
-              <h4 className="font-medium text-sm">
-                {log.description || log.action}
-              </h4>
-              <p className="text-xs text-gray-500 mt-1">av {userName}</p>
-
-              {log.oldValue && log.newValue && (
-                <p className="text-xs text-gray-600 mt-1">
-                  <span className="line-through">{log.oldValue}</span> →{" "}
-                  {log.newValue}
-                </p>
-              )}
-            </VerticalTimelineElement>
-          );
-        })}
-      </VerticalTimeline>
-    </div>
+        return (
+          <VerticalTimelineElement
+            key={entry.id}
+            date={format(new Date(entry.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
+            icon={icon}
+            iconStyle={{
+              background: color,
+              color: "#fff",
+             
+            }}
+            contentStyle={{ background: "#f9fafb", padding: "0.75rem" }}
+            contentArrowStyle={{ display: "none" }}
+          >
+            <h4 className="text-sm font-medium">{entry.content}</h4>
+            <p className="text-xs text-gray-500 mt-1">av {userName}</p>
+            {entry.extra && (
+              <p className="text-xs text-gray-400 mt-1">
+                <span className="line-through">{entry.extra.oldValue}</span> → {entry.extra.newValue}
+              </p>
+            )}
+          </VerticalTimelineElement>
+        );
+      })}
+    </VerticalTimeline>
   );
 }
 // Comments Component

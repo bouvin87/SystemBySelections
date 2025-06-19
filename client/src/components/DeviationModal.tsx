@@ -49,13 +49,33 @@ interface DeviationPriority {
 
 
 
+interface Deviation {
+  id: number;
+  tenantId: number;
+  title: string;
+  description?: string;
+  deviationTypeId: number;
+  priorityId?: number;
+  statusId?: number;
+  assignedToUserId?: number;
+  createdByUserId: number;
+  dueDate?: string;
+  completedAt?: string;
+  workTaskId?: number;
+  locationId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface DeviationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  deviation?: Deviation;
+  mode?: 'create' | 'edit';
 }
 
-export default function DeviationModal({ isOpen, onClose, onSuccess }: DeviationModalProps) {
+export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, mode = 'create' }: DeviationModalProps) {
   const { toast } = useToast();
   const [selectedDueDate, setSelectedDueDate] = useState<string>("");
 
@@ -126,7 +146,33 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
     },
   });
 
-  const handleCreateDeviation = (formData: FormData) => {
+  // Update deviation mutation
+  const updateDeviationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PATCH", `/api/deviations/${deviation?.id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deviations/${deviation?.id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations/stats"] });
+      onClose();
+      toast({
+        title: "Avvikelse uppdaterad",
+        description: "Avvikelsen har uppdaterats framgångsrikt.",
+      });
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toast({
+        title: "Fel",
+        description: "Det gick inte att uppdatera avvikelsen. Försök igen.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (formData: FormData) => {
     const data = {
       title: formData.get("title"),
       description: formData.get("description") || undefined,
@@ -139,14 +185,18 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
       dueDate: formData.get("dueDate") || undefined,
     };
 
-    createDeviationMutation.mutate(data);
+    if (mode === 'edit') {
+      updateDeviationMutation.mutate(data);
+    } else {
+      createDeviationMutation.mutate(data);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Skapa ny avvikelse</DialogTitle>
+          <DialogTitle>{mode === 'edit' ? 'Redigera avvikelse' : 'Skapa ny avvikelse'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={(e) => {
           e.preventDefault();
@@ -278,7 +328,9 @@ export default function DeviationModal({ isOpen, onClose, onSuccess }: Deviation
               Avbryt
             </Button>
             <Button type="submit" disabled={createDeviationMutation.isPending}>
-              {createDeviationMutation.isPending ? "Skapar..." : "Skapa avvikelse"}
+              {(createDeviationMutation.isPending || updateDeviationMutation.isPending) 
+            ? (mode === 'edit' ? "Uppdaterar..." : "Skapar...") 
+            : (mode === 'edit' ? "Uppdatera avvikelse" : "Skapa avvikelse")}
             </Button>
           </div>
         </form>
