@@ -130,7 +130,54 @@ interface DeviationLog {
   createdAt: string;
 }
 
+// Activity Log Component
+function DeviationActivityLog({ deviationId }: { deviationId: number }) {
+  const { data: logs = [], isLoading } = useQuery<DeviationLog[]>({
+    queryKey: [`/api/deviations/${deviationId}/logs`],
+  });
 
+  const { data: users = [] } = useQuery<DeviationUser[]>({
+    queryKey: ["/api/users"],
+  });
+
+  if (isLoading) {
+    return <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>;
+  }
+
+  if (logs.length === 0) {
+    return <div className="text-sm text-gray-500">Inga aktiviteter ännu</div>;
+  }
+
+  return (
+    <div className="space-y-3 max-h-64 overflow-y-auto">
+      {logs.map((log) => {
+        const user = users.find((u) => u.id === log.userId);
+        const userName = user
+          ? `${user.firstName} ${user.lastName}`.trim() || user.email
+          : "Okänd användare";
+
+        return (
+          <div key={log.id} className="border-l-2 border-gray-200 pl-3 pb-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">{log.description}</p>
+              <span className="text-xs text-gray-500">
+                {format(new Date(log.createdAt), "d MMM yyyy HH:mm", {
+                  locale: sv,
+                })}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600">av {userName}</p>
+            {log.oldValue && log.newValue && (
+              <div className="text-xs text-gray-500 mt-1">
+                <span className="line-through">{log.oldValue}</span> → {log.newValue}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function DeviationsPage() {
   const { toast } = useToast();
