@@ -243,11 +243,14 @@ function DeviationComments({ deviationId }: { deviationId: number }) {
 
   const createCommentMutation = useMutation({
     mutationFn: async (comment: string) => {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/deviations/${deviationId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` }),
         },
+        credentials: "include",
         body: JSON.stringify({ comment }),
       });
       
