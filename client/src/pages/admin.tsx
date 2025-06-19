@@ -1872,13 +1872,15 @@ export default function Admin() {
                             onSubmit={(e) => {
                               e.preventDefault();
                               const formData = new FormData(e.currentTarget);
+                              const responsibleUserIdValue = formData.get("responsibleUserId") as string;
                               const data: InsertDepartment = {
                                 name: formData.get("name") as string,
                                 description: formData.get("description") as string || undefined,
                                 isActive: formData.get("isActive") === "on",
                                 order: parseInt(formData.get("order") as string) || 0,
-                                responsibleUserId: formData.get("responsibleUserId") && formData.get("responsibleUserId") !== "0" ? parseInt(formData.get("responsibleUserId") as string) : undefined,
+                                responsibleUserId: responsibleUserIdValue && responsibleUserIdValue !== "0" ? parseInt(responsibleUserIdValue) : undefined,
                               };
+                              console.log("Sending department data:", data);
                               handleSubmit("/api/departments", data);
                             }}
                             className="space-y-4"
