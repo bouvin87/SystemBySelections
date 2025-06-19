@@ -37,6 +37,7 @@ import {
   MapPin,
   Clock,
   MessageSquare,
+  History,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -115,6 +116,18 @@ interface DeviationUser {
   email: string;
   firstName?: string;
   lastName?: string;
+}
+
+interface DeviationLog {
+  id: number;
+  deviationId: number;
+  userId: number;
+  action: string;
+  field?: string;
+  oldValue?: string;
+  newValue?: string;
+  description?: string;
+  createdAt: string;
 }
 
 
@@ -567,6 +580,15 @@ export default function DeviationsPage() {
                       </p>
                     </div>
                   )}
+                </div>
+
+                {/* Activity Log */}
+                <div>
+                  <Label className="flex items-center gap-2 mb-2">
+                    <History className="h-4 w-4" />
+                    Aktivitetslogg
+                  </Label>
+                  <DeviationActivityLog deviationId={selectedDeviation.id} />
                 </div>
               </div>
             </>

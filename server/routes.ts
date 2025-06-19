@@ -317,6 +317,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === USER MANAGEMENT ROUTES ===
   // Get all users for the tenant (admin only)
+  // Deviation Logs API
+  app.get('/api/deviations/:id/logs', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const deviationId = parseInt(req.params.id);
+      if (isNaN(deviationId)) {
+        return res.status(400).json({ message: 'Invalid deviation ID' });
+      }
+      const logs = await storage.getDeviationLogs(deviationId, req.tenantId);
+      res.json(logs);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Deviation not found') {
+        return res.status(404).json({ message: 'Deviation not found' });
+      }
+      console.error('Error fetching deviation logs:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.get('/api/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
       // Only admins can view all users

@@ -1,7 +1,7 @@
 import { 
   tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
-  deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationSettings,
+  deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Category, type InsertCategory,
@@ -15,6 +15,7 @@ import {
   type DeviationStatus, type InsertDeviationStatus,
   type Deviation, type InsertDeviation,
   type DeviationComment, type InsertDeviationComment,
+  type DeviationLog, type InsertDeviationLog,
   type DeviationSetting, type InsertDeviationSetting
 } from "@shared/schema";
 import { db } from "./db";
@@ -889,10 +890,28 @@ export class DatabaseStorage implements IStorage {
 
   async createDeviation(deviation: InsertDeviation): Promise<Deviation> {
     const result = await db.insert(deviations).values(deviation).returning();
+    
+    // Log the creation
+    await this.logDeviationChange(
+      result[0].id,
+      deviation.createdByUserId,
+      'created',
+      undefined,
+      undefined,
+      undefined,
+      'Avvikelse skapad'
+    );
+    
     return result[0];
   }
 
-  async updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number): Promise<Deviation> {
+  async updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number, userId?: number): Promise<Deviation> {
+    // Get the old deviation for comparison
+    const oldDeviation = await this.getDeviation(id, tenantId);
+    if (!oldDeviation) {
+      throw new Error('Deviation not found');
+    }
+
     const result = await db.update(deviations)
       .set({ ...deviation, updatedAt: new Date() })
       .where(and(eq(deviations.id, id), eq(deviations.tenantId, tenantId)))
@@ -901,6 +920,69 @@ export class DatabaseStorage implements IStorage {
     if (result.length === 0) {
       throw new Error('Deviation not found');
     }
+
+    // Log all changes if userId is provided
+    if (userId) {
+      const newDeviation = result[0];
+      
+      // Check each field for changes and log them
+      if (deviation.title && oldDeviation.title !== newDeviation.title) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'title', 
+          oldDeviation.title, newDeviation.title, 
+          'Rubrik ändrad'
+        );
+      }
+      
+      if (deviation.description !== undefined && oldDeviation.description !== newDeviation.description) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'description', 
+          oldDeviation.description || '', newDeviation.description || '', 
+          'Beskrivning ändrad'
+        );
+      }
+      
+      if (deviation.statusId && oldDeviation.statusId !== newDeviation.statusId) {
+        await this.logDeviationChange(
+          id, userId, 'status_changed', 'statusId', 
+          oldDeviation.statusId?.toString(), newDeviation.statusId?.toString(), 
+          'Status ändrad'
+        );
+      }
+      
+      if (deviation.priorityId && oldDeviation.priorityId !== newDeviation.priorityId) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'priorityId', 
+          oldDeviation.priorityId?.toString(), newDeviation.priorityId?.toString(), 
+          'Prioritet ändrad'
+        );
+      }
+      
+      if (deviation.deviationTypeId && oldDeviation.deviationTypeId !== newDeviation.deviationTypeId) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'deviationTypeId', 
+          oldDeviation.deviationTypeId.toString(), newDeviation.deviationTypeId.toString(), 
+          'Typ ändrad'
+        );
+      }
+      
+      if (deviation.assignedToUserId !== undefined && oldDeviation.assignedToUserId !== newDeviation.assignedToUserId) {
+        await this.logDeviationChange(
+          id, userId, 'assigned', 'assignedToUserId', 
+          oldDeviation.assignedToUserId?.toString(), newDeviation.assignedToUserId?.toString(), 
+          'Tilldelning ändrad'
+        );
+      }
+      
+      if (deviation.dueDate !== undefined && oldDeviation.dueDate !== newDeviation.dueDate) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'dueDate', 
+          oldDeviation.dueDate?.toISOString(), newDeviation.dueDate?.toISOString(), 
+          'Deadline ändrad'
+        );
+      }
+    }
+    
     return result[0];
   }
 

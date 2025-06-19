@@ -163,7 +163,7 @@ export default function deviationRoutes(app: Express) {
         delete updateData.createdAt; // Don't allow updating creation time
         delete updateData.createdByUserId; // Don't allow changing creator
         
-        const updatedDeviation = await storage.updateDeviation(deviationId, updateData, tenantId);
+        const updatedDeviation = await storage.updateDeviation(deviationId, updateData, tenantId, req.user?.id);
         res.json(updatedDeviation);
         
       } catch (error) {
