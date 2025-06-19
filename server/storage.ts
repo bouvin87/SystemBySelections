@@ -928,73 +928,73 @@ export class DatabaseStorage implements IStorage {
       // Check each field for changes and log them
       if (deviation.title !== undefined && oldDeviation.title !== newDeviation.title) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'title', 
+          id, userId, 'field_changed', 'title', 
           oldDeviation.title, newDeviation.title, 
-          'Rubrik ändrad'
+          'field_changed_title'
         );
       }
       
       if (deviation.description !== undefined && oldDeviation.description !== newDeviation.description) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'description', 
+          id, userId, 'field_changed', 'description', 
           oldDeviation.description || '', newDeviation.description || '', 
-          'Beskrivning ändrad'
+          'field_changed_description'
         );
       }
       
       if (deviation.statusId !== undefined && oldDeviation.statusId !== newDeviation.statusId) {
         await this.logDeviationChange(
-          id, userId, 'status_changed', 'statusId', 
+          id, userId, 'field_changed', 'statusId', 
           oldDeviation.statusId?.toString(), newDeviation.statusId?.toString(), 
-          'Status ändrad'
+          'field_changed_status'
         );
       }
       
       if (deviation.priorityId !== undefined && oldDeviation.priorityId !== newDeviation.priorityId) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'priorityId', 
+          id, userId, 'field_changed', 'priorityId', 
           oldDeviation.priorityId?.toString(), newDeviation.priorityId?.toString(), 
-          'Prioritet ändrad'
+          'field_changed_priority'
         );
       }
       
       if (deviation.deviationTypeId !== undefined && oldDeviation.deviationTypeId !== newDeviation.deviationTypeId) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'deviationTypeId', 
+          id, userId, 'field_changed', 'deviationTypeId', 
           oldDeviation.deviationTypeId.toString(), newDeviation.deviationTypeId.toString(), 
-          'Typ ändrad'
+          'field_changed_type'
         );
       }
       
       if (deviation.assignedToUserId !== undefined && oldDeviation.assignedToUserId !== newDeviation.assignedToUserId) {
         await this.logDeviationChange(
-          id, userId, 'assigned', 'assignedToUserId', 
+          id, userId, 'field_changed', 'assignedToUserId', 
           oldDeviation.assignedToUserId?.toString(), newDeviation.assignedToUserId?.toString(), 
-          'Tilldelning ändrad'
+          'field_changed_assignment'
         );
       }
       
       if (deviation.dueDate !== undefined && oldDeviation.dueDate !== newDeviation.dueDate) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'dueDate', 
+          id, userId, 'field_changed', 'dueDate', 
           oldDeviation.dueDate?.toISOString(), newDeviation.dueDate?.toISOString(), 
-          'Deadline ändrad'
+          'field_changed_due_date'
         );
       }
       
       if (deviation.workTaskId !== undefined && oldDeviation.workTaskId !== newDeviation.workTaskId) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'workTaskId', 
+          id, userId, 'field_changed', 'workTaskId', 
           oldDeviation.workTaskId?.toString(), newDeviation.workTaskId?.toString(), 
-          'Arbetsmoment ändrat'
+          'field_changed_work_task'
         );
       }
       
       if (deviation.locationId !== undefined && oldDeviation.locationId !== newDeviation.locationId) {
         await this.logDeviationChange(
-          id, userId, 'updated', 'locationId', 
+          id, userId, 'field_changed', 'locationId', 
           oldDeviation.locationId?.toString(), newDeviation.locationId?.toString(), 
-          'Plats ändrad'
+          'field_changed_location'
         );
       }
     }

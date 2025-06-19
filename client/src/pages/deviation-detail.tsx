@@ -236,7 +236,7 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
         return (
           <div key={log.id} className="border-l-2 border-gray-200 pl-3 pb-2">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{log.description}</p>
+              <p className="text-sm font-medium">{translateLogMessage(log.description || log.action)}</p>
               <span className="text-xs text-gray-500">
                 {format(new Date(log.createdAt), "d MMM yyyy HH:mm", {
                   locale: sv,
@@ -339,7 +339,7 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       type: "log",
       createdAt: log.createdAt,
       userId: log.userId,
-      content: log.description || log.action,
+      content: translateLogMessage(log.description || log.action),
       extra: log.oldValue && log.newValue ? {
         oldValue: mapFieldValue(log.field || '', log.oldValue),
         newValue: mapFieldValue(log.field || '', log.newValue),
@@ -361,7 +361,7 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
     }
     
     // Check for creation action first (before checking for extra fields)
-    if (entry.content.toLowerCase().includes("skapad")) {
+    if (entry.content.toLowerCase().includes("skapad") || entry.content === "Avvikelse skapad") {
       return { icon: <Plus size={16} />, color: "#10b981" };
     }
     
