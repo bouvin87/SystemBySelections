@@ -200,22 +200,32 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
         </DialogHeader>
         <form onSubmit={(e) => {
           e.preventDefault();
-          handleCreateDeviation(new FormData(e.currentTarget));
+          handleSubmit(new FormData(e.currentTarget));
         }} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Label htmlFor="title">Titel *</Label>
-              <Input id="title" name="title" required />
+              <Input 
+                id="title" 
+                name="title" 
+                required 
+                defaultValue={deviation?.title || ""}
+              />
             </div>
             
             <div className="col-span-2">
               <Label htmlFor="description">Beskrivning</Label>
-              <Textarea id="description" name="description" rows={3} />
+              <Textarea 
+                id="description" 
+                name="description" 
+                rows={3}
+                defaultValue={deviation?.description || ""}
+              />
             </div>
             
             <div>
               <Label htmlFor="deviationTypeId">Avvikelsetyp *</Label>
-              <Select name="deviationTypeId" required>
+              <Select name="deviationTypeId" required defaultValue={deviation?.deviationTypeId?.toString()}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj typ" />
                 </SelectTrigger>
@@ -237,7 +247,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
             <div>
               <Label htmlFor="priorityId">Prioritet</Label>
-              <Select name="priorityId">
+              <Select name="priorityId" defaultValue={deviation?.priorityId?.toString() || ""}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj prioritet" />
                 </SelectTrigger>
@@ -264,7 +274,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
             <div>
               <Label htmlFor="assignedToUserId">Tilldela till</Label>
-              <Select name="assignedToUserId">
+              <Select name="assignedToUserId" defaultValue={deviation?.assignedToUserId?.toString() || ""}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj användare" />
                 </SelectTrigger>
@@ -280,7 +290,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
             <div>
               <Label htmlFor="workTaskId">Arbetsmoment</Label>
-              <Select name="workTaskId">
+              <Select name="workTaskId" defaultValue={deviation?.workTaskId?.toString() || ""}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj arbetsmoment" />
                 </SelectTrigger>
@@ -296,7 +306,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
             <div>
               <Label htmlFor="locationId">Plats</Label>
-              <Select name="locationId">
+              <Select name="locationId" defaultValue={deviation?.locationId?.toString() || ""}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj plats" />
                 </SelectTrigger>
@@ -313,13 +323,13 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             <div>
               <Label htmlFor="dueDate">Deadline</Label>
               <DatePicker
-                value={selectedDueDate}
+                value={selectedDueDate || deviation?.dueDate || ""}
                 onChange={(value) => {
                   setSelectedDueDate(value);
                 }}
                 placeholder="Välj deadline"
               />
-              <input type="hidden" name="dueDate" value={selectedDueDate} />
+              <input type="hidden" name="dueDate" value={selectedDueDate || deviation?.dueDate || ""} />
             </div>
           </div>
           
@@ -327,7 +337,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             <Button type="button" variant="outline" onClick={onClose}>
               Avbryt
             </Button>
-            <Button type="submit" disabled={createDeviationMutation.isPending}>
+            <Button type="submit" disabled={createDeviationMutation.isPending || updateDeviationMutation.isPending}>
               {(createDeviationMutation.isPending || updateDeviationMutation.isPending) 
             ? (mode === 'edit' ? "Uppdaterar..." : "Skapar...") 
             : (mode === 'edit' ? "Uppdatera avvikelse" : "Skapa avvikelse")}
