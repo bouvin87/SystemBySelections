@@ -63,6 +63,7 @@ interface Deviation {
   completedAt?: string;
   workTaskId?: number;
   locationId?: number;
+  departmentId?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -102,6 +103,12 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
   // Fetch work stations
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
+    enabled: isOpen,
+  });
+
+  // Fetch departments
+  const { data: departments = [] } = useQuery<any[]>({
+    queryKey: ["/api/departments"],
     enabled: isOpen,
   });
 
@@ -182,6 +189,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       assignedToUserId: formData.get("assignedToUserId") ? parseInt(formData.get("assignedToUserId") as string) : undefined,
       workTaskId: formData.get("workTaskId") ? parseInt(formData.get("workTaskId") as string) : undefined,
       locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
+      departmentId: formData.get("departmentId") ? parseInt(formData.get("departmentId") as string) : undefined,
       dueDate: formData.get("dueDate") || undefined,
     };
 
@@ -314,6 +322,22 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                   {workStations.map((station) => (
                     <SelectItem key={station.id} value={station.id.toString()}>
                       {station.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="departmentId">Avdelning</Label>
+              <Select name="departmentId" defaultValue={deviation?.departmentId?.toString() || ""}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj avdelning" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.filter((dept: any) => dept.isActive).map((department: any) => (
+                    <SelectItem key={department.id} value={department.id.toString()}>
+                      {department.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

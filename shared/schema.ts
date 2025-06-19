@@ -287,6 +287,7 @@ export const deviations = pgTable("deviations", {
   completedAt: timestamp("completed_at"),
   workTaskId: integer("work_task_id").references(() => workTasks.id),
   locationId: integer("location_id").references(() => workStations.id),
+  departmentId: integer("department_id").references(() => departments.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
