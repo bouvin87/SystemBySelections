@@ -1877,6 +1877,7 @@ export default function Admin() {
                                 description: formData.get("description") as string || undefined,
                                 isActive: formData.get("isActive") === "on",
                                 order: parseInt(formData.get("order") as string) || 0,
+                                responsibleUserId: formData.get("responsibleUserId") && formData.get("responsibleUserId") !== "0" ? parseInt(formData.get("responsibleUserId") as string) : undefined,
                               };
                               handleSubmit("/api/departments", data);
                             }}
@@ -1939,7 +1940,7 @@ export default function Admin() {
                                     {department.description}
                                   </p>
                                 )}
-                                <div className="mt-2">
+                                <div className="mt-2 space-y-1">
                                   <Badge
                                     variant={
                                       department.isActive ? "default" : "secondary"
@@ -1947,6 +1948,11 @@ export default function Admin() {
                                   >
                                     {department.isActive ? "Aktiv" : "Inaktiv"}
                                   </Badge>
+                                  {department.responsibleUserId && (
+                                    <p className="text-xs text-gray-500">
+                                      Ansvarig: {users.find(u => u.id === department.responsibleUserId)?.firstName} {users.find(u => u.id === department.responsibleUserId)?.lastName}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex space-x-2">
