@@ -36,6 +36,7 @@ import {
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import "react-vertical-timeline-component/style.min.css";
+import { departments } from "@shared/schema";
 
 interface Deviation {
   id: number;
@@ -92,6 +93,11 @@ interface DeviationUser {
   firstName?: string;
   lastName?: string;
 }
+interface Departments {
+  id: number;
+  tenant_id: string;
+  name: string;
+}
 
 interface DeviationComment {
   id: number;
@@ -122,7 +128,10 @@ interface WorkStation {
   id: number;
   name: string;
 }
-function getIconForLog(log: DeviationLog): { icon: JSX.Element; color: string } {
+function getIconForLog(log: DeviationLog): {
+  icon: JSX.Element;
+  color: string;
+} {
   if (log.action?.toLowerCase().includes("kommentar")) {
     return { icon: <MessageSquare size={16} />, color: "#10b981" }; // grön
   }
@@ -176,34 +185,36 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
 
   // Function to map ID values to readable names
   const mapFieldValue = (field: string, value: string | undefined): string => {
-    if (!value) return 'Inget värde';
-    
+    if (!value) return "Inget värde";
+
     switch (field) {
-      case 'priorityId':
-        const priority = priorities.find(p => p.id.toString() === value);
+      case "priorityId":
+        const priority = priorities.find((p) => p.id.toString() === value);
         return priority ? priority.name : value;
-        
-      case 'statusId':
-        const status = statuses.find(s => s.id.toString() === value);
+
+      case "statusId":
+        const status = statuses.find((s) => s.id.toString() === value);
         return status ? status.name : value;
-        
-      case 'deviationTypeId':
-        const type = deviationTypes.find(t => t.id.toString() === value);
+
+      case "deviationTypeId":
+        const type = deviationTypes.find((t) => t.id.toString() === value);
         return type ? type.name : value;
-        
-      case 'assignedToUserId':
-        const user = users.find(u => u.id.toString() === value);
-        return user ? `${user.firstName} ${user.lastName}`.trim() || user.email : value;
-        
-      case 'workTaskId':
-        const workTask = workTasks.find(w => w.id.toString() === value);
+
+      case "assignedToUserId":
+        const user = users.find((u) => u.id.toString() === value);
+        return user
+          ? `${user.firstName} ${user.lastName}`.trim() || user.email
+          : value;
+
+      case "workTaskId":
+        const workTask = workTasks.find((w) => w.id.toString() === value);
         return workTask ? workTask.name : value;
-        
-      case 'locationId':
-        const workStation = workStations.find(w => w.id.toString() === value);
+
+      case "locationId":
+        const workStation = workStations.find((w) => w.id.toString() === value);
         return workStation ? workStation.name : value;
-        
-      case 'dueDate':
+
+      case "dueDate":
         if (value) {
           try {
             return format(new Date(value), "d MMM yyyy", { locale: sv });
@@ -211,15 +222,17 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
             return value;
           }
         }
-        return 'Inget datum';
-        
+        return "Inget datum";
+
       default:
         return value;
     }
   };
 
   if (isLoading) {
-    return <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>;
+    return (
+      <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>
+    );
   }
 
   if (logs.length === 0) {
@@ -229,7 +242,6 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
   return (
     <div className="space-y-3 max-h-64 overflow-y-auto">
       {logs.map((log) => {
-        
         const user = users.find((u) => u.id === log.userId);
         const userName = user
           ? `${user.firstName} ${user.lastName}`.trim() || user.email
@@ -238,7 +250,9 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
         return (
           <div key={log.id} className="border-l-2 border-gray-200 pl-3 pb-2">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{translateLogMessage(log.description || log.action)}</p>
+              <p className="text-sm font-medium">
+                {translateLogMessage(log.description || log.action)}
+              </p>
               <span className="text-xs text-gray-500">
                 {format(new Date(log.createdAt), "d MMM yyyy HH:mm", {
                   locale: sv,
@@ -248,7 +262,10 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
             <p className="text-xs text-gray-600">av {userName}</p>
             {log.oldValue && log.newValue && (
               <div className="text-xs text-gray-500 mt-1">
-                <span className="line-through">{mapFieldValue(log.field || '', log.oldValue)}</span> → {mapFieldValue(log.field || '', log.newValue)}
+                <span className="line-through">
+                  {mapFieldValue(log.field || "", log.oldValue)}
+                </span>{" "}
+                → {mapFieldValue(log.field || "", log.newValue)}
               </div>
             )}
           </div>
@@ -291,6 +308,9 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
   });
+  const { data: departments = [] } = useQuery<Departments[]>({
+    queryKey: ["/api/departments"],
+  });
 
   // Function to translate log messages
   const translateLogMessage = (key: string): string => {
@@ -299,34 +319,38 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
 
   // Function to map ID values to readable names
   const mapFieldValue = (field: string, value: string | undefined): string => {
-    if (!value) return 'Inget värde';
-    
+    if (!value) return "Inget värde";
+
     switch (field) {
-      case 'priorityId':
-        const priority = priorities.find(p => p.id.toString() === value);
+      case "priorityId":
+        const priority = priorities.find((p) => p.id.toString() === value);
         return priority ? priority.name : value;
-        
-      case 'statusId':
-        const status = statuses.find(s => s.id.toString() === value);
+      case "departmentId":
+        const department = departments.find((p) => p.id.toString() === value);
+        return department ? department.name : value;
+      case "statusId":
+        const status = statuses.find((s) => s.id.toString() === value);
         return status ? status.name : value;
-        
-      case 'deviationTypeId':
-        const type = deviationTypes.find(t => t.id.toString() === value);
+
+      case "deviationTypeId":
+        const type = deviationTypes.find((t) => t.id.toString() === value);
         return type ? type.name : value;
-        
-      case 'assignedToUserId':
-        const user = users.find(u => u.id.toString() === value);
-        return user ? `${user.firstName} ${user.lastName}`.trim() || user.email : value;
-        
-      case 'workTaskId':
-        const workTask = workTasks.find(w => w.id.toString() === value);
+
+      case "assignedToUserId":
+        const user = users.find((u) => u.id.toString() === value);
+        return user
+          ? `${user.firstName} ${user.lastName}`.trim() || user.email
+          : value;
+
+      case "workTaskId":
+        const workTask = workTasks.find((w) => w.id.toString() === value);
         return workTask ? workTask.name : value;
-        
-      case 'locationId':
-        const workStation = workStations.find(w => w.id.toString() === value);
+
+      case "locationId":
+        const workStation = workStations.find((w) => w.id.toString() === value);
         return workStation ? workStation.name : value;
-        
-      case 'dueDate':
+
+      case "dueDate":
         if (value) {
           try {
             return format(new Date(value), "d MMM yyyy", { locale: sv });
@@ -334,8 +358,8 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
             return value;
           }
         }
-        return 'Inget datum';
-        
+        return "Inget datum";
+
       default:
         return value;
     }
@@ -348,10 +372,13 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       createdAt: log.createdAt,
       userId: log.userId,
       content: translateLogMessage(log.description || log.action),
-      extra: log.oldValue && log.newValue ? {
-        oldValue: mapFieldValue(log.field || '', log.oldValue),
-        newValue: mapFieldValue(log.field || '', log.newValue),
-      } : undefined,
+      extra:
+        log.oldValue && log.newValue
+          ? {
+              oldValue: mapFieldValue(log.field || "", log.oldValue),
+              newValue: mapFieldValue(log.field || "", log.newValue),
+            }
+          : undefined,
     })),
     ...comments.map((comment) => ({
       id: `comment-${comment.id}`,
@@ -361,18 +388,25 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       content: "Ny kommentar",
       commentText: comment.comment,
     })),
-  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  ].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
 
-  const getIcon = (entry: TimelineEntry): { icon: JSX.Element; color: string } => {
+  const getIcon = (
+    entry: TimelineEntry,
+  ): { icon: JSX.Element; color: string } => {
     if (entry.type === "comment") {
       return { icon: <MessageSquare size={16} />, color: "#0ea5e9" };
     }
-    
+
     // Check for creation action first (before checking for extra fields)
-    if (entry.content.toLowerCase().includes("skapad") || entry.content === "Avvikelse skapad") {
+    if (
+      entry.content.toLowerCase().includes("skapad") ||
+      entry.content === "Avvikelse skapad"
+    ) {
       return { icon: <Plus size={16} />, color: "#10b981" };
     }
-    
+
     if (entry.extra?.oldValue && entry.extra?.newValue) {
       if (entry.content.toLowerCase().includes("status")) {
         return { icon: <CheckCircle size={16} />, color: "#3b82f6" };
@@ -395,7 +429,8 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       {timeline.map((entry) => {
         const user = users.find((u) => u.id === entry.userId);
         const userName = user
-          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+          ? `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+            user.email
           : "Okänd användare";
 
         const { icon, color } = getIcon(entry);
@@ -403,25 +438,29 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
         return (
           <VerticalTimelineElement
             key={entry.id}
-            date={format(new Date(entry.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
+            date={format(new Date(entry.createdAt), "d MMM yyyy HH:mm", {
+              locale: sv,
+            })}
             icon={icon}
             iconStyle={{
               background: color,
               color: "#fff",
-             
             }}
             contentStyle={{ background: "#f9fafb", padding: "0.75rem" }}
             contentArrowStyle={{ display: "none" }}
           >
             <h4 className="text-sm font-medium">{entry.content}</h4>
-            
+
             {entry.type === "comment" && (entry as any).commentText && (
-              <p className="text-sm text-gray-700 mt-1">{(entry as any).commentText}</p>
+              <p className="text-sm text-gray-700 mt-1">
+                {(entry as any).commentText}
+              </p>
             )}
-            
+
             {entry.extra && (
               <p className="text-xs text-gray-400 mt-1">
-                <span className="line-through">{entry.extra.oldValue}</span> → {entry.extra.newValue}
+                <span className="line-through">{entry.extra.oldValue}</span> →{" "}
+                {entry.extra.newValue}
               </p>
             )}
             <p className="text-xs text-gray-500 mt-1">av {userName}</p>
@@ -447,21 +486,21 @@ function DeviationComments({ deviationId }: { deviationId: number }) {
 
   const createCommentMutation = useMutation({
     mutationFn: async (comment: string) => {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`/api/deviations/${deviationId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` }),
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
         credentials: "include",
         body: JSON.stringify({ comment }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to create comment");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -643,7 +682,6 @@ export default function DeviationDetailPage() {
               Redigera
             </Button>
           </div>
-
         </div>
 
         {/* Layout med kolumner och rader */}
@@ -715,7 +753,8 @@ export default function DeviationDetailPage() {
                     <div>
                       <Label>Tilldelad till</Label>
                       <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() || assignedUser.email}
+                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() ||
+                          assignedUser.email}
                       </p>
                     </div>
                   )}
@@ -745,10 +784,16 @@ export default function DeviationDetailPage() {
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span>
                       <strong>Skapad:</strong>{" "}
-                      {format(new Date(deviation.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      {format(
+                        new Date(deviation.createdAt),
+                        "d MMM yyyy HH:mm",
+                        { locale: sv },
+                      )}
                       {createdByUser && (
                         <span className="ml-2 text-xs italic">
-                          av {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() || createdByUser.email}
+                          av{" "}
+                          {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() ||
+                            createdByUser.email}
                         </span>
                       )}
                     </span>
@@ -758,7 +803,11 @@ export default function DeviationDetailPage() {
                     <History className="h-4 w-4 text-gray-400" />
                     <span>
                       <strong>Senast uppdaterad:</strong>{" "}
-                      {format(new Date(deviation.updatedAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      {format(
+                        new Date(deviation.updatedAt),
+                        "d MMM yyyy HH:mm",
+                        { locale: sv },
+                      )}
                     </span>
                   </div>
 
@@ -767,7 +816,11 @@ export default function DeviationDetailPage() {
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span>
                         <strong>Deadline:</strong>{" "}
-                        {format(new Date(deviation.dueDate), "d MMM yyyy HH:mm", { locale: sv })}
+                        {format(
+                          new Date(deviation.dueDate),
+                          "d MMM yyyy HH:mm",
+                          { locale: sv },
+                        )}
                       </span>
                     </div>
                   )}
@@ -777,7 +830,11 @@ export default function DeviationDetailPage() {
                       <CheckCircle className="h-4 w-4 text-gray-400" />
                       <span>
                         <strong>Slutförd:</strong>{" "}
-                        {format(new Date(deviation.completedAt), "d MMM yyyy HH:mm", { locale: sv })}
+                        {format(
+                          new Date(deviation.completedAt),
+                          "d MMM yyyy HH:mm",
+                          { locale: sv },
+                        )}
                       </span>
                     </div>
                   )}
@@ -824,6 +881,5 @@ export default function DeviationDetailPage() {
         mode="edit"
       />
     </div>
-
   );
 }

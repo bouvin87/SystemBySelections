@@ -186,7 +186,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
       priorityId: formData.get("priorityId") ? parseInt(formData.get("priorityId") as string) : undefined,
 
-      assignedToUserId: formData.get("assignedToUserId") ? parseInt(formData.get("assignedToUserId") as string) : undefined,
+
       workTaskId: formData.get("workTaskId") ? parseInt(formData.get("workTaskId") as string) : undefined,
       locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
       departmentId: formData.get("departmentId") ? parseInt(formData.get("departmentId") as string) : undefined,
@@ -280,21 +280,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
 
             
-            <div>
-              <Label htmlFor="assignedToUserId">Tilldela till</Label>
-              <Select name="assignedToUserId" defaultValue={deviation?.assignedToUserId?.toString() || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj användare" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.filter(user => user.isActive).map((user) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.firstName} {user.lastName} ({user.email})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
             
             <div>
               <Label htmlFor="workTaskId">Arbetsmoment</Label>
