@@ -643,14 +643,12 @@ export default function DeviationDetailPage() {
               Redigera
             </Button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {deviation.title}
-          </h1>
+
         </div>
 
         {/* Layout med kolumner och rader */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6 col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+          <div className="space-y-6 lg:col-span-3">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -660,6 +658,12 @@ export default function DeviationDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <Label>Titel</Label>
+                  <p className="text-gray-700 dark:text-gray-300 mt-1">
+                    {deviation.title}
+                  </p>
+                </div>
                 {deviation.description && (
                   <div>
                     <Label>Beskrivning</Label>
@@ -796,8 +800,8 @@ export default function DeviationDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="col-span-1 lg:col-start-2">
-            <Card className="h-[800px] flex flex-col">
+          <div className="lg:col-span-2">
+            <Card className="h-[calc(100vh-12rem)] flex flex-col sticky top-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <History className="w-5 h-5" />
