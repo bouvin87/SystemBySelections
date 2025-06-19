@@ -36,7 +36,7 @@ import {
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import "react-vertical-timeline-component/style.min.css";
-import { departments } from "@shared/schema";
+import { Department } from "@shared/schema";
 
 interface Deviation {
   id: number;
@@ -94,10 +94,16 @@ interface DeviationUser {
   firstName?: string;
   lastName?: string;
 }
-interface Departments {
+interface Department {
   id: number;
-  tenant_id: string;
+  tenantId: number;
   name: string;
+  description?: string;
+  isActive: boolean;
+  order: number;
+  responsibleUserId?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface DeviationComment {
@@ -327,7 +333,10 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
         const priority = priorities.find((p) => p.id.toString() === value);
         return priority ? priority.name : value;
       case "departmentId":
-        const department = departments && Array.isArray(departments) ? departments.find((p) => p.id.toString() === value) : null;
+        const department =
+          departments && Array.isArray(departments)
+            ? departments.find((p) => p.id.toString() === value)
+            : null;
         return department ? department.name : value;
       case "statusId":
         const status = statuses.find((s) => s.id.toString() === value);
@@ -629,7 +638,9 @@ export default function DeviationDetailPage() {
     queryKey: ["/api/work-stations"],
   });
   // Fetch work departments
-  const { data: departments = [], isLoading: departmentsLoading } = useQuery<Departments[]>({
+  const { data: departments = [], isLoading: departmentsLoading } = useQuery<
+    Departments[]
+  >({
     queryKey: ["/api/departments"],
   });
 
@@ -664,9 +675,10 @@ export default function DeviationDetailPage() {
   const createdByUser = users.find((u) => u.id === deviation.createdByUserId);
   const workTask = workTasks.find((w) => w.id === deviation.workTaskId);
   const workStation = workStations.find((w) => w.id === deviation.locationId);
-  const assignedDepartment = departments && Array.isArray(departments) ? departments.find(
-    (d) => d.id === deviation.departmentId,
-  ) : null;
+  const assignedDepartment =
+    departments && Array.isArray(departments)
+      ? departments.find((d) => d.id === deviation.departmentId)
+      : null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -757,14 +769,13 @@ export default function DeviationDetailPage() {
 
                 {/* Relaterad info */}
                 <div className="grid grid-cols-2 gap-4">
-                  {assignedUser && (
-                    <div>
-                      <Label>Avdelning</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {departments.name}
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <Label>Avdelning</Label>
+                    <p className="text-gray-700 dark:text-gray-300 mt-1">
+                      {departments.name}
+                    </p>
+                  </div>
+
                   {assignedUser && (
                     <div>
                       <Label>Tilldelad till</Label>
