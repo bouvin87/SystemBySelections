@@ -54,6 +54,7 @@ interface Deviation {
   locationId?: number;
   createdAt: string;
   updatedAt: string;
+  departmentId?: number;
 }
 
 interface DeviationType {
@@ -627,6 +628,10 @@ export default function DeviationDetailPage() {
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
   });
+  // Fetch work departments
+  const { data: departments = [] } = useQuery<Departments[]>({
+    queryKey: ["/api/departments"],
+  });
 
   if (isLoading) {
     return (
@@ -659,6 +664,9 @@ export default function DeviationDetailPage() {
   const createdByUser = users.find((u) => u.id === deviation.createdByUserId);
   const workTask = workTasks.find((w) => w.id === deviation.workTaskId);
   const workStation = workStations.find((w) => w.id === deviation.locationId);
+  const assignedDepartment = departments.find(
+    (d) => d.id === deviation.departmentId,
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -749,6 +757,14 @@ export default function DeviationDetailPage() {
 
                 {/* Relaterad info */}
                 <div className="grid grid-cols-2 gap-4">
+                  {assignedUser && (
+                    <div>
+                      <Label>Avdelning</Label>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">
+                        {departments.name}
+                      </p>
+                    </div>
+                  )}
                   {assignedUser && (
                     <div>
                       <Label>Tilldelad till</Label>
