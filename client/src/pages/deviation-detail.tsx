@@ -27,6 +27,7 @@ import {
   Edit3,
   Mail,
   Tag,
+  Plus,
 } from "lucide-react";
 import {
   VerticalTimeline,
@@ -358,6 +359,12 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
     if (entry.type === "comment") {
       return { icon: <MessageSquare size={16} />, color: "#0ea5e9" };
     }
+    
+    // Check for creation action first (before checking for extra fields)
+    if (entry.content.toLowerCase().includes("skapad")) {
+      return { icon: <Plus size={16} />, color: "#10b981" };
+    }
+    
     if (entry.extra?.oldValue && entry.extra?.newValue) {
       if (entry.content.toLowerCase().includes("status")) {
         return { icon: <CheckCircle size={16} />, color: "#3b82f6" };
@@ -368,11 +375,8 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       if (entry.content.toLowerCase().includes("tilldelning")) {
         return { icon: <User size={16} />, color: "#eab308" };
       }
-      if (entry.content.toLowerCase().includes("skapad")) {
-        return { icon: <Mail size={16} />, color: "#10b981" };
-      }
       if (entry.content.toLowerCase().includes("typ")) {
-        return { icon: <Tag size={16} />, color: "#eab308" };
+        return { icon: <Tag size={16} />, color: "#8b5cf6" };
       }
     }
     return { icon: <Edit3 size={16} />, color: "#6b7280" };
