@@ -922,6 +922,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Log all changes if userId is provided
+    console.log('Logging changes for userId:', userId, 'oldDeviation:', oldDeviation.title, 'newDeviation:', result[0].title);
     if (userId) {
       const newDeviation = result[0];
       
