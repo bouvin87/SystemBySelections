@@ -317,6 +317,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === USER MANAGEMENT ROUTES ===
   // Get all users for the tenant (admin only)
+  // Deviation Comments API
+  app.get('/api/deviations/:id/comments', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const deviationId = parseInt(req.params.id);
+      if (isNaN(deviationId)) {
+        return res.status(400).json({ message: 'Invalid deviation ID' });
+      }
+      const comments = await storage.getDeviationComments(deviationId, req.tenantId);
+      res.json(comments);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Deviation not found') {
+        return res.status(404).json({ message: 'Deviation not found' });
+      }
+      console.error('Error fetching deviation comments:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/deviations/:id/comments', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId || !req.user?.id) {
+        return res.status(403).json({ message: 'Tenant ID and user required' });
+      }
+      const deviationId = parseInt(req.params.id);
+      if (isNaN(deviationId)) {
+        return res.status(400).json({ message: 'Invalid deviation ID' });
+      }
+      
+      // Verify deviation exists and belongs to tenant
+      const deviation = await storage.getDeviation(deviationId, req.tenantId);
+      if (!deviation) {
+        return res.status(404).json({ message: 'Deviation not found' });
+      }
+
+      const comment = await storage.createDeviationComment({
+        deviationId,
+        userId: req.user.id,
+        comment: req.body.comment,
+      });
+      
+      res.status(201).json(comment);
+    } catch (error) {
+      console.error('Error creating deviation comment:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // Deviation Logs API
   app.get('/api/deviations/:id/logs', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
     try {
