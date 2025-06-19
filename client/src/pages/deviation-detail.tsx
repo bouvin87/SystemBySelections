@@ -782,7 +782,7 @@ export default function DeviationDetailPage() {
             </Card>
 
             {/* Comments */}
-            <Card>
+            <Card className="flex-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />
@@ -796,15 +796,15 @@ export default function DeviationDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="col-span-1 lg:col-start-2 flex flex-col h-full">
-            <Card className="flex flex-col flex-1 h-full">
+          <div className="col-span-1 lg:col-start-2 flex flex-col">
+            <Card className="flex-1 flex flex-col">
               <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-900">
                 <CardTitle className="flex items-center gap-2">
                   <History className="w-5 h-5" />
                   Aktivitetslogg
                 </CardTitle>
               </CardHeader>
-              <CardContent className="overflow-y-auto flex-1 pr-1">
+              <CardContent className="flex-1 overflow-y-auto pr-1">
                 <DeviationTimeline deviationId={deviation.id} />
               </CardContent>
             </Card>
