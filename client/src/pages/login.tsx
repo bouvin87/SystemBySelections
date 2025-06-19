@@ -56,7 +56,7 @@ export default function Login() {
 
         if (response.ok && data.token) {
           localStorage.setItem("authToken", data.token);
-          window.location.href = "/checklists";
+          window.location.href = "/";
         } else {
           setError(data.message || "Login failed");
         }
@@ -76,7 +76,7 @@ export default function Login() {
           setError("");
         } else if (response.ok && data.token) {
           localStorage.setItem("authToken", data.token);
-          window.location.href = "/checklists";
+          window.location.href = "/";
         } else {
           setError(data.message || "Login failed");
         }

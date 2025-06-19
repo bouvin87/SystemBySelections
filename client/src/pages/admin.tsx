@@ -191,7 +191,7 @@ export default function Admin() {
           "Du har inte behörighet att komma åt administratörspanelen.",
         variant: "destructive",
       });
-      setLocation("/checklists");
+      setLocation("/");
     }
   }, [user, isLoading, setLocation, toast]);
 
