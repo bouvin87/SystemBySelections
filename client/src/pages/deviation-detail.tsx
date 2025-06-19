@@ -289,6 +289,24 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
     queryKey: ["/api/work-stations"],
   });
 
+  // Function to translate log messages
+  const translateLogMessage = (key: string): string => {
+    const translations: Record<string, string> = {
+      'deviation_created': 'Avvikelse skapad',
+      'field_changed_title': 'Rubrik ändrad',
+      'field_changed_description': 'Beskrivning ändrad',
+      'field_changed_status': 'Status ändrad',
+      'field_changed_priority': 'Prioritet ändrad',
+      'field_changed_type': 'Typ ändrad',
+      'field_changed_assignment': 'Tilldelning ändrad',
+      'field_changed_due_date': 'Deadline ändrad',
+      'field_changed_work_task': 'Arbetsmoment ändrat',
+      'field_changed_location': 'Plats ändrad',
+      'created': 'Avvikelse skapad',
+    };
+    return translations[key] || key;
+  };
+
   // Function to map ID values to readable names
   const mapFieldValue = (field: string, value: string | undefined): string => {
     if (!value) return 'Inget värde';
