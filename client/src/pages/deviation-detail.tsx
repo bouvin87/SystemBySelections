@@ -23,8 +23,10 @@ import {
   AlertTriangle,
   History,
   Send,
-    CheckCircle,
-    Edit3,
+  CheckCircle,
+  Edit3,
+  Mail,
+  Tag,
 } from "lucide-react";
 import {
   VerticalTimeline,
@@ -347,13 +349,14 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       type: "comment",
       createdAt: comment.createdAt,
       userId: comment.userId,
-      content: comment.comment,
+      content: "Ny kommentar",
+      commentText: comment.comment,
     })),
   ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   const getIcon = (entry: TimelineEntry): { icon: JSX.Element; color: string } => {
     if (entry.type === "comment") {
-      return { icon: <MessageSquare size={16} />, color: "#10b981" };
+      return { icon: <MessageSquare size={16} />, color: "#0ea5e9" };
     }
     if (entry.extra?.oldValue && entry.extra?.newValue) {
       if (entry.content.toLowerCase().includes("status")) {
@@ -365,8 +368,11 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       if (entry.content.toLowerCase().includes("tilldelning")) {
         return { icon: <User size={16} />, color: "#eab308" };
       }
+      if (entry.content.toLowerCase().includes("skapad")) {
+        return { icon: <Mail size={16} />, color: "#10b981" };
+      }
       if (entry.content.toLowerCase().includes("typ")) {
-        return { icon: <User size={16} />, color: "#eab308" };
+        return { icon: <Tag size={16} />, color: "#eab308" };
       }
     }
     return { icon: <Edit3 size={16} />, color: "#6b7280" };
@@ -397,11 +403,14 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
           >
             <h4 className="text-sm font-medium">{entry.content}</h4>
             
+            {entry.type === "comment" && (entry as any).commentText && (
+              <p className="text-sm text-gray-700 mt-1">{(entry as any).commentText}</p>
+            )}
+            
             {entry.extra && (
               <p className="text-xs text-gray-400 mt-1">
                 <span className="line-through">{entry.extra.oldValue}</span> → {entry.extra.newValue}
               </p>
-            
             )}
             <p className="text-xs text-gray-500 mt-1">av {userName}</p>
           </VerticalTimelineElement>
