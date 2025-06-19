@@ -648,9 +648,9 @@ export default function DeviationDetailPage() {
           </h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Layout med kolumner och rader */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          <div className="space-y-6 col-span-1">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -711,8 +711,7 @@ export default function DeviationDetailPage() {
                     <div>
                       <Label>Tilldelad till</Label>
                       <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() ||
-                          assignedUser.email}
+                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() || assignedUser.email}
                       </p>
                     </div>
                   )}
@@ -742,16 +741,10 @@ export default function DeviationDetailPage() {
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span>
                       <strong>Skapad:</strong>{" "}
-                      {format(
-                        new Date(deviation.createdAt),
-                        "d MMM yyyy HH:mm",
-                        { locale: sv },
-                      )}
+                      {format(new Date(deviation.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
                       {createdByUser && (
                         <span className="ml-2 text-xs italic">
-                          av{" "}
-                          {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() ||
-                            createdByUser.email}
+                          av {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() || createdByUser.email}
                         </span>
                       )}
                     </span>
@@ -761,11 +754,7 @@ export default function DeviationDetailPage() {
                     <History className="h-4 w-4 text-gray-400" />
                     <span>
                       <strong>Senast uppdaterad:</strong>{" "}
-                      {format(
-                        new Date(deviation.updatedAt),
-                        "d MMM yyyy HH:mm",
-                        { locale: sv },
-                      )}
+                      {format(new Date(deviation.updatedAt), "d MMM yyyy HH:mm", { locale: sv })}
                     </span>
                   </div>
 
@@ -774,11 +763,7 @@ export default function DeviationDetailPage() {
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span>
                         <strong>Deadline:</strong>{" "}
-                        {format(
-                          new Date(deviation.dueDate),
-                          "d MMM yyyy HH:mm",
-                          { locale: sv },
-                        )}
+                        {format(new Date(deviation.dueDate), "d MMM yyyy HH:mm", { locale: sv })}
                       </span>
                     </div>
                   )}
@@ -788,11 +773,7 @@ export default function DeviationDetailPage() {
                       <CheckCircle className="h-4 w-4 text-gray-400" />
                       <span>
                         <strong>Slutförd:</strong>{" "}
-                        {format(
-                          new Date(deviation.completedAt),
-                          "d MMM yyyy HH:mm",
-                          { locale: sv },
-                        )}
+                        {format(new Date(deviation.completedAt), "d MMM yyyy HH:mm", { locale: sv })}
                       </span>
                     </div>
                   )}
@@ -815,16 +796,15 @@ export default function DeviationDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Activity Log */}
-            <Card>
-              <CardHeader>
+          <div className="col-span-1 lg:col-start-2 flex flex-col h-full">
+            <Card className="flex flex-col flex-1 h-full">
+              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-900">
                 <CardTitle className="flex items-center gap-2">
                   <History className="w-5 h-5" />
                   Aktivitetslogg
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="overflow-y-auto flex-1 pr-1">
                 <DeviationTimeline deviationId={deviation.id} />
               </CardContent>
             </Card>
@@ -840,5 +820,6 @@ export default function DeviationDetailPage() {
         mode="edit"
       />
     </div>
+
   );
 }
