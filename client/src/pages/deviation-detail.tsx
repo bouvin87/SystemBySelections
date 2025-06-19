@@ -639,7 +639,7 @@ export default function DeviationDetailPage() {
   });
   // Fetch work departments
   const { data: departments = [], isLoading: departmentsLoading } = useQuery<
-    Departments[]
+    Department[]
   >({
     queryKey: ["/api/departments"],
   });
@@ -772,7 +772,7 @@ export default function DeviationDetailPage() {
                   <div>
                     <Label>Avdelning</Label>
                     <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {assignedDepartment.name}
+                      {assignedDepartment?.name || 'Ingen avdelning vald'}
                     </p>
                   </div>
 
