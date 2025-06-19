@@ -257,7 +257,7 @@ export default function Admin() {
     enabled: activeTab === "basic-data",
   });
 
-  const { data: departments = [] } = useQuery<any[]>({
+  const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ["/api/departments"],
     enabled: activeTab === "basic-data",
   });
