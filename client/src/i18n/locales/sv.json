@@ -185,6 +185,7 @@
       "field_changed_due_date": "Deadline ändrad",
       "field_changed_work_task": "Arbetsmoment ändrat",
       "field_changed_location": "Plats ändrad",
+      "field_changed_department": "Avdelning ändrad",
       "created": "Avvikelse skapad"
     }
   }

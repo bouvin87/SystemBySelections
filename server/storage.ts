@@ -1065,6 +1065,14 @@ export class DatabaseStorage implements IStorage {
           'field_changed_location'
         );
       }
+      
+      if (deviation.departmentId !== undefined && oldDeviation.departmentId !== newDeviation.departmentId) {
+        await this.logDeviationChange(
+          id, userId, 'field_changed', 'departmentId', 
+          oldDeviation.departmentId?.toString(), newDeviation.departmentId?.toString(), 
+          'field_changed_department'
+        );
+      }
     }
     
     return result[0];

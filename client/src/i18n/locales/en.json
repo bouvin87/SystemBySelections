@@ -185,6 +185,7 @@
       "field_changed_due_date": "Due date changed",
       "field_changed_work_task": "Work task changed",
       "field_changed_location": "Location changed",
+      "field_changed_department": "Department changed",
       "created": "Deviation created"
     }
   }
