@@ -1839,6 +1839,150 @@ export default function Admin() {
                       ))}
                     </div>
                   </TabsContent>
+
+                  {/* Departments Tab */}
+                  <TabsContent value="departments">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">
+                        Hantera avdelningar
+                      </h3>
+                      <Dialog
+                        open={
+                          dialogOpen &&
+                          activeTab === "basic-data" &&
+                          basicDataTab === "departments"
+                        }
+                        onOpenChange={setDialogOpen}
+                      >
+                        <DialogTrigger asChild>
+                          <Button onClick={() => openDialog()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Lägg till avdelning
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {editingItem
+                                ? "Redigera avdelning"
+                                : "Lägg till avdelning"}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const formData = new FormData(e.currentTarget);
+                              const data: InsertDepartment = {
+                                name: formData.get("name") as string,
+                                description: formData.get("description") as string || undefined,
+                                isActive: formData.get("isActive") === "on",
+                                order: parseInt(formData.get("order") as string) || 0,
+                              };
+                              handleSubmit("/api/departments", data);
+                            }}
+                            className="space-y-4"
+                          >
+                            <div>
+                              <Label htmlFor="name">Namn</Label>
+                              <Input
+                                id="name"
+                                name="name"
+                                defaultValue={editingItem?.name || ""}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="description">Beskrivning</Label>
+                              <Textarea
+                                id="description"
+                                name="description"
+                                defaultValue={editingItem?.description || ""}
+                              />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                id="isActive"
+                                name="isActive"
+                                defaultChecked={editingItem?.isActive ?? true}
+                              />
+                              <Label htmlFor="isActive">Aktiv</Label>
+                            </div>
+                            <div>
+                              <Label htmlFor="order">Ordning</Label>
+                              <Input
+                                id="order"
+                                name="order"
+                                type="number"
+                                defaultValue={editingItem?.order || 0}
+                              />
+                            </div>
+                            <Button type="submit" className="w-full">
+                              <Save className="mr-2 h-4 w-4" />
+                              Spara
+                            </Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+
+                    <div className="space-y-4">
+                      {departments.map((department) => (
+                        <Card key={department.id}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h4 className="text-sm font-medium text-gray-900">
+                                  {department.name}
+                                </h4>
+                                {department.description && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {department.description}
+                                  </p>
+                                )}
+                                <div className="mt-2">
+                                  <Badge
+                                    variant={
+                                      department.isActive ? "default" : "secondary"
+                                    }
+                                  >
+                                    {department.isActive ? "Aktiv" : "Inaktiv"}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDialog(department)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleDelete("/api/departments", department.id)
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {departments.length === 0 && (
+                        <Card>
+                          <CardContent className="p-8 text-center text-gray-500">
+                            <p>Inga avdelningar skapade än.</p>
+                            <p className="text-sm mt-1">
+                              Klicka på "Lägg till avdelning" för att komma igång.
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  </TabsContent>
                 </Tabs>
               </TabsContent>
 
