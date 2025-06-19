@@ -189,8 +189,8 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
 
       workTaskId: formData.get("workTaskId") ? parseInt(formData.get("workTaskId") as string) : undefined,
       locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
-      departmentId: formData.get("departmentId") ? parseInt(formData.get("departmentId") as string) : undefined,
-      assignedToUserId: formData.get("assignedToUserId") ? parseInt(formData.get("assignedToUserId") as string) : undefined,
+      departmentId: formData.get("departmentId") && formData.get("departmentId") !== "0" ? parseInt(formData.get("departmentId") as string) : undefined,
+      assignedToUserId: formData.get("assignedToUserId") && formData.get("assignedToUserId") !== "0" ? parseInt(formData.get("assignedToUserId") as string) : undefined,
       dueDate: formData.get("dueDate") || undefined,
     };
 
@@ -307,7 +307,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                     <SelectValue placeholder="Välj användare" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ingen vald</SelectItem>
+                    <SelectItem value="0">Ingen vald</SelectItem>
                     {users.filter(user => user.isActive).map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.firstName} {user.lastName} ({user.email})
