@@ -950,6 +950,46 @@ export class DatabaseStorage implements IStorage {
     await db.delete(deviationComments).where(eq(deviationComments.id, id));
   }
 
+  // === DEVIATION LOGS ===
+  
+  async getDeviationLogs(deviationId: number, tenantId: number): Promise<DeviationLog[]> {
+    // First verify deviation exists and belongs to tenant
+    const deviation = await this.getDeviation(deviationId, tenantId);
+    if (!deviation) {
+      throw new Error('Deviation not found');
+    }
+
+    return await db.select().from(deviationLogs)
+      .where(eq(deviationLogs.deviationId, deviationId))
+      .orderBy(desc(deviationLogs.createdAt));
+  }
+
+  async createDeviationLog(log: InsertDeviationLog): Promise<DeviationLog> {
+    const result = await db.insert(deviationLogs).values(log).returning();
+    return result[0];
+  }
+
+  // Helper method to log deviation changes
+  async logDeviationChange(
+    deviationId: number,
+    userId: number,
+    action: string,
+    field?: string,
+    oldValue?: string,
+    newValue?: string,
+    description?: string
+  ): Promise<void> {
+    await this.createDeviationLog({
+      deviationId,
+      userId,
+      action,
+      field,
+      oldValue,
+      newValue,
+      description,
+    });
+  }
+
   async getDeviationStats(tenantId: number): Promise<{
     total: number;
     new: number;
