@@ -649,10 +649,10 @@ export default function DeviationDetailPage() {
         </div>
 
         {/* Layout med kolumner och rader */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          <div className="space-y-6 col-span-1 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6 col-span-1">
             {/* Basic Information */}
-            <Card className="flex-1">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
@@ -782,7 +782,7 @@ export default function DeviationDetailPage() {
             </Card>
 
             {/* Comments */}
-            <Card className="flex-1">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />
@@ -796,9 +796,9 @@ export default function DeviationDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="col-span-1 lg:col-start-2 flex flex-col">
-            <Card className="flex-1 flex flex-col">
-              <CardHeader className="sticky top-0 z-10 bg-white dark:bg-gray-900">
+          <div className="col-span-1 lg:col-start-2">
+            <Card className="h-[800px] flex flex-col">
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <History className="w-5 h-5" />
                   Aktivitetslogg
