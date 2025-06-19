@@ -899,7 +899,7 @@ export class DatabaseStorage implements IStorage {
       undefined,
       undefined,
       undefined,
-      'Avvikelse skapad'
+      'deviation_created'
     );
     
     return result[0];

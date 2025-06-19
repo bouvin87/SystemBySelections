@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -144,6 +145,7 @@ function getIconForLog(log: DeviationLog): { icon: JSX.Element; color: string } 
 
 // Activity Log Component
 function DeviationActivityLog({ deviationId }: { deviationId: number }) {
+  const { t } = useTranslation();
   const { data: logs = [], isLoading } = useQuery<DeviationLog[]>({
     queryKey: [`/api/deviations/${deviationId}/logs`],
   });
@@ -257,6 +259,7 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
 }
 
 function DeviationTimeline({ deviationId }: { deviationId: number }) {
+  const { t } = useTranslation();
   const { data: logs = [] } = useQuery<DeviationLog[]>({
     queryKey: [`/api/deviations/${deviationId}/logs`],
   });
@@ -291,20 +294,7 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
 
   // Function to translate log messages
   const translateLogMessage = (key: string): string => {
-    const translations: Record<string, string> = {
-      'deviation_created': 'Avvikelse skapad',
-      'field_changed_title': 'Rubrik ändrad',
-      'field_changed_description': 'Beskrivning ändrad',
-      'field_changed_status': 'Status ändrad',
-      'field_changed_priority': 'Prioritet ändrad',
-      'field_changed_type': 'Typ ändrad',
-      'field_changed_assignment': 'Tilldelning ändrad',
-      'field_changed_due_date': 'Deadline ändrad',
-      'field_changed_work_task': 'Arbetsmoment ändrat',
-      'field_changed_location': 'Plats ändrad',
-      'created': 'Avvikelse skapad',
-    };
-    return translations[key] || key;
+    return t(`deviations.logs.${key}`, key);
   };
 
   // Function to map ID values to readable names
