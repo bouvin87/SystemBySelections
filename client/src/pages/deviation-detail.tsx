@@ -315,7 +315,7 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
   });
-  const { data: departments = [] } = useQuery<Departments[]>({
+  const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ["/api/departments"],
   });
 
@@ -772,7 +772,7 @@ export default function DeviationDetailPage() {
                   <div>
                     <Label>Avdelning</Label>
                     <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {departments.name}
+                      {assignedDepartment.name}
                     </p>
                   </div>
 
