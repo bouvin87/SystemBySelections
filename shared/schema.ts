@@ -64,6 +64,9 @@ export const departments = pgTable("departments", {
   description: text("description"),
   isActive: boolean("is_active").notNull().default(true),
   order: integer("order").notNull().default(0),
+  responsibleUserId: integer("responsible_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Checklists (tenant-scoped)
@@ -172,6 +175,7 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true, creat
 export const insertWorkTaskSchema = createInsertSchema(workTasks).omit({ id: true });
 export const insertWorkStationSchema = createInsertSchema(workStations).omit({ id: true });
 export const insertShiftSchema = createInsertSchema(shifts).omit({ id: true });
+export const insertDepartmentSchema = createInsertSchema(departments).omit({ id: true, tenantId: true, createdAt: true, updatedAt: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true });
 export const insertChecklistSchema = createInsertSchema(checklists).omit({ id: true });
