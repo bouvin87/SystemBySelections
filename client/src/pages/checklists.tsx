@@ -8,7 +8,7 @@ import { renderIcon } from "@/lib/icon-utils";
 import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
 
-export default function Dashboard() {
+export default function Checklists() {
   const { t } = useTranslation();
   const { data: checklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists"],

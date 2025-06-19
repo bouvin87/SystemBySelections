@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/home";
-import Dashboard from "@/pages/dashboard";
+import Checklists from "@/pages/checklists";
 import Admin from "@/pages/admin";
 import SuperAdmin from "@/pages/SuperAdmin";
 import ChecklistEditor from "@/pages/checklist-editor";
@@ -48,7 +48,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/checklists" component={Checklists} />
       <Route path="/admin" component={Admin} />
       <Route path="/checklist-editor/:id" component={ChecklistEditor} />
       <Route path="/checklist/:id/start" component={ChecklistStart} />
