@@ -1,10 +1,10 @@
 import { 
-  tenants, users, workTasks, workStations, shifts, categories, questions, checklists, 
+  tenants, users, workTasks, workStations, shifts, departments, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
-  type Shift, type InsertShift, type Category, type InsertCategory,
+  type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
   type Question, type InsertQuestion, type Checklist, type InsertChecklist,
   type ChecklistWorkTask, type InsertChecklistWorkTask,
   type ChecklistResponse, type InsertChecklistResponse,

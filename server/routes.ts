@@ -687,6 +687,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Departments
+  app.get("/api/departments", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.tenantId!;
+      const departments = await storage.getDepartments(tenantId);
+      res.json(departments);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/departments", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.tenantId!;
+      const departmentData = { ...req.body, tenantId };
+      const department = await storage.createDepartment(departmentData);
+      res.status(201).json(department);
+    } catch (error) {
+      console.error('Error creating department:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/departments/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.tenantId!;
+      const departmentId = parseInt(req.params.id);
+      const department = await storage.updateDepartment(departmentId, req.body, tenantId);
+      res.json(department);
+    } catch (error) {
+      console.error('Error updating department:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/departments/:id", authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.tenantId!;
+      const departmentId = parseInt(req.params.id);
+      await storage.deleteDepartment(departmentId, tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting department:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Checklists
   app.get('/api/checklists', authenticateToken, requireModule('checklists'), async (req, res) => {
     try {

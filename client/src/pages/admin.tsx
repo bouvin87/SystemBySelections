@@ -1424,7 +1424,7 @@ export default function Admin() {
               {/* Basic Data Tab */}
               <TabsContent value="basic-data">
                 <Tabs value={basicDataTab} onValueChange={setBasicDataTab}>
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="work-tasks">
                       {t("admin.workTasks")}
                     </TabsTrigger>
@@ -1433,6 +1433,9 @@ export default function Admin() {
                     </TabsTrigger>
                     <TabsTrigger value="shifts">
                       {t("admin.shifts")}
+                    </TabsTrigger>
+                    <TabsTrigger value="departments">
+                      Avdelningar
                     </TabsTrigger>
                   </TabsList>
 
