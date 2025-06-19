@@ -650,9 +650,9 @@ export default function DeviationDetailPage() {
 
         {/* Layout med kolumner och rader */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          <div className="space-y-6 col-span-1">
+          <div className="space-y-6 col-span-1 flex flex-col">
             {/* Basic Information */}
-            <Card>
+            <Card className="flex-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
