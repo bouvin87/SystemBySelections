@@ -1042,12 +1042,17 @@ export class DatabaseStorage implements IStorage {
         );
       }
       
-      if (deviation.dueDate !== undefined && oldDeviation.dueDate !== newDeviation.dueDate) {
-        await this.logDeviationChange(
-          id, userId, 'field_changed', 'dueDate', 
-          oldDeviation.dueDate?.toISOString(), newDeviation.dueDate?.toISOString(), 
-          'field_changed_due_date'
-        );
+      if (deviation.dueDate !== undefined) {
+        const oldDueDateStr = oldDeviation.dueDate ? oldDeviation.dueDate.toISOString().split('T')[0] : null;
+        const newDueDateStr = newDeviation.dueDate ? newDeviation.dueDate.toISOString().split('T')[0] : null;
+        
+        if (oldDueDateStr !== newDueDateStr) {
+          await this.logDeviationChange(
+            id, userId, 'field_changed', 'dueDate', 
+            oldDueDateStr, newDueDateStr, 
+            'field_changed_due_date'
+          );
+        }
       }
       
       if (deviation.workTaskId !== undefined && oldDeviation.workTaskId !== newDeviation.workTaskId) {

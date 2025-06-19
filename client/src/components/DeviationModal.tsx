@@ -191,7 +191,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
       departmentId: formData.get("departmentId") && formData.get("departmentId") !== "0" ? parseInt(formData.get("departmentId") as string) : undefined,
       assignedToUserId: formData.get("assignedToUserId") && formData.get("assignedToUserId") !== "0" ? parseInt(formData.get("assignedToUserId") as string) : undefined,
-      dueDate: formData.get("dueDate") || undefined,
+      dueDate: formData.get("dueDate") && formData.get("dueDate") !== "" ? formData.get("dueDate") as string : undefined,
     };
 
     if (mode === 'edit') {
@@ -353,13 +353,13 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             <div>
               <Label htmlFor="dueDate">Deadline</Label>
               <DatePicker
-                value={selectedDueDate || deviation?.dueDate || ""}
+                value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")}
                 onChange={(value) => {
                   setSelectedDueDate(value);
                 }}
                 placeholder="Välj deadline"
               />
-              <input type="hidden" name="dueDate" value={selectedDueDate || deviation?.dueDate || ""} />
+              <input type="hidden" name="dueDate" value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")} />
             </div>
           </div>
           
