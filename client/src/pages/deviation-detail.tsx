@@ -24,6 +24,11 @@ import {
   History,
   Send,
 } from "lucide-react";
+import {
+  VerticalTimeline,
+  VerticalTimelineElement,
+} from "react-vertical-timeline-component";
+import "react-vertical-timeline-component/style.min.css";
 
 interface Deviation {
   id: number;
@@ -383,58 +388,49 @@ export default function DeviationDetailPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Typ</Label>
+                {/* Snygg, horisontell metadata-grupp */}
+                <div>
+                  <Label className="text-sm text-gray-500">Egenskaper</Label>
+                  <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-800 dark:text-gray-200">
                     {deviationType && (
-                      <Badge
-                        style={{
-                          backgroundColor: deviationType.color,
-                          color: "white",
-                        }}
-                        className="mt-1"
-                      >
-                        {deviationType.name}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: deviationType.color }}
+                        />
+                        <span>{deviationType.name}</span>
+                      </div>
                     )}
-                  </div>
 
-                  <div>
-                    <Label>Status</Label>
                     {status && (
-                      <Badge
-                        style={{
-                          backgroundColor: status.color,
-                          color: "white",
-                        }}
-                        className="mt-1"
-                      >
-                        {status.name}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: status.color }}
+                        />
+                        <span>{status.name}</span>
+                      </div>
+                    )}
+
+                    {priority && (
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full"
+                          style={{ backgroundColor: priority.color }}
+                        />
+                        <span>{priority.name}</span>
+                      </div>
                     )}
                   </div>
+                </div>
 
-                  {priority && (
-                    <div>
-                      <Label>Prioritet</Label>
-                      <Badge
-                        style={{
-                          backgroundColor: priority.color,
-                          color: "white",
-                        }}
-                        className="mt-1"
-                      >
-                        {priority.name}
-                      </Badge>
-                    </div>
-                  )}
-
+                {/* Relaterad info */}
+                <div className="grid grid-cols-2 gap-4">
                   {assignedUser && (
                     <div>
                       <Label>Tilldelad till</Label>
                       <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() ||
-                          assignedUser.email}
+                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() || assignedUser.email}
                       </p>
                     </div>
                   )}
@@ -442,22 +438,64 @@ export default function DeviationDetailPage() {
                   {workTask && (
                     <div>
                       <Label>Arbetsuppgift</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {workTask.name}
-                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">{workTask.name}</p>
                     </div>
                   )}
 
                   {workStation && (
                     <div>
                       <Label>Plats</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {workStation.name}
-                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">{workStation.name}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tidslinje */}
+                <div className="col-span-2 mt-4 border-t pt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span>
+                      <strong>Skapad:</strong>{" "}
+                      {format(new Date(deviation.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      {createdByUser && (
+                        <span className="ml-2 text-xs italic">
+                          av {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() || createdByUser.email}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <History className="h-4 w-4 text-gray-400" />
+                    <span>
+                      <strong>Senast uppdaterad:</strong>{" "}
+                      {format(new Date(deviation.updatedAt), "d MMM yyyy HH:mm", { locale: sv })}
+                    </span>
+                  </div>
+
+                  {deviation.dueDate && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span>
+                        <strong>Deadline:</strong>{" "}
+                        {format(new Date(deviation.dueDate), "d MMM yyyy HH:mm", { locale: sv })}
+                      </span>
+                    </div>
+                  )}
+
+                  {deviation.completedAt && (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-gray-400" />
+                      <span>
+                        <strong>Slutförd:</strong>{" "}
+                        {format(new Date(deviation.completedAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      </span>
                     </div>
                   )}
                 </div>
               </CardContent>
+
+
             </Card>
 
             {/* Comments */}
@@ -476,71 +514,6 @@ export default function DeviationDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Dates and Timeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Tidslinjer
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Skapad</Label>
-                  <p className="text-gray-700 dark:text-gray-300 mt-1">
-                    {format(
-                      new Date(deviation.createdAt),
-                      "d MMM yyyy HH:mm",
-                      { locale: sv }
-                    )}
-                  </p>
-                  {createdByUser && (
-                    <p className="text-sm text-gray-500">
-                      av{" "}
-                      {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() ||
-                        createdByUser.email}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>Senast uppdaterad</Label>
-                  <p className="text-gray-700 dark:text-gray-300 mt-1">
-                    {format(
-                      new Date(deviation.updatedAt),
-                      "d MMM yyyy HH:mm",
-                      { locale: sv }
-                    )}
-                  </p>
-                </div>
-
-                {deviation.dueDate && (
-                  <div>
-                    <Label>Deadline</Label>
-                    <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {format(
-                        new Date(deviation.dueDate),
-                        "d MMM yyyy HH:mm",
-                        { locale: sv }
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                {deviation.completedAt && (
-                  <div>
-                    <Label>Slutförd</Label>
-                    <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {format(
-                        new Date(deviation.completedAt),
-                        "d MMM yyyy HH:mm",
-                        { locale: sv }
-                      )}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Activity Log */}
             <Card>

@@ -38,11 +38,14 @@ import {
   Clock,
   MessageSquare,
   History,
+  TrendingUp,
 } from "lucide-react";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { t } from "i18next";
 
 // Types based on our schema
 interface DeviationType {
@@ -141,7 +144,9 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
   });
 
   if (isLoading) {
-    return <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>;
+    return (
+      <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>
+    );
   }
 
   if (logs.length === 0) {
@@ -169,7 +174,8 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
             <p className="text-xs text-gray-600">av {userName}</p>
             {log.oldValue && log.newValue && (
               <div className="text-xs text-gray-500 mt-1">
-                <span className="line-through">{log.oldValue}</span> → {log.newValue}
+                <span className="line-through">{log.oldValue}</span> →{" "}
+                {log.newValue}
               </div>
             )}
           </div>
@@ -383,13 +389,16 @@ export default function DeviationsPage() {
                   <SelectContent>
                     <SelectItem value="all">Alla statusar</SelectItem>
                     {deviationStatuses
-                      .filter(status => status.isActive)
+                      .filter((status) => status.isActive)
                       .sort((a, b) => a.order - b.order)
                       .map((status) => (
-                      <SelectItem key={status.id} value={status.id.toString()}>
-                        {status.name}
-                      </SelectItem>
-                    ))}
+                        <SelectItem
+                          key={status.id}
+                          value={status.id.toString()}
+                        >
+                          {status.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -408,13 +417,16 @@ export default function DeviationsPage() {
                   <SelectContent>
                     <SelectItem value="all">Alla prioriteter</SelectItem>
                     {deviationPriorities
-                      .filter(priority => priority.isActive)
+                      .filter((priority) => priority.isActive)
                       .sort((a, b) => a.order - b.order)
                       .map((priority) => (
-                      <SelectItem key={priority.id} value={priority.id.toString()}>
-                        {priority.name}
-                      </SelectItem>
-                    ))}
+                        <SelectItem
+                          key={priority.id}
+                          value={priority.id.toString()}
+                        >
+                          {priority.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -497,58 +509,75 @@ export default function DeviationsPage() {
                   onClick={() => openDeviationDetail(deviation)}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between">
+                      {/* Vänster innehåll */}
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                        {/* Titel */}
+                        <div className="flex items-center gap-2 mb-1">
                           {deviationType && (
                             <div
                               className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: deviationType.color }}
                             />
                           )}
-                          <h3 className="font-semibold">{deviation.title}</h3>
-                          {priority && (
-                            <Badge style={{ backgroundColor: priority.color, color: 'white' }}>
-                              {priority.name}
-                            </Badge>
-                          )}
-                          {status && (
-                            <Badge style={{ backgroundColor: status.color, color: 'white' }}>
-                              {status.name}
-                            </Badge>
-                          )}
+                          <h3 className="font-semibold text-base">{deviation.title}</h3>
                         </div>
 
+                        {/* Beskrivning */}
                         {deviation.description && (
-                          <p className="text-gray-600 text-sm mb-2">
-                            {deviation.description}
-                          </p>
+                          <p className="text-gray-600 text-sm mb-2">{deviation.description}</p>
                         )}
 
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        {/* Metadata-rad: datum, deadline, badge */}
+                        <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />
-                            {format(
-                              new Date(deviation.createdAt),
-                              "d MMM yyyy",
-                              { locale: sv },
-                            )}
+                            {format(new Date(deviation.createdAt), "d MMM yyyy", { locale: sv })}
                           </div>
+
                           {deviation.dueDate && (
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4" />
                               Deadline:{" "}
-                              {format(
-                                new Date(deviation.dueDate),
-                                "d MMM yyyy",
-                                { locale: sv },
-                              )}
+                              {format(new Date(deviation.dueDate), "d MMM yyyy", { locale: sv })}
                             </div>
+                          )}
+
+                          {/* Priority och Status badges */}
+                          {priority && (
+                            <Badge
+                              style={{ backgroundColor: priority.color, color: "white" }}
+                              className="text-xs"
+                            >
+                              {priority.name}
+                            </Badge>
+                          )}
+                          {status && (
+                            <Badge
+                              style={{ backgroundColor: status.color, color: "white" }}
+                              className="text-xs"
+                            >
+                              {status.name}
+                            </Badge>
                           )}
                         </div>
                       </div>
+
+                      {/* Visa-knapp högerställd och centrerad vertikalt */}
+                      <div className="ml-4 flex items-center">
+                        <Link href={`/deviations/${deviation.id}`}>
+                          <Button size="sm" variant="secondary">
+                            <TrendingUp className="mr-2 h-4 w-4" />
+                            {t("common.view")}
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </CardContent>
+
+
+
+
                 </Card>
               );
             })
@@ -580,12 +609,22 @@ export default function DeviationsPage() {
                     return (
                       <>
                         {priority && (
-                          <Badge style={{ backgroundColor: priority.color, color: 'white' }}>
+                          <Badge
+                            style={{
+                              backgroundColor: priority.color,
+                              color: "white",
+                            }}
+                          >
                             {priority.name}
                           </Badge>
                         )}
                         {status && (
-                          <Badge style={{ backgroundColor: status.color, color: 'white' }}>
+                          <Badge
+                            style={{
+                              backgroundColor: status.color,
+                              color: "white",
+                            }}
+                          >
                             {status.name}
                           </Badge>
                         )}
