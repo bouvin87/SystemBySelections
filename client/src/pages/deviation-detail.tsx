@@ -29,6 +29,7 @@ import {
   VerticalTimelineElement,
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
+import "react-vertical-timeline-component/style.min.css";
 
 interface Deviation {
   id: number;
@@ -165,6 +166,67 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
   );
 }
 
+function DeviationTimeline({ deviationId }: { deviationId: number }) {
+  const { data: logs = [], isLoading } = useQuery<DeviationLog[]>({
+    queryKey: [`/api/deviations/${deviationId}/logs`],
+  });
+
+  const { data: users = [] } = useQuery<DeviationUser[]>({
+    queryKey: ["/api/users"],
+  });
+
+  if (isLoading) {
+    return (
+      <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>
+    );
+  }
+
+  if (!logs.length) {
+    return <div className="text-sm text-gray-500">Inga aktiviteter ännu</div>;
+  }
+
+  return (
+    <div className="bg-white rounded-md">
+      <VerticalTimeline layout="1-column" lineColor="#e5e7eb">
+        {logs.map((log) => {
+          const user = users.find((u) => u.id === log.userId);
+          const userName = user
+            ? `${user.firstName} ${user.lastName}`.trim() || user.email
+            : "Okänd användare";
+
+          return (
+            <VerticalTimelineElement
+              key={log.id}
+              contentStyle={{ background: "#f9fafb", color: "#111827" }}
+              contentArrowStyle={{ borderRight: "7px solid #f9fafb" }}
+              date={format(new Date(log.createdAt), "d MMM yyyy HH:mm", {
+                locale: sv,
+              })}
+              icon={<Clock size={10} />}
+              iconStyle={{
+                background: "#0ea5e9",
+                  color: "#fff",
+
+              }}
+            >
+              <h4 className="font-medium text-sm">
+                {log.description || log.action}
+              </h4>
+              <p className="text-xs text-gray-500 mt-1">av {userName}</p>
+
+              {log.oldValue && log.newValue && (
+                <p className="text-xs text-gray-600 mt-1">
+                  <span className="line-through">{log.oldValue}</span> →{" "}
+                  {log.newValue}
+                </p>
+              )}
+            </VerticalTimelineElement>
+          );
+        })}
+      </VerticalTimeline>
+    </div>
+  );
+}
 // Comments Component
 function DeviationComments({ deviationId }: { deviationId: number }) {
   const [newComment, setNewComment] = useState("");
@@ -181,10 +243,7 @@ function DeviationComments({ deviationId }: { deviationId: number }) {
 
   const createCommentMutation = useMutation({
     mutationFn: (comment: string) =>
-      apiRequest(`/api/deviations/${deviationId}/comments`, {
-        method: "POST",
-        body: JSON.stringify({ comment }),
-      }),
+      apiRequest(`/api/deviations/${deviationId}/comments`, "POST", { comment }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [`/api/deviations/${deviationId}/comments`],
@@ -332,7 +391,9 @@ export default function DeviationDetailPage() {
     );
   }
 
-  const deviationType = deviationTypes.find((t) => t.id === deviation.deviationTypeId);
+  const deviationType = deviationTypes.find(
+    (t) => t.id === deviation.deviationTypeId,
+  );
   const priority = priorities.find((p) => p.id === deviation.priorityId);
   const status = statuses.find((s) => s.id === deviation.statusId);
   const assignedUser = users.find((u) => u.id === deviation.assignedToUserId);
@@ -430,7 +491,8 @@ export default function DeviationDetailPage() {
                     <div>
                       <Label>Tilldelad till</Label>
                       <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() || assignedUser.email}
+                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() ||
+                          assignedUser.email}
                       </p>
                     </div>
                   )}
@@ -438,14 +500,18 @@ export default function DeviationDetailPage() {
                   {workTask && (
                     <div>
                       <Label>Arbetsuppgift</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">{workTask.name}</p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">
+                        {workTask.name}
+                      </p>
                     </div>
                   )}
 
                   {workStation && (
                     <div>
                       <Label>Plats</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">{workStation.name}</p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">
+                        {workStation.name}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -456,10 +522,16 @@ export default function DeviationDetailPage() {
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span>
                       <strong>Skapad:</strong>{" "}
-                      {format(new Date(deviation.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      {format(
+                        new Date(deviation.createdAt),
+                        "d MMM yyyy HH:mm",
+                        { locale: sv },
+                      )}
                       {createdByUser && (
                         <span className="ml-2 text-xs italic">
-                          av {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() || createdByUser.email}
+                          av{" "}
+                          {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() ||
+                            createdByUser.email}
                         </span>
                       )}
                     </span>
@@ -469,7 +541,11 @@ export default function DeviationDetailPage() {
                     <History className="h-4 w-4 text-gray-400" />
                     <span>
                       <strong>Senast uppdaterad:</strong>{" "}
-                      {format(new Date(deviation.updatedAt), "d MMM yyyy HH:mm", { locale: sv })}
+                      {format(
+                        new Date(deviation.updatedAt),
+                        "d MMM yyyy HH:mm",
+                        { locale: sv },
+                      )}
                     </span>
                   </div>
 
@@ -478,7 +554,11 @@ export default function DeviationDetailPage() {
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span>
                         <strong>Deadline:</strong>{" "}
-                        {format(new Date(deviation.dueDate), "d MMM yyyy HH:mm", { locale: sv })}
+                        {format(
+                          new Date(deviation.dueDate),
+                          "d MMM yyyy HH:mm",
+                          { locale: sv },
+                        )}
                       </span>
                     </div>
                   )}
@@ -488,14 +568,16 @@ export default function DeviationDetailPage() {
                       <CheckCircle className="h-4 w-4 text-gray-400" />
                       <span>
                         <strong>Slutförd:</strong>{" "}
-                        {format(new Date(deviation.completedAt), "d MMM yyyy HH:mm", { locale: sv })}
+                        {format(
+                          new Date(deviation.completedAt),
+                          "d MMM yyyy HH:mm",
+                          { locale: sv },
+                        )}
                       </span>
                     </div>
                   )}
                 </div>
               </CardContent>
-
-
             </Card>
 
             {/* Comments */}
@@ -514,7 +596,6 @@ export default function DeviationDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-
             {/* Activity Log */}
             <Card>
               <CardHeader>
@@ -524,7 +605,7 @@ export default function DeviationDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <DeviationActivityLog deviationId={deviation.id} />
+                <DeviationTimeline deviationId={deviation.id} />
               </CardContent>
             </Card>
           </div>

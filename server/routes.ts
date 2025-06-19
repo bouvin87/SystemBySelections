@@ -390,10 +390,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      // Only admins can view all users
-      if (req.user?.role !== 'admin') {
-        return res.status(403).json({ message: 'Admin access required' });
-      }
+      // Allow any authenticated user to view users (needed for deviation assignments and comments)
+      // if (req.user?.role !== 'admin') {
+      //   return res.status(403).json({ message: 'Admin access required' });
+      // }
 
       const users = await storage.getUsers(req.tenantId!);
       res.json(users);
