@@ -173,7 +173,7 @@ export interface IStorage {
   }): Promise<Deviation[]>;
   getDeviation(id: number, tenantId: number): Promise<Deviation | undefined>;
   createDeviation(deviation: InsertDeviation): Promise<Deviation>;
-  updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number): Promise<Deviation>;
+  updateDeviation(id: number, deviation: Partial<InsertDeviation>, tenantId: number, userId?: number): Promise<Deviation>;
   deleteDeviation(id: number, tenantId: number): Promise<void>;
   getDeviationComments(deviationId: number, tenantId: number): Promise<DeviationComment[]>;
   createDeviationComment(comment: InsertDeviationComment): Promise<DeviationComment>;
@@ -926,7 +926,7 @@ export class DatabaseStorage implements IStorage {
       const newDeviation = result[0];
       
       // Check each field for changes and log them
-      if (deviation.title && oldDeviation.title !== newDeviation.title) {
+      if (deviation.title !== undefined && oldDeviation.title !== newDeviation.title) {
         await this.logDeviationChange(
           id, userId, 'updated', 'title', 
           oldDeviation.title, newDeviation.title, 
@@ -942,7 +942,7 @@ export class DatabaseStorage implements IStorage {
         );
       }
       
-      if (deviation.statusId && oldDeviation.statusId !== newDeviation.statusId) {
+      if (deviation.statusId !== undefined && oldDeviation.statusId !== newDeviation.statusId) {
         await this.logDeviationChange(
           id, userId, 'status_changed', 'statusId', 
           oldDeviation.statusId?.toString(), newDeviation.statusId?.toString(), 
@@ -950,7 +950,7 @@ export class DatabaseStorage implements IStorage {
         );
       }
       
-      if (deviation.priorityId && oldDeviation.priorityId !== newDeviation.priorityId) {
+      if (deviation.priorityId !== undefined && oldDeviation.priorityId !== newDeviation.priorityId) {
         await this.logDeviationChange(
           id, userId, 'updated', 'priorityId', 
           oldDeviation.priorityId?.toString(), newDeviation.priorityId?.toString(), 
@@ -958,7 +958,7 @@ export class DatabaseStorage implements IStorage {
         );
       }
       
-      if (deviation.deviationTypeId && oldDeviation.deviationTypeId !== newDeviation.deviationTypeId) {
+      if (deviation.deviationTypeId !== undefined && oldDeviation.deviationTypeId !== newDeviation.deviationTypeId) {
         await this.logDeviationChange(
           id, userId, 'updated', 'deviationTypeId', 
           oldDeviation.deviationTypeId.toString(), newDeviation.deviationTypeId.toString(), 
@@ -979,6 +979,22 @@ export class DatabaseStorage implements IStorage {
           id, userId, 'updated', 'dueDate', 
           oldDeviation.dueDate?.toISOString(), newDeviation.dueDate?.toISOString(), 
           'Deadline ändrad'
+        );
+      }
+      
+      if (deviation.workTaskId !== undefined && oldDeviation.workTaskId !== newDeviation.workTaskId) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'workTaskId', 
+          oldDeviation.workTaskId?.toString(), newDeviation.workTaskId?.toString(), 
+          'Arbetsmoment ändrat'
+        );
+      }
+      
+      if (deviation.locationId !== undefined && oldDeviation.locationId !== newDeviation.locationId) {
+        await this.logDeviationChange(
+          id, userId, 'updated', 'locationId', 
+          oldDeviation.locationId?.toString(), newDeviation.locationId?.toString(), 
+          'Plats ändrad'
         );
       }
     }
