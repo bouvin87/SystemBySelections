@@ -149,6 +149,70 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
     queryKey: ["/api/users"],
   });
 
+  const { data: priorities = [] } = useQuery<DeviationPriority[]>({
+    queryKey: ["/api/deviations/priorities"],
+  });
+
+  const { data: statuses = [] } = useQuery<DeviationStatus[]>({
+    queryKey: ["/api/deviations/statuses"],
+  });
+
+  const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
+    queryKey: ["/api/deviations/types"],
+  });
+
+  const { data: workTasks = [] } = useQuery<WorkTask[]>({
+    queryKey: ["/api/work-tasks"],
+  });
+
+  const { data: workStations = [] } = useQuery<WorkStation[]>({
+    queryKey: ["/api/work-stations"],
+  });
+
+  // Function to map ID values to readable names
+  const mapFieldValue = (field: string, value: string | undefined): string => {
+    if (!value) return 'Inget värde';
+    
+    switch (field) {
+      case 'priorityId':
+        const priority = priorities.find(p => p.id.toString() === value);
+        return priority ? priority.name : value;
+        
+      case 'statusId':
+        const status = statuses.find(s => s.id.toString() === value);
+        return status ? status.name : value;
+        
+      case 'deviationTypeId':
+        const type = deviationTypes.find(t => t.id.toString() === value);
+        return type ? type.name : value;
+        
+      case 'assignedToUserId':
+        const user = users.find(u => u.id.toString() === value);
+        return user ? `${user.firstName} ${user.lastName}`.trim() || user.email : value;
+        
+      case 'workTaskId':
+        const workTask = workTasks.find(w => w.id.toString() === value);
+        return workTask ? workTask.name : value;
+        
+      case 'locationId':
+        const workStation = workStations.find(w => w.id.toString() === value);
+        return workStation ? workStation.name : value;
+        
+      case 'dueDate':
+        if (value) {
+          try {
+            return format(new Date(value), "d MMM yyyy", { locale: sv });
+          } catch {
+            return value;
+          }
+        }
+        return 'Inget datum';
+        
+      default:
+        return value;
+    }
+  };
+
   if (isLoading) {
     return <div className="text-sm text-gray-500">Laddar aktivitetslogg...</div>;
   }
@@ -179,7 +243,7 @@ function DeviationActivityLog({ deviationId }: { deviationId: number }) {
             <p className="text-xs text-gray-600">av {userName}</p>
             {log.oldValue && log.newValue && (
               <div className="text-xs text-gray-500 mt-1">
-                <span className="line-through">{log.oldValue}</span> → {log.newValue}
+                <span className="line-through">{mapFieldValue(log.field || '', log.oldValue)}</span> → {mapFieldValue(log.field || '', log.newValue)}
               </div>
             )}
           </div>
@@ -202,6 +266,70 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
     queryKey: ["/api/users"],
   });
 
+  const { data: priorities = [] } = useQuery<DeviationPriority[]>({
+    queryKey: ["/api/deviations/priorities"],
+  });
+
+  const { data: statuses = [] } = useQuery<DeviationStatus[]>({
+    queryKey: ["/api/deviations/statuses"],
+  });
+
+  const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
+    queryKey: ["/api/deviations/types"],
+  });
+
+  const { data: workTasks = [] } = useQuery<WorkTask[]>({
+    queryKey: ["/api/work-tasks"],
+  });
+
+  const { data: workStations = [] } = useQuery<WorkStation[]>({
+    queryKey: ["/api/work-stations"],
+  });
+
+  // Function to map ID values to readable names
+  const mapFieldValue = (field: string, value: string | undefined): string => {
+    if (!value) return 'Inget värde';
+    
+    switch (field) {
+      case 'priorityId':
+        const priority = priorities.find(p => p.id.toString() === value);
+        return priority ? priority.name : value;
+        
+      case 'statusId':
+        const status = statuses.find(s => s.id.toString() === value);
+        return status ? status.name : value;
+        
+      case 'deviationTypeId':
+        const type = deviationTypes.find(t => t.id.toString() === value);
+        return type ? type.name : value;
+        
+      case 'assignedToUserId':
+        const user = users.find(u => u.id.toString() === value);
+        return user ? `${user.firstName} ${user.lastName}`.trim() || user.email : value;
+        
+      case 'workTaskId':
+        const workTask = workTasks.find(w => w.id.toString() === value);
+        return workTask ? workTask.name : value;
+        
+      case 'locationId':
+        const workStation = workStations.find(w => w.id.toString() === value);
+        return workStation ? workStation.name : value;
+        
+      case 'dueDate':
+        if (value) {
+          try {
+            return format(new Date(value), "d MMM yyyy", { locale: sv });
+          } catch {
+            return value;
+          }
+        }
+        return 'Inget datum';
+        
+      default:
+        return value;
+    }
+  };
+
   const timeline: TimelineEntry[] = [
     ...logs.map((log) => ({
       id: `log-${log.id}`,
@@ -210,8 +338,8 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       userId: log.userId,
       content: log.description || log.action,
       extra: log.oldValue && log.newValue ? {
-        oldValue: log.oldValue,
-        newValue: log.newValue,
+        oldValue: mapFieldValue(log.field || '', log.oldValue),
+        newValue: mapFieldValue(log.field || '', log.newValue),
       } : undefined,
     })),
     ...comments.map((comment) => ({
@@ -234,7 +362,10 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
       if (entry.content.toLowerCase().includes("prioritet")) {
         return { icon: <AlertTriangle size={16} />, color: "#f97316" };
       }
-      if (entry.content.toLowerCase().includes("tilldelad")) {
+      if (entry.content.toLowerCase().includes("tilldelning")) {
+        return { icon: <User size={16} />, color: "#eab308" };
+      }
+      if (entry.content.toLowerCase().includes("typ")) {
         return { icon: <User size={16} />, color: "#eab308" };
       }
     }
@@ -265,12 +396,14 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
             contentArrowStyle={{ display: "none" }}
           >
             <h4 className="text-sm font-medium">{entry.content}</h4>
-            <p className="text-xs text-gray-500 mt-1">av {userName}</p>
+            
             {entry.extra && (
               <p className="text-xs text-gray-400 mt-1">
                 <span className="line-through">{entry.extra.oldValue}</span> → {entry.extra.newValue}
               </p>
+            
             )}
+            <p className="text-xs text-gray-500 mt-1">av {userName}</p>
           </VerticalTimelineElement>
         );
       })}
