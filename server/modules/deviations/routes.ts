@@ -124,13 +124,22 @@ export default function deviationRoutes(app: Express) {
         // Get default status for the tenant
         const defaultStatus = await storage.getDefaultDeviationStatus(tenantId);
         
-        const validatedData = insertDeviationSchema.parse({
+        const deviationData = {
           ...req.body,
           tenantId,
           createdByUserId: userId,
           statusId: defaultStatus?.id, // Set to default status
-        });
-        
+        };
+
+        // Auto-assign based on department's responsible user (only if no manual assignment)
+        if (deviationData.departmentId && !deviationData.assignedToUserId) {
+          const department = await storage.getDepartment(deviationData.departmentId, tenantId);
+          if (department?.responsibleUserId) {
+            deviationData.assignedToUserId = department.responsibleUserId;
+          }
+        }
+
+        const validatedData = insertDeviationSchema.parse(deviationData);
         const deviation = await storage.createDeviation(validatedData);
         res.status(201).json(deviation);
         
