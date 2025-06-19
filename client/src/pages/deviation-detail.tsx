@@ -294,7 +294,7 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
 
   // Function to translate log messages
   const translateLogMessage = (key: string): string => {
-    return t(`deviations.logs.${key}`, key);
+    return t(`deviations.logs.${key}`, { defaultValue: key });
   };
 
   // Function to map ID values to readable names

@@ -172,5 +172,20 @@
     "checklist": "Checklist",
     "checklists": "Checklists",
     "view": "View"
+  },
+  "deviations": {
+    "logs": {
+      "deviation_created": "Deviation created",
+      "field_changed_title": "Title changed",
+      "field_changed_description": "Description changed",
+      "field_changed_status": "Status changed",
+      "field_changed_priority": "Priority changed",
+      "field_changed_type": "Type changed",
+      "field_changed_assignment": "Assignment changed",
+      "field_changed_due_date": "Due date changed",
+      "field_changed_work_task": "Work task changed",
+      "field_changed_location": "Location changed",
+      "created": "Deviation created"
+    }
   }
 }
