@@ -327,7 +327,7 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
         const priority = priorities.find((p) => p.id.toString() === value);
         return priority ? priority.name : value;
       case "departmentId":
-        const department = departments.find((p) => p.id.toString() === value);
+        const department = departments && Array.isArray(departments) ? departments.find((p) => p.id.toString() === value) : null;
         return department ? department.name : value;
       case "statusId":
         const status = statuses.find((s) => s.id.toString() === value);
@@ -629,7 +629,7 @@ export default function DeviationDetailPage() {
     queryKey: ["/api/work-stations"],
   });
   // Fetch work departments
-  const { data: departments = [] } = useQuery<Departments[]>({
+  const { data: departments = [], isLoading: departmentsLoading } = useQuery<Departments[]>({
     queryKey: ["/api/departments"],
   });
 
@@ -664,9 +664,9 @@ export default function DeviationDetailPage() {
   const createdByUser = users.find((u) => u.id === deviation.createdByUserId);
   const workTask = workTasks.find((w) => w.id === deviation.workTaskId);
   const workStation = workStations.find((w) => w.id === deviation.locationId);
-  const assignedDepartment = departments.find(
+  const assignedDepartment = departments && Array.isArray(departments) ? departments.find(
     (d) => d.id === deviation.departmentId,
-  );
+  ) : null;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
