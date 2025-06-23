@@ -327,6 +327,16 @@ export default function deviationRoutes(app: Express) {
               user.id !== userId // Don't notify the person making the change
             );
             
+            // If the person making the change is the creator, still notify assigned user and department responsible
+            if (userId === updatedDeviation.createdByUserId) {
+              const additionalUsers = allUsers.filter(user => 
+                (user.id === updatedDeviation.assignedToUserId || 
+                 (departmentResponsibleId && user.id === departmentResponsibleId)) &&
+                user.id !== userId
+              );
+              notifyUsers.push(...additionalUsers);
+            }
+            
             // Remove duplicates
             const uniqueNotifyUsers = notifyUsers.filter((user, index, self) => 
               index === self.findIndex(u => u.id === user.id)
