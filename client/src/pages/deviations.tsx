@@ -137,33 +137,42 @@ export default function DeviationsPage() {
 
   // Chart data processing
   const getDepartmentChartData = () => {
-    const data: Record<string, number> = {};
+    const data: Record<string, { value: number; color: string }> = {};
     filteredDeviations.forEach(deviation => {
       const dept = departments.find(d => d.id === deviation.departmentId);
       const deptName = dept?.name || 'Okänd';
-      data[deptName] = (data[deptName] || 0) + 1;
+      if (!data[deptName]) {
+        data[deptName] = { value: 0, color: chartColors[Object.keys(data).length % chartColors.length] };
+      }
+      data[deptName].value += 1;
     });
-    return Object.entries(data).map(([name, value]) => ({ name, value }));
+    return Object.entries(data).map(([name, item]) => ({ name, value: item.value, color: item.color }));
   };
 
   const getTypeChartData = () => {
-    const data: Record<string, number> = {};
+    const data: Record<string, { value: number; color: string }> = {};
     filteredDeviations.forEach(deviation => {
       const type = deviationTypes.find(t => t.id === deviation.deviationTypeId);
       const typeName = type?.name || 'Okänd';
-      data[typeName] = (data[typeName] || 0) + 1;
+      if (!data[typeName]) {
+        data[typeName] = { value: 0, color: type?.color || chartColors[Object.keys(data).length % chartColors.length] };
+      }
+      data[typeName].value += 1;
     });
-    return Object.entries(data).map(([name, value]) => ({ name, value }));
+    return Object.entries(data).map(([name, item]) => ({ name, value: item.value, color: item.color }));
   };
 
   const getStatusChartData = () => {
-    const data: Record<string, number> = {};
+    const data: Record<string, { value: number; color: string }> = {};
     filteredDeviations.forEach(deviation => {
       const status = deviationStatuses.find(s => s.id === deviation.statusId);
       const statusName = status?.name || 'Ingen status';
-      data[statusName] = (data[statusName] || 0) + 1;
+      if (!data[statusName]) {
+        data[statusName] = { value: 0, color: status?.color || '#9ca3af' };
+      }
+      data[statusName].value += 1;
     });
-    return Object.entries(data).map(([name, value]) => ({ name, value }));
+    return Object.entries(data).map(([name, item]) => ({ name, value: item.value, color: item.color }));
   };
 
   const getMonthlyData = () => {
@@ -188,6 +197,14 @@ export default function DeviationsPage() {
     });
     
     return Object.values(monthlyData).sort((a: any, b: any) => a.month.localeCompare(b.month));
+  };
+
+  const getTypeColors = () => {
+    const colors: Record<string, string> = {};
+    deviationTypes.forEach(type => {
+      colors[type.name] = type.color;
+    });
+    return colors;
   };
 
   const chartColors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00C49F', '#FFBB28', '#FF8042'];
@@ -439,7 +456,7 @@ export default function DeviationsPage() {
                       dataKey="value"
                     >
                       {getDepartmentChartData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -451,11 +468,11 @@ export default function DeviationsPage() {
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
               <div className="mt-2 space-y-1">
-                {getDepartmentChartData().map((item, index) => (
+                {getDepartmentChartData().map((item) => (
                   <div key={item.name} className="flex items-center text-xs">
                     <div 
                       className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                      style={{ backgroundColor: item.color }}
                     />
                     <span>{item.name} - {item.value}</span>
                   </div>
@@ -483,7 +500,7 @@ export default function DeviationsPage() {
                       dataKey="value"
                     >
                       {getTypeChartData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -491,11 +508,11 @@ export default function DeviationsPage() {
                 </ResponsiveContainer>
               </div>
               <div className="mt-2 space-y-1">
-                {getTypeChartData().map((item, index) => (
+                {getTypeChartData().map((item) => (
                   <div key={item.name} className="flex items-center text-xs">
                     <div 
                       className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                      style={{ backgroundColor: item.color }}
                     />
                     <span>{item.name} - {item.value}</span>
                   </div>
@@ -523,7 +540,7 @@ export default function DeviationsPage() {
                       dataKey="value"
                     >
                       {getStatusChartData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -535,11 +552,11 @@ export default function DeviationsPage() {
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
               <div className="mt-2 space-y-1">
-                {getStatusChartData().map((item, index) => (
+                {getStatusChartData().map((item) => (
                   <div key={item.name} className="flex items-center text-xs">
                     <div 
                       className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                      style={{ backgroundColor: item.color }}
                     />
                     <span>{item.name} - {item.value}</span>
                   </div>
@@ -563,8 +580,8 @@ export default function DeviationsPage() {
                     <Tooltip />
                     <Legend />
                     <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} />
-                    {deviationTypes.map((type, index) => (
-                      <Bar key={type.id} dataKey={type.name} fill={chartColors[index % chartColors.length]} />
+                    {deviationTypes.map((type) => (
+                      <Bar key={type.id} dataKey={type.name} fill={type.color} />
                     ))}
                   </ComposedChart>
                 </ResponsiveContainer>
