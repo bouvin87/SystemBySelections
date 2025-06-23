@@ -12,6 +12,7 @@ import {
   requireModule
 } from "./middleware/auth";
 import { storage } from "./storage";
+import { emailService } from "./email";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,

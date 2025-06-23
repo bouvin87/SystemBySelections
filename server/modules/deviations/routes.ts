@@ -22,6 +22,7 @@ interface AuthenticatedRequest extends Request {
   tenant?: any;
 }
 import { insertDeviationTypeSchema, insertDeviationSchema, insertDeviationCommentSchema } from "@shared/schema";
+import { emailService } from "../../../email";
 
 export default function deviationRoutes(app: Express) {
   
@@ -141,6 +142,30 @@ export default function deviationRoutes(app: Express) {
 
         const validatedData = insertDeviationSchema.parse(deviationData);
         const deviation = await storage.createDeviation(validatedData);
+        
+        // Send email notifications
+        try {
+          const creator = await storage.getUserById(userId);
+          const type = await storage.getDeviationTypeById(deviation.deviationTypeId, tenantId);
+          
+          if (creator && type) {
+            const notifyUsers = [creator]; // Always notify creator
+            
+            // Also notify assigned user if different from creator
+            if (deviation.assignedToUserId && deviation.assignedToUserId !== userId) {
+              const assignedUser = await storage.getUserById(deviation.assignedToUserId);
+              if (assignedUser) {
+                notifyUsers.push(assignedUser);
+              }
+            }
+            
+            await emailService.notifyDeviationCreated(deviation, creator, type, notifyUsers);
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Don't fail the request if email fails
+        }
+        
         res.status(201).json(deviation);
         
       } catch (error) {
@@ -270,6 +295,30 @@ export default function deviationRoutes(app: Express) {
         });
         
         const comment = await storage.createDeviationComment(validatedData);
+        
+        // Send email notifications for new comment
+        try {
+          const commenter = await storage.getUserById(userId);
+          const type = await storage.getDeviationTypeById(deviation.deviationTypeId, tenantId);
+          
+          if (commenter && type) {
+            // Get users to notify (creator, assigned user, admins - but not the commenter)
+            const allUsers = await storage.getUsers(tenantId);
+            const notifyUsers = allUsers.filter(user => 
+              user.id !== userId && ( // Don't notify the commenter
+                user.id === deviation.createdByUserId || 
+                user.id === deviation.assignedToUserId ||
+                user.role === 'admin' || 
+                user.role === 'underadmin'
+              )
+            );
+            
+            await emailService.notifyNewComment(deviation, req.body.comment, commenter, type, notifyUsers);
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+        }
+        
         res.status(201).json(comment);
         
       } catch (error) {
