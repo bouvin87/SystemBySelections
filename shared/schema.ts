@@ -253,6 +253,8 @@ export const deviationTypes = pgTable("deviation_types", {
   name: text("name").notNull(),
   description: text("description"),
   color: text("color").default("#ef4444"), // Default red color
+  order: integer("order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

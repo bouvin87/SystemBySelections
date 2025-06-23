@@ -270,14 +270,14 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {deviationTypes
-                      .filter((type) => !filters.type.includes(type.id.toString()))
+                      .filter((type) => type.isActive && !filters.type.includes(type.id.toString()))
                       .sort((a, b) => a.order - b.order)
                       .map((type) => (
                         <SelectItem key={type.id} value={type.id.toString()}>
                           {type.name}
                         </SelectItem>
                       ))}
-                    {deviationTypes.filter((type) => !filters.type.includes(type.id.toString())).length === 0 && (
+                    {deviationTypes.filter((type) => type.isActive && !filters.type.includes(type.id.toString())).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla typer är redan valda
                       </SelectItem>
@@ -320,14 +320,14 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {deviationStatuses
-                      .filter((status) => !filters.status.includes(status.id.toString()))
+                      .filter((status) => status.isActive && !filters.status.includes(status.id.toString()))
                       .sort((a, b) => a.order - b.order)
                       .map((status) => (
                         <SelectItem key={status.id} value={status.id.toString()}>
                           {status.name}
                         </SelectItem>
                       ))}
-                    {deviationStatuses.filter((status) => !filters.status.includes(status.id.toString())).length === 0 && (
+                    {deviationStatuses.filter((status) => status.isActive && !filters.status.includes(status.id.toString())).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla statusar är redan valda
                       </SelectItem>
@@ -370,13 +370,13 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {departments
-                      .filter((dept) => !filters.department.includes(dept.id.toString()))
+                      .filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString()))
                       .map((dept) => (
                         <SelectItem key={dept.id} value={dept.id.toString()}>
                           {dept.name}
                         </SelectItem>
                       ))}
-                    {departments.filter((dept) => !filters.department.includes(dept.id.toString())).length === 0 && (
+                    {departments.filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString())).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla avdelningar är redan valda
                       </SelectItem>
