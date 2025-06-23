@@ -49,6 +49,7 @@ export const DeviationCreatedEmail = ({
         <Container style={container}>
           <Section style={header}>
             <Text style={headerText}>System by Selection</Text>
+            <Text style={headerSubtext}>Ny avvikelse</Text>
           </Section>
           
           <Section style={content}>
@@ -130,14 +131,23 @@ const container = {
 };
 
 const header = {
-  backgroundColor: '#2563eb',
-  padding: '20px 40px',
+  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+  padding: '32px 40px',
+  borderRadius: '12px 12px 0 0',
 };
 
 const headerText = {
   color: '#ffffff',
-  fontSize: '20px',
-  fontWeight: '600',
+  fontSize: '24px',
+  fontWeight: '700',
+  margin: '0 0 4px',
+  textAlign: 'center' as const,
+};
+
+const headerSubtext = {
+  color: 'rgba(255, 255, 255, 0.9)',
+  fontSize: '14px',
+  fontWeight: '500',
   margin: '0',
   textAlign: 'center' as const,
 };

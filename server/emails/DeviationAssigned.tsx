@@ -50,6 +50,7 @@ export const DeviationAssignedEmail = ({
         <Container style={container}>
           <Section style={header}>
             <Text style={headerText}>System by Selection</Text>
+            <Text style={headerSubtext}>Avvikelse tilldelad</Text>
           </Section>
           
           <Section style={content}>

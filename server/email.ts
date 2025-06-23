@@ -5,6 +5,7 @@ import { DeviationCreatedEmail } from './emails/DeviationCreated';
 import { DeviationAssignedEmail } from './emails/DeviationAssigned';
 import { DeviationStatusChangedEmail } from './emails/DeviationStatusChanged';
 import { DeviationCommentAddedEmail } from './emails/DeviationCommentAdded';
+import { DeviationUpdatedEmail } from './emails/DeviationUpdated';
 
 // Email transporter configuration
 const createTransporter = () => {
