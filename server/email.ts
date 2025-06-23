@@ -3,6 +3,8 @@ import { render } from '@react-email/render';
 import type { User, Deviation, DeviationType, DeviationStatus } from '@shared/schema';
 import { DeviationCreatedEmail } from './emails/DeviationCreated';
 import { DeviationAssignedEmail } from './emails/DeviationAssigned';
+import { DeviationStatusChangedEmail } from './emails/DeviationStatusChanged';
+import { DeviationCommentAddedEmail } from './emails/DeviationCommentAdded';
 
 // Email transporter configuration
 const createTransporter = () => {
@@ -270,34 +272,20 @@ export class EmailNotificationService {
     type: DeviationType,
     notifyUsers: User[]
   ) {
-    // For now, use a simple template since we haven't created React Email for status changes yet
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    
+    const emailHtml = await render(DeviationStatusChangedEmail({
+      deviation,
+      oldStatus,
+      newStatus,
+      changedBy,
+      type,
+      baseUrl,
+    }));
+
     const template = {
       subject: `Avvikelse uppdaterad: ${deviation.title}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Avvikelse statusändring</h2>
-          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0; color: #333;">${deviation.title}</h3>
-            <p><strong>Status ändrad:</strong></p>
-            <p>
-              <span style="background: ${oldStatus.color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                ${oldStatus.name}
-              </span>
-              →
-              <span style="background: ${newStatus.color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                ${newStatus.name}
-              </span>
-            </p>
-            <p><strong>Ändrad av:</strong> ${changedBy.firstName} ${changedBy.lastName}</p>
-          </div>
-          <p>
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/deviations/${deviation.id}" 
-               style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
-              Visa avvikelse
-            </a>
-          </p>
-        </div>
-      `
+      html: emailHtml,
     };
 
     const emails = notifyUsers.map(user => user.email);
@@ -314,8 +302,22 @@ export class EmailNotificationService {
     type: DeviationType,
     notifyUsers: User[]
   ) {
-    const template = emailTemplates.deviationCommented(deviation, comment, commenter, type);
-    const emails = notifyUsers.filter(user => user.id !== commenter.id).map(user => user.email);
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    
+    const emailHtml = await render(DeviationCommentAddedEmail({
+      deviation,
+      comment,
+      commenter,
+      type,
+      baseUrl,
+    }));
+
+    const template = {
+      subject: `Ny kommentar: ${deviation.title}`,
+      html: emailHtml,
+    };
+
+    const emails = notifyUsers.map(user => user.email);
     
     if (emails.length > 0) {
       await this.sendEmail(emails, template);

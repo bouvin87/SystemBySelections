@@ -354,6 +354,8 @@ export default function deviationRoutes(app: Express) {
               )
             );
             
+            console.log(`Sending comment email to ${notifyUsers.length} users for deviation ${deviation.id}`);
+            console.log(`Recipients: ${notifyUsers.map(u => u.email).join(', ')}`);
             await emailService.notifyNewComment(deviation, req.body.comment, commenter, type, notifyUsers);
           }
         } catch (emailError) {
