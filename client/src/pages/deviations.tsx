@@ -269,26 +269,19 @@ export default function DeviationsPage() {
                     <SelectValue placeholder="Välj typer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(() => {
-                      const availableTypes = deviationTypes.filter((type) => type.isActive && !filters.type.includes(type.id.toString()));
-                      console.log('Available types:', availableTypes.map(t => ({id: t.id, name: t.name})));
-                      console.log('Current type filters:', filters.type);
-                      console.log('All deviation types:', deviationTypes.map(t => ({id: t.id, name: t.name, isActive: t.isActive})));
-                      
-                      return availableTypes.length > 0 ? (
-                        availableTypes
-                          .sort((a, b) => a.order - b.order)
-                          .map((type) => (
-                            <SelectItem key={type.id} value={type.id.toString()}>
-                              {type.name}
-                            </SelectItem>
-                          ))
-                      ) : (
-                        <SelectItem value="no-options" disabled>
-                          Alla typer är redan valda (Debug: {deviationTypes.length} typer, {filters.type.length} valda)
+                    {deviationTypes
+                      .filter((type) => !filters.type.includes(type.id.toString()))
+                      .sort((a, b) => a.order - b.order)
+                      .map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
                         </SelectItem>
-                      );
-                    })()}
+                      ))}
+                    {deviationTypes.filter((type) => !filters.type.includes(type.id.toString())).length === 0 && (
+                      <SelectItem value="no-options" disabled>
+                        Alla typer är redan valda
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 {filters.type.length > 0 && (
@@ -327,22 +320,18 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {deviationStatuses
-                      .filter((status) => status.isActive && !filters.status.includes(status.id.toString()))
+                      .filter((status) => !filters.status.includes(status.id.toString()))
                       .sort((a, b) => a.order - b.order)
-                      .length > 0 ? (
-                        deviationStatuses
-                          .filter((status) => status.isActive && !filters.status.includes(status.id.toString()))
-                          .sort((a, b) => a.order - b.order)
-                          .map((status) => (
-                            <SelectItem key={status.id} value={status.id.toString()}>
-                              {status.name}
-                            </SelectItem>
-                          ))
-                      ) : (
-                        <SelectItem value="no-options" disabled>
-                          Alla statusar är redan valda
+                      .map((status) => (
+                        <SelectItem key={status.id} value={status.id.toString()}>
+                          {status.name}
                         </SelectItem>
-                      )}
+                      ))}
+                    {deviationStatuses.filter((status) => !filters.status.includes(status.id.toString())).length === 0 && (
+                      <SelectItem value="no-options" disabled>
+                        Alla statusar är redan valda
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 {filters.status.length > 0 && (
@@ -381,20 +370,17 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {departments
-                      .filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString()))
-                      .length > 0 ? (
-                        departments
-                          .filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString()))
-                          .map((dept) => (
-                            <SelectItem key={dept.id} value={dept.id.toString()}>
-                              {dept.name}
-                            </SelectItem>
-                          ))
-                      ) : (
-                        <SelectItem value="no-options" disabled>
-                          Alla avdelningar är redan valda
+                      .filter((dept) => !filters.department.includes(dept.id.toString()))
+                      .map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id.toString()}>
+                          {dept.name}
                         </SelectItem>
-                      )}
+                      ))}
+                    {departments.filter((dept) => !filters.department.includes(dept.id.toString())).length === 0 && (
+                      <SelectItem value="no-options" disabled>
+                        Alla avdelningar är redan valda
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 {filters.department.length > 0 && (
