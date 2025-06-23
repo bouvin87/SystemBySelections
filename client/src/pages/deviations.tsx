@@ -258,9 +258,9 @@ export default function DeviationsPage() {
               <div>
                 <Label>Typ</Label>
                 <Select 
-                  value="placeholder"
+                  value=""
                   onValueChange={(value) => {
-                    if (value !== "placeholder" && !filters.type.includes(value)) {
+                    if (value && !filters.type.includes(value)) {
                       setFilters(prev => ({ ...prev, type: [...prev.type, value] }));
                     }
                   }}
@@ -303,9 +303,9 @@ export default function DeviationsPage() {
               <div>
                 <Label>Status</Label>
                 <Select 
-                  value="placeholder"
+                  value=""
                   onValueChange={(value) => {
-                    if (value !== "placeholder" && !filters.status.includes(value)) {
+                    if (value && !filters.status.includes(value)) {
                       setFilters(prev => ({ ...prev, status: [...prev.status, value] }));
                     }
                   }}
@@ -348,9 +348,9 @@ export default function DeviationsPage() {
               <div>
                 <Label>Avdelning</Label>
                 <Select 
-                  value="placeholder"
+                  value=""
                   onValueChange={(value) => {
-                    if (value !== "placeholder" && !filters.department.includes(value)) {
+                    if (value && !filters.department.includes(value)) {
                       setFilters(prev => ({ ...prev, department: [...prev.department, value] }));
                     }
                   }}
