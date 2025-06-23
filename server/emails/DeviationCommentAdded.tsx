@@ -4,17 +4,16 @@ import {
   Container,
   Head,
   Html,
-  Img,
   Link,
   Preview,
   Section,
   Text,
-} from '@react-email/components';
-import * as React from 'react';
+} from "@react-email/components";
+import * as React from "react";
 
 interface DeviationCommentAddedEmailProps {
   deviation: any;
-  comment: string;
+  comment: { comment: string; createdAt?: string };
   commenter: any;
   type: any;
   baseUrl: string;
@@ -27,7 +26,15 @@ export const DeviationCommentAddedEmail = ({
   type,
   baseUrl,
 }: DeviationCommentAddedEmailProps) => {
-  const previewText = `Ny kommentar på avvikelse: ${deviation.title}`;
+  const previewText = `Ny kommentar på ärende: ${deviation.title}`;
+
+  const commenterName =
+    `${commenter.firstName || ""} ${commenter.lastName || ""}`.trim() ||
+    commenter.email;
+
+  const commentDate = comment.createdAt
+    ? new Date(comment.createdAt).toLocaleString("sv-SE")
+    : new Date().toLocaleString("sv-SE");
 
   return (
     <Html>
@@ -37,39 +44,34 @@ export const DeviationCommentAddedEmail = ({
         <Container style={container}>
           <Section style={header}>
             <Text style={headerText}>System by Selection</Text>
-            <Text style={headerSubtext}>Ny kommentar</Text>
+            <Text style={headerSubtext}>Avvikelsehantering</Text>
           </Section>
 
           <Section style={content}>
-            <Text style={h1}>Ny kommentar på avvikelse</Text>
-            
+            <Text style={h1}>Ny kommentar har lagts till</Text>
+
             <Section style={deviationCard}>
               <Text style={deviationTitle}>{deviation.title}</Text>
-              
+
               <Text style={metaText}>
                 <strong>Typ:</strong> {type.name}
               </Text>
-              
-              <Text style={metaText}>
-                <strong>Beskrivning:</strong> {deviation.description || 'Ingen beskrivning'}
-              </Text>
-              
-              {deviation.dueDate && (
-                <Text style={metaText}>
-                  <strong>Förfallodatum:</strong> {new Date(deviation.dueDate).toLocaleDateString('sv-SE')}
-                </Text>
-              )}
-            </Section>
 
-            <Section style={commentCard}>
-              <Text style={commentHeader}>
-                <strong>{commenter.firstName} {commenter.lastName}</strong> kommenterade:
+              <Text style={metaText}>
+                <strong>Beskrivning:</strong>{" "}
+                {deviation.description || "Ingen beskrivning"}
               </Text>
-              <Text style={commentText}>
-                "{comment}"
+
+              <Text style={metaText}>
+                <strong>Kommentar från:</strong> {commenterName}
               </Text>
-              <Text style={commentMeta}>
-                {new Date().toLocaleString('sv-SE')}
+
+              <Text style={metaText}>
+                <strong>Kommentar:</strong> "{comment.comment}"
+              </Text>
+
+              <Text style={metaText}>
+                <strong>Tidpunkt:</strong> {commentDate}
               </Text>
             </Section>
 
@@ -78,8 +80,16 @@ export const DeviationCommentAddedEmail = ({
                 style={button}
                 href={`${baseUrl}/deviations/${deviation.id}`}
               >
-                Visa avvikelse och kommentarer
+                Visa avvikelse
               </Button>
+            </Section>
+
+            <Section style={infoBox}>
+              <Text style={infoText}>
+                Du får detta meddelande eftersom du är kopplad till denna
+                avvikelse som skapare, tilldelad person eller
+                avdelningsansvarig.
+              </Text>
             </Section>
           </Section>
 
@@ -88,7 +98,10 @@ export const DeviationCommentAddedEmail = ({
               Detta meddelande skickades automatiskt från System by Selection.
             </Text>
             <Text style={footerText}>
-              <Link href={`mailto:unsubscribe@systembyselections.se`} style={unsubscribeLink}>
+              <Link
+                href="mailto:unsubscribe@systembyselections.se"
+                style={unsubscribeLink}
+              >
                 Avprenumerera
               </Link>
             </Text>
@@ -101,142 +114,133 @@ export const DeviationCommentAddedEmail = ({
 
 export default DeviationCommentAddedEmail;
 
-// Enhanced styles matching DeviationUpdated
+// Styles (identiska med DeviationUpdated)
 const main = {
-  backgroundColor: '#f8fafc',
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+  backgroundColor: "#f8fafc",
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
-  backgroundColor: '#ffffff',
-  border: '1px solid #e2e8f0',
-  borderRadius: '12px',
-  marginTop: '20px',
-  marginBottom: '20px',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-  maxWidth: '600px',
-  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  backgroundColor: "#ffffff",
+  border: "1px solid #e2e8f0",
+  borderRadius: "12px",
+  marginTop: "20px",
+  marginBottom: "20px",
+  marginLeft: "auto",
+  marginRight: "auto",
+  maxWidth: "600px",
+  boxShadow:
+    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
 };
 
 const header = {
-  background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-  padding: '32px 40px',
-  borderRadius: '12px 12px 0 0',
+  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  padding: "32px 40px",
+  borderRadius: "12px 12px 0 0",
 };
 
 const headerText = {
-  color: '#ffffff',
-  fontSize: '24px',
-  fontWeight: '700',
-  margin: '0 0 4px',
-  textAlign: 'center' as const,
+  color: "#ffffff",
+  fontSize: "24px",
+  fontWeight: "700",
+  margin: "0 0 4px",
+  textAlign: "center" as const,
 };
 
 const headerSubtext = {
-  color: 'rgba(255, 255, 255, 0.9)',
-  fontSize: '14px',
-  fontWeight: '500',
-  margin: '0',
-  textAlign: 'center' as const,
+  color: "rgba(255, 255, 255, 0.9)",
+  fontSize: "14px",
+  fontWeight: "500",
+  margin: "0",
+  textAlign: "center" as const,
 };
 
 const content = {
-  padding: '40px',
+  padding: "40px",
 };
 
 const h1 = {
-  color: '#1f2937',
-  fontSize: '24px',
-  fontWeight: '600',
-  margin: '0 0 20px',
-  textAlign: 'center' as const,
+  color: "#1e293b",
+  fontSize: "28px",
+  fontWeight: "700",
+  margin: "0 0 24px",
+  textAlign: "center" as const,
 };
 
 const deviationCard = {
-  backgroundColor: '#f9fafb',
-  border: '1px solid #e5e7eb',
-  borderRadius: '8px',
-  padding: '24px',
-  margin: '20px 0',
+  backgroundColor: "#f8fafc",
+  border: "2px solid #e2e8f0",
+  borderRadius: "12px",
+  padding: "32px",
+  margin: "24px 0",
+  borderLeft: "6px solid #3b82f6",
 };
 
 const deviationTitle = {
-  color: '#1f2937',
-  fontSize: '18px',
-  fontWeight: '600',
-  margin: '0 0 16px',
+  color: "#1e293b",
+  fontSize: "20px",
+  fontWeight: "700",
+  margin: "0 0 20px",
+  lineHeight: "1.3",
 };
 
 const metaText = {
-  color: '#6b7280',
-  fontSize: '14px',
-  lineHeight: '1.5',
-  margin: '8px 0',
-};
-
-const commentCard = {
-  backgroundColor: '#eff6ff',
-  border: '1px solid #bfdbfe',
-  borderRadius: '8px',
-  padding: '20px',
-  margin: '20px 0',
-};
-
-const commentHeader = {
-  color: '#1e40af',
-  fontSize: '14px',
-  fontWeight: '600',
-  margin: '0 0 12px',
-};
-
-const commentText = {
-  color: '#1f2937',
-  fontSize: '16px',
-  lineHeight: '1.6',
-  margin: '12px 0',
-  fontStyle: 'italic',
-  borderLeft: '3px solid #3b82f6',
-  paddingLeft: '16px',
-};
-
-const commentMeta = {
-  color: '#6b7280',
-  fontSize: '12px',
-  margin: '12px 0 0',
+  color: "#475569",
+  fontSize: "15px",
+  lineHeight: "1.6",
+  margin: "12px 0",
 };
 
 const buttonContainer = {
-  textAlign: 'center' as const,
-  margin: '32px 0',
+  textAlign: "center" as const,
+  margin: "40px 0",
 };
 
 const button = {
-  backgroundColor: '#2563eb',
-  borderRadius: '5px',
-  color: '#fff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '12px 24px',
+  background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+  borderRadius: "8px",
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "600",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "14px 32px",
+  boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)",
+  transition: "all 0.2s ease",
+};
+
+const infoBox = {
+  backgroundColor: "#eff6ff",
+  border: "1px solid #bfdbfe",
+  borderRadius: "8px",
+  padding: "20px",
+  margin: "32px 0 0",
+};
+
+const infoText = {
+  color: "#1e40af",
+  fontSize: "14px",
+  lineHeight: "1.5",
+  margin: "0",
+  textAlign: "center" as const,
 };
 
 const footer = {
-  borderTop: '1px solid #e6ebf1',
-  color: '#8898aa',
-  fontSize: '12px',
-  lineHeight: '1.5',
-  padding: '20px 0',
-  textAlign: 'center' as const,
+  borderTop: "1px solid #e2e8f0",
+  color: "#64748b",
+  fontSize: "12px",
+  lineHeight: "1.5",
+  padding: "24px 40px",
+  textAlign: "center" as const,
 };
 
 const footerText = {
-  margin: '0 0 8px',
+  margin: "0 0 8px",
 };
 
 const unsubscribeLink = {
-  color: '#8898aa',
-  textDecoration: 'underline',
+  color: "#64748b",
+  textDecoration: "underline",
 };
