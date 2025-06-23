@@ -169,6 +169,22 @@ function DeviationSettingsTab() {
             Använd arbetsstationer
           </Label>
         </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="usePriorities"
+            checked={deviationSettings?.usePriorities ?? true}
+            onCheckedChange={(checked) =>
+              handleSettingChange("usePriorities", checked as boolean)
+            }
+          />
+          <Label
+            htmlFor="usePriorities"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Använd prioritet
+          </Label>
+        </div>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           När aktiverad visas en snabbknapp för att skapa avvikelser direkt från
           huvudmenyn.

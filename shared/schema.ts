@@ -163,6 +163,7 @@ export const deviationSettings = pgTable("deviation_settings", {
   showCreateButtonInMenu: boolean("show_create_button_in_menu").default(false),
   useWorkTasks: boolean("use_work_tasks").default(true),
   useWorkStations: boolean("use_work_stations").default(true),
+  usePriorities: boolean("use_priorities").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

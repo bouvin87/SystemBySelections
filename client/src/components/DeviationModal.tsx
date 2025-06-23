@@ -261,6 +261,21 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             </div>
             
             <div>
+              <Label htmlFor="departmentId">Avdelning *</Label>
+              <Select name="departmentId" required defaultValue={deviation?.departmentId?.toString()}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj avdelning" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.filter((dept: any) => dept.isActive).map((department: any) => (
+                    <SelectItem key={department.id} value={department.id.toString()}>
+                      {department.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label htmlFor="priorityId">Prioritet</Label>
               <Select name="priorityId" defaultValue={deviation?.priorityId?.toString() || ""}>
                 <SelectTrigger>
@@ -286,9 +301,6 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             </div>
             
 
-            
-
-            
             {(deviationSettings?.useWorkTasks ?? true) && (
               <div>
                 <Label htmlFor="workTaskId">Arbetsmoment</Label>
@@ -346,21 +358,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               </div>
             )}
 
-            <div>
-              <Label htmlFor="departmentId">Avdelning</Label>
-              <Select name="departmentId" defaultValue={deviation?.departmentId?.toString() || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj avdelning" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.filter((dept: any) => dept.isActive).map((department: any) => (
-                    <SelectItem key={department.id} value={department.id.toString()}>
-                      {department.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
             {mode === 'edit' && (
             <div>
               <Label htmlFor="dueDate">Deadline</Label>
