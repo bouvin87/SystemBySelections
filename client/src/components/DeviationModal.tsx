@@ -275,30 +275,32 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="priorityId">Prioritet</Label>
-              <Select name="priorityId" defaultValue={deviation?.priorityId?.toString() || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj prioritet" />
-                </SelectTrigger>
-                <SelectContent>
-                  {deviationPriorities
-                    .filter(priority => priority.isActive)
-                    .sort((a, b) => a.order - b.order)
-                    .map((priority) => (
-                    <SelectItem key={priority.id} value={priority.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: priority.color }}
-                        />
-                        {priority.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {(deviationSettings?.usePriorities ?? true) && (
+              <div>
+                <Label htmlFor="priorityId">Prioritet</Label>
+                <Select name="priorityId" defaultValue={deviation?.priorityId?.toString() || ""}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj prioritet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deviationPriorities
+                      .filter(priority => priority.isActive)
+                      .sort((a, b) => a.order - b.order)
+                      .map((priority) => (
+                      <SelectItem key={priority.id} value={priority.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: priority.color }}
+                          />
+                          {priority.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
 
             {(deviationSettings?.useWorkTasks ?? true) && (
