@@ -1,51 +1,16 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Navigation } from "@/components/Navigation";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, TrendingUp, Filter } from "lucide-react";
 import DeviationModal from "@/components/DeviationModal";
-import {
-  AlertTriangle,
-  Plus,
-  Search,
-  Filter,
-  Calendar,
-  User,
-  MapPin,
-  Clock,
-  MessageSquare,
-  History,
-  TrendingUp,
-} from "lucide-react";
-import { Link } from "wouter";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
-import { sv } from "date-fns/locale";
-import { t } from "i18next";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ComposedChart } from 'recharts';
 
 // Types based on our schema
 interface DeviationType {
