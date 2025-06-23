@@ -288,8 +288,10 @@ export default function deviationRoutes(app: Express) {
             console.log('No status change detected');
           }
           
-          // Check for general updates (title, description, etc.) - but only if no status/assignment change
-          const hasGeneralChanges = !statusChanged && !updateData.assignedToUserId && (
+          // Check for general updates (title, description, etc.) - but only if no status change or new assignment
+          const assignmentChanged = updateData.assignedToUserId !== undefined && originalDeviation.assignedToUserId !== updateData.assignedToUserId;
+          
+          const hasGeneralChanges = !statusChanged && !assignmentChanged && (
             updateData.title || 
             updateData.description || 
             updateData.deviationTypeId ||
@@ -300,6 +302,8 @@ export default function deviationRoutes(app: Express) {
           
           console.log('General changes check:', {
             hasGeneralChanges,
+            statusChanged,
+            assignmentChanged,
             title: updateData.title,
             description: updateData.description,
             deviationTypeId: updateData.deviationTypeId
