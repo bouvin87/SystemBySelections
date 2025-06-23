@@ -128,6 +128,12 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
     },
   });
 
+  // Fetch deviation settings
+  const { data: deviationSettings } = useQuery({
+    queryKey: ['/api/deviations/settings'],
+    enabled: isOpen
+  });
+
   // Create deviation mutation
   const createDeviationMutation = useMutation({
     mutationFn: async (data: any) => {
