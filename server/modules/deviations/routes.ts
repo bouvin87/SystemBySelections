@@ -22,7 +22,7 @@ interface AuthenticatedRequest extends Request {
   tenant?: any;
 }
 import { insertDeviationTypeSchema, insertDeviationSchema, insertDeviationCommentSchema } from "@shared/schema";
-import { emailService } from "../../../email";
+import { emailService } from "../../email";
 
 export default function deviationRoutes(app: Express) {
   

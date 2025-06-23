@@ -867,6 +867,16 @@ export class DatabaseStorage implements IStorage {
     return result[0] || null;
   }
 
+  async getUserById(id: number): Promise<User | null> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0] || null;
+  }
+
+  async getDeviationTypeById(id: number, tenantId: number): Promise<DeviationType | null> {
+    const result = await db.select().from(deviationTypes).where(and(eq(deviationTypes.id, id), eq(deviationTypes.tenantId, tenantId)));
+    return result[0] || null;
+  }
+
   async getDeviationStatus(id: number, tenantId: number): Promise<DeviationStatus | undefined> {
     const result = await db.select().from(deviationStatuses).where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)));
     return result[0];

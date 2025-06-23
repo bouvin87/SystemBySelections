@@ -1109,6 +1109,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Test email configuration
+  app.get('/api/email/test', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      const result = await emailService.testConnection();
+      res.json(result);
+    } catch (error) {
+      console.error('Error testing email:', error);
+      res.status(500).json({ success: false, message: 'Email test failed' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
