@@ -157,16 +157,13 @@ export default function DeviationsPage() {
   };
 
   const getStatusChartData = () => {
-    const completedStatuses = deviationStatuses.filter(s => s.isCompleted);
-    const completed = filteredDeviations.filter(d => 
-      completedStatuses.some(s => s.id === d.statusId)
-    ).length;
-    const inProgress = filteredDeviations.length - completed;
-    
-    return [
-      { name: 'Klar', value: completed },
-      { name: 'Pågående', value: inProgress }
-    ];
+    const data: Record<string, number> = {};
+    filteredDeviations.forEach(deviation => {
+      const status = deviationStatuses.find(s => s.id === deviation.statusId);
+      const statusName = status?.name || 'Okänd status';
+      data[statusName] = (data[statusName] || 0) + 1;
+    });
+    return Object.entries(data).map(([name, value]) => ({ name, value }));
   };
 
   const getMonthlyData = () => {
@@ -418,13 +415,34 @@ export default function DeviationsPage() {
             <CardContent>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getTypeChartData()} layout="horizontal">
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" width={60} fontSize={10} />
+                  <PieChart>
+                    <Pie
+                      data={getTypeChartData()}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {getTypeChartData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                      ))}
+                    </Pie>
                     <Tooltip />
-                    <Bar dataKey="value" fill="#ffc658" />
-                  </BarChart>
+                  </PieChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="mt-2 space-y-1">
+                {getTypeChartData().map((item, index) => (
+                  <div key={item.name} className="flex items-center text-xs">
+                    <div 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                    />
+                    <span>{item.name} - {item.value}</span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -448,7 +466,7 @@ export default function DeviationsPage() {
                       dataKey="value"
                     >
                       {getStatusChartData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={index === 0 ? '#82ca9d' : '#8884d8'} />
+                        <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -456,15 +474,15 @@ export default function DeviationsPage() {
                 </ResponsiveContainer>
               </div>
               <div className="text-center mt-2">
-                <span className="text-2xl font-bold">{getStatusChartData().find(item => item.name === 'Klar')?.value || 0}</span>
-                <p className="text-sm text-gray-500">Klar</p>
+                <span className="text-2xl font-bold">{filteredDeviations.length}</span>
+                <p className="text-sm text-gray-500">Totalt</p>
               </div>
               <div className="mt-2 space-y-1">
                 {getStatusChartData().map((item, index) => (
                   <div key={item.name} className="flex items-center text-xs">
                     <div 
                       className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: index === 0 ? '#82ca9d' : '#8884d8' }}
+                      style={{ backgroundColor: chartColors[index % chartColors.length] }}
                     />
                     <span>{item.name} - {item.value}</span>
                   </div>
