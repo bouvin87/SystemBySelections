@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, TrendingUp, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, TrendingUp, Filter, X } from "lucide-react";
 import DeviationModal from "@/components/DeviationModal";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ComposedChart } from 'recharts';
 
@@ -240,79 +240,136 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Typ</Label>
-                <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                  {deviationTypes
-                    .filter((type) => type.isActive)
-                    .sort((a, b) => a.order - b.order)
-                    .map((type) => (
-                      <div key={type.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`type-${type.id}`}
-                          checked={filters.type.includes(type.id.toString())}
-                          onCheckedChange={(checked) => {
-                            const newTypes = checked
-                              ? [...filters.type, type.id.toString()]
-                              : filters.type.filter(id => id !== type.id.toString());
-                            setFilters(prev => ({ ...prev, type: newTypes }));
-                          }}
-                        />
-                        <Label htmlFor={`type-${type.id}`} className="text-sm">
+                <Select 
+                  value="placeholder"
+                  onValueChange={(value) => {
+                    if (value !== "placeholder" && !filters.type.includes(value)) {
+                      setFilters(prev => ({ ...prev, type: [...prev.type, value] }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj typer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deviationTypes
+                      .filter((type) => type.isActive && !filters.type.includes(type.id.toString()))
+                      .sort((a, b) => a.order - b.order)
+                      .map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
                           {type.name}
-                        </Label>
-                      </div>
-                    ))}
-                </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {filters.type.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {filters.type.map((typeId) => {
+                      const type = deviationTypes.find(t => t.id.toString() === typeId);
+                      return type ? (
+                        <div key={typeId} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                          {type.name}
+                          <X 
+                            className="h-3 w-3 cursor-pointer" 
+                            onClick={() => setFilters(prev => ({ 
+                              ...prev, 
+                              type: prev.type.filter(id => id !== typeId) 
+                            }))}
+                          />
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>
                 <Label>Status</Label>
-                <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                  {deviationStatuses
-                    .filter((status) => status.isActive)
-                    .sort((a, b) => a.order - b.order)
-                    .map((status) => (
-                      <div key={status.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`status-${status.id}`}
-                          checked={filters.status.includes(status.id.toString())}
-                          onCheckedChange={(checked) => {
-                            const newStatuses = checked
-                              ? [...filters.status, status.id.toString()]
-                              : filters.status.filter(id => id !== status.id.toString());
-                            setFilters(prev => ({ ...prev, status: newStatuses }));
-                          }}
-                        />
-                        <Label htmlFor={`status-${status.id}`} className="text-sm">
+                <Select 
+                  value="placeholder"
+                  onValueChange={(value) => {
+                    if (value !== "placeholder" && !filters.status.includes(value)) {
+                      setFilters(prev => ({ ...prev, status: [...prev.status, value] }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj statusar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deviationStatuses
+                      .filter((status) => status.isActive && !filters.status.includes(status.id.toString()))
+                      .sort((a, b) => a.order - b.order)
+                      .map((status) => (
+                        <SelectItem key={status.id} value={status.id.toString()}>
                           {status.name}
-                        </Label>
-                      </div>
-                    ))}
-                </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {filters.status.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {filters.status.map((statusId) => {
+                      const status = deviationStatuses.find(s => s.id.toString() === statusId);
+                      return status ? (
+                        <div key={statusId} className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                          {status.name}
+                          <X 
+                            className="h-3 w-3 cursor-pointer" 
+                            onClick={() => setFilters(prev => ({ 
+                              ...prev, 
+                              status: prev.status.filter(id => id !== statusId) 
+                            }))}
+                          />
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>
                 <Label>Avdelning</Label>
-                <div className="space-y-2 max-h-32 overflow-y-auto border rounded p-2">
-                  {departments
-                    .filter((dept) => dept.isActive)
-                    .map((dept) => (
-                      <div key={dept.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`dept-${dept.id}`}
-                          checked={filters.department.includes(dept.id.toString())}
-                          onCheckedChange={(checked) => {
-                            const newDepts = checked
-                              ? [...filters.department, dept.id.toString()]
-                              : filters.department.filter(id => id !== dept.id.toString());
-                            setFilters(prev => ({ ...prev, department: newDepts }));
-                          }}
-                        />
-                        <Label htmlFor={`dept-${dept.id}`} className="text-sm">
+                <Select 
+                  value="placeholder"
+                  onValueChange={(value) => {
+                    if (value !== "placeholder" && !filters.department.includes(value)) {
+                      setFilters(prev => ({ ...prev, department: [...prev.department, value] }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj avdelningar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments
+                      .filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString()))
+                      .map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id.toString()}>
                           {dept.name}
-                        </Label>
-                      </div>
-                    ))}
-                </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {filters.department.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {filters.department.map((deptId) => {
+                      const dept = departments.find(d => d.id.toString() === deptId);
+                      return dept ? (
+                        <div key={deptId} className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                          {dept.name}
+                          <X 
+                            className="h-3 w-3 cursor-pointer" 
+                            onClick={() => setFilters(prev => ({ 
+                              ...prev, 
+                              department: prev.department.filter(id => id !== deptId) 
+                            }))}
+                          />
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>
