@@ -187,8 +187,8 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       priorityId: formData.get("priorityId") ? parseInt(formData.get("priorityId") as string) : undefined,
 
 
-      workTaskId: formData.get("workTaskId") ? parseInt(formData.get("workTaskId") as string) : undefined,
-      locationId: formData.get("locationId") ? parseInt(formData.get("locationId") as string) : undefined,
+      workTaskId: formData.get("workTaskId") && formData.get("workTaskId") !== "0" ? parseInt(formData.get("workTaskId") as string) : undefined,
+      locationId: formData.get("locationId") && formData.get("locationId") !== "0" ? parseInt(formData.get("locationId") as string) : undefined,
       departmentId: formData.get("departmentId") && formData.get("departmentId") !== "0" ? parseInt(formData.get("departmentId") as string) : undefined,
       assignedToUserId: formData.get("assignedToUserId") && formData.get("assignedToUserId") !== "0" ? parseInt(formData.get("assignedToUserId") as string) : undefined,
       dueDate: formData.get("dueDate") && formData.get("dueDate") !== "" ? formData.get("dueDate") as string : undefined,
@@ -320,11 +320,12 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
             <div>
               <Label htmlFor="locationId">Plats</Label>
-              <Select name="locationId" defaultValue={deviation?.locationId?.toString() || ""}>
+              <Select name="locationId" defaultValue={deviation?.locationId?.toString() || "0"}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj plats" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="0">Ingen vald</SelectItem>
                   {workStations.map((station) => (
                     <SelectItem key={station.id} value={station.id.toString()}>
                       {station.name}
@@ -349,7 +350,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                 </SelectContent>
               </Select>
             </div>
-            
+            {mode === 'edit' && (
             <div>
               <Label htmlFor="dueDate">Deadline</Label>
               <DatePicker
@@ -361,6 +362,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               />
               <input type="hidden" name="dueDate" value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")} />
             </div>
+      )}
           </div>
           
           <div className="flex justify-end gap-2 pt-4">
