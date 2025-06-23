@@ -39,6 +39,7 @@ export const DeviationStatusChangedEmail = ({
         <Container style={container}>
           <Section style={header}>
             <Text style={headerText}>System by Selection</Text>
+            <Text style={headerSubtext}>Statusändring</Text>
           </Section>
 
           <Section style={content}>
@@ -113,27 +114,28 @@ export const DeviationStatusChangedEmail = ({
 
 export default DeviationStatusChangedEmail;
 
-// Styles
+// Enhanced styles matching DeviationUpdated
 const main = {
-  backgroundColor: '#f6f9fc',
+  backgroundColor: '#f8fafc',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
 };
 
 const container = {
   backgroundColor: '#ffffff',
-  border: '1px solid #f0f0f0',
-  borderRadius: '5px',
+  border: '1px solid #e2e8f0',
+  borderRadius: '12px',
   marginTop: '20px',
   marginBottom: '20px',
   marginLeft: 'auto',
   marginRight: 'auto',
-  maxWidth: '465px',
-  padding: '20px',
+  maxWidth: '600px',
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
 };
 
 const header = {
-  backgroundColor: '#2563eb',
-  padding: '20px 40px',
+  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+  padding: '32px 40px',
+  borderRadius: '12px 12px 0 0',
 };
 
 const headerText = {
