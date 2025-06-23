@@ -283,22 +283,24 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
 
             
-            <div>
-              <Label htmlFor="workTaskId">Arbetsmoment</Label>
-              <Select name="workTaskId" defaultValue={deviation?.workTaskId?.toString() || "0"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj arbetsmoment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Ingen vald</SelectItem>
-                  {workTasks.map((task) => (
-                    <SelectItem key={task.id} value={task.id.toString()}>
-                      {task.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {(deviationSettings?.useWorkTasks ?? true) && (
+              <div>
+                <Label htmlFor="workTaskId">Arbetsmoment</Label>
+                <Select name="workTaskId" defaultValue={deviation?.workTaskId?.toString() || "0"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj arbetsmoment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Ingen vald</SelectItem>
+                    {workTasks.map((task) => (
+                      <SelectItem key={task.id} value={task.id.toString()}>
+                        {task.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {mode === 'edit' && (
               <div>
@@ -319,22 +321,24 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               </div>
             )}
             
-            <div>
-              <Label htmlFor="locationId">Plats</Label>
-              <Select name="locationId" defaultValue={deviation?.locationId?.toString() || "0"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj plats" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Ingen vald</SelectItem>
-                  {workStations.map((station) => (
-                    <SelectItem key={station.id} value={station.id.toString()}>
-                      {station.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {(deviationSettings?.useWorkStations ?? true) && (
+              <div>
+                <Label htmlFor="locationId">Plats</Label>
+                <Select name="locationId" defaultValue={deviation?.locationId?.toString() || "0"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj plats" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Ingen vald</SelectItem>
+                    {workStations.map((station) => (
+                      <SelectItem key={station.id} value={station.id.toString()}>
+                        {station.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="departmentId">Avdelning</Label>
