@@ -136,8 +136,8 @@ const header = {
 
 const headerText = {
   color: '#ffffff',
-  fontSize: '24px',
-  fontWeight: 'bold',
+  fontSize: '20px',
+  fontWeight: '600',
   margin: '0',
   textAlign: 'center' as const,
 };
@@ -148,9 +148,9 @@ const content = {
 
 const h1 = {
   color: '#1f2937',
-  fontSize: '28px',
-  fontWeight: 'bold',
-  margin: '0 0 30px',
+  fontSize: '24px',
+  fontWeight: '600',
+  margin: '0 0 20px',
   textAlign: 'center' as const,
 };
 

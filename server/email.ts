@@ -18,14 +18,10 @@ const createTransporter = () => {
     headers: {
       'X-Priority': '3',
       'X-MSMail-Priority': 'Normal',
-      'X-Mailer': 'System by Selection',
+      'X-Mailer': 'System by Selection v1.0',
       'X-MimeOLE': 'System by Selection',
-    },
-    // DKIM and SPF setup - these need to be configured at DNS level
-    dkim: {
-      domainName: process.env.DOMAIN_NAME || 'systembyselections.se',
-      keySelector: 'default',
-      privateKey: process.env.DKIM_PRIVATE_KEY,
+      'X-Auto-Response-Suppress': 'All',
+      'Precedence': 'bulk',
     },
   });
 };
@@ -183,8 +179,12 @@ export class EmailNotificationService {
         text: typeof template.html === 'string' ? this.htmlToText(template.html) : 'Ny avvikelse i systemet', // Plain text fallback
         headers: {
           'List-Unsubscribe': `<mailto:unsubscribe@${process.env.DOMAIN_NAME || 'systembyselections.se'}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
           'X-Entity-Ref-ID': 'system-by-selection',
           'Reply-To': process.env.FROM_EMAIL,
+          'Message-ID': `<${Date.now()}-${Math.random().toString(36)}@${process.env.DOMAIN_NAME || 'systembyselections.se'}>`,
+          'X-Campaign-ID': 'deviation-notifications',
+          'X-Sender-ID': 'system-by-selection-notifications',
         },
       });
 
