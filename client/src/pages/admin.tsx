@@ -2838,6 +2838,26 @@ function DeviationStatusesManagement() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={createForm.control}
+                  name="isCompleted"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Är avslutad</FormLabel>
+                        <FormDescription>
+                          Markera avvikelser med denna status som avslutade/klara
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Avbryt
@@ -2971,6 +2991,26 @@ function DeviationStatusesManagement() {
                       <FormLabel className="text-base">Standardstatus</FormLabel>
                       <FormDescription>
                         Använd denna status som standard för nya avvikelser
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="isCompleted"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Är avslutad</FormLabel>
+                      <FormDescription>
+                        Markera avvikelser med denna status som avslutade/klara
                       </FormDescription>
                     </div>
                     <FormControl>
