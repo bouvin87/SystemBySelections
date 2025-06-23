@@ -137,6 +137,38 @@ function DeviationSettingsTab() {
             Visa "Skapa avvikelse"-knapp i menyn
           </Label>
         </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="useWorkTasks"
+            checked={deviationSettings?.useWorkTasks ?? true}
+            onCheckedChange={(checked) =>
+              handleSettingChange("useWorkTasks", checked as boolean)
+            }
+          />
+          <Label
+            htmlFor="useWorkTasks"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Använd arbetsmoment
+          </Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="useWorkStations"
+            checked={deviationSettings?.useWorkStations ?? true}
+            onCheckedChange={(checked) =>
+              handleSettingChange("useWorkStations", checked as boolean)
+            }
+          />
+          <Label
+            htmlFor="useWorkStations"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Använd arbetsstationer
+          </Label>
+        </div>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           När aktiverad visas en snabbknapp för att skapa avvikelser direkt från
           huvudmenyn.
