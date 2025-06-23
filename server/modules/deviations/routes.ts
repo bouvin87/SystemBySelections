@@ -288,6 +288,67 @@ export default function deviationRoutes(app: Express) {
             console.log('No status change detected');
           }
           
+          // Check for general updates (title, description, etc.) - but only if no status/assignment change
+          const hasGeneralChanges = !statusChanged && !updateData.assignedToUserId && (
+            updateData.title || 
+            updateData.description || 
+            updateData.deviationTypeId ||
+            updateData.priorityId ||
+            updateData.departmentId ||
+            updateData.dueDate
+          );
+          
+          console.log('General changes check:', {
+            hasGeneralChanges,
+            title: updateData.title,
+            description: updateData.description,
+            deviationTypeId: updateData.deviationTypeId
+          });
+          
+          if (hasGeneralChanges && changedBy && type) {
+            // For general updates, only notify creator and assigned user (not all admins)
+            const allUsers = await storage.getUsers(tenantId);
+            const notifyUsers = allUsers.filter(user => 
+              (user.id === updatedDeviation.createdByUserId || user.id === updatedDeviation.assignedToUserId) &&
+              user.id !== userId // Don't notify the person making the change
+            );
+            
+            // Remove duplicates
+            const uniqueNotifyUsers = notifyUsers.filter((user, index, self) => 
+              index === self.findIndex(u => u.id === user.id)
+            );
+            
+            if (uniqueNotifyUsers.length > 0) {
+              console.log(`Sending general update email to ${uniqueNotifyUsers.length} users for deviation ${updatedDeviation.id}`);
+              console.log(`Recipients: ${uniqueNotifyUsers.map(u => u.email).join(', ')}`);
+              
+              // Create a simple update notification
+              const template = {
+                subject: `Avvikelse uppdaterad: ${updatedDeviation.title}`,
+                html: `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Avvikelse uppdaterad</h2>
+                    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                      <h3 style="margin-top: 0; color: #333;">${updatedDeviation.title}</h3>
+                      <p><strong>Beskrivning:</strong> ${updatedDeviation.description || 'Ingen beskrivning'}</p>
+                      <p><strong>Typ:</strong> ${type.name}</p>
+                      <p><strong>Uppdaterad av:</strong> ${changedBy.firstName} ${changedBy.lastName}</p>
+                    </div>
+                    <p>
+                      <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/deviations/${updatedDeviation.id}" 
+                         style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+                        Visa avvikelse
+                      </a>
+                    </p>
+                  </div>
+                `
+              };
+              
+              const emails = uniqueNotifyUsers.map(user => user.email);
+              await emailService.sendEmail(emails, template);
+            }
+          }
+          
           console.log('=== END EMAIL DEBUG ===');
         } catch (emailError) {
           console.error('Failed to send email notification:', emailError);
