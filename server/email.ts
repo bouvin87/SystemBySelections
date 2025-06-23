@@ -29,8 +29,6 @@ const createTransporter = () => {
   });
 };
 
-
-
 export class EmailNotificationService {
   private transporter: nodemailer.Transporter;
 
@@ -60,7 +58,7 @@ export class EmailNotificationService {
 
       const info = await this.transporter.sendMail({
         from: {
-          name: "System by Selection",
+          name: "System by Selections",
           address: process.env.FROM_EMAIL,
         },
         to: recipients.join(", "),
@@ -79,17 +77,20 @@ export class EmailNotificationService {
 
   private htmlToText(html: string): string {
     if (!html) return "Notifiering från System by Selection";
-    return html
-      .replace(/<[^>]*>/g, "")
-      .replace(/&\w+;/g, " ")
-      .replace(/\s+/g, " ")
-      .trim() || "Notifiering från System by Selection";
+    return (
+      html
+        .replace(/<[^>]*>/g, "")
+        .replace(/&\w+;/g, " ")
+        .replace(/\s+/g, " ")
+        .trim() || "Notifiering från System by Selection"
+    );
   }
 
   async notifyDeviationCreated(
     deviation: any,
     creator: User,
     type: DeviationType,
+    department: { name: string } | undefined,
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -97,13 +98,14 @@ export class EmailNotificationService {
         deviation,
         creator,
         type,
+        department: department || { name: "Okänd avdelning" },
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
 
     await this.sendEmail(
       notifyUsers.map((user) => user.email),
-      { subject: `Ny avvikelse: ${deviation.title}`, html: emailHtml }
+      { subject: `Ny avvikelse: ${deviation.title}`, html: emailHtml },
     );
   }
 
@@ -150,7 +152,7 @@ export class EmailNotificationService {
 
     await this.sendEmail(
       notifyUsers.map((user) => user.email),
-      { subject: `Statusändring: ${deviation.title}`, html: emailHtml }
+      { subject: `Statusändring: ${deviation.title}`, html: emailHtml },
     );
   }
 
@@ -173,7 +175,7 @@ export class EmailNotificationService {
 
     await this.sendEmail(
       notifyUsers.map((user) => user.email),
-      { subject: `Ny kommentar: ${deviation.title}`, html: emailHtml }
+      { subject: `Ny kommentar: ${deviation.title}`, html: emailHtml },
     );
   }
 
