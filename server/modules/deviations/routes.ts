@@ -14,6 +14,8 @@ import {
   validateTenantOwnership, 
   enforceTenantIsolation 
 } from "../../middleware/auth";
+import { render } from '@react-email/render';
+import { DeviationUpdatedEmail } from '../../emails/DeviationUpdated';
 
 // Define AuthenticatedRequest type locally
 interface AuthenticatedRequest extends Request {
@@ -23,6 +25,8 @@ interface AuthenticatedRequest extends Request {
 }
 import { insertDeviationTypeSchema, insertDeviationSchema, insertDeviationCommentSchema } from "@shared/schema";
 import { emailService } from "../../email";
+import { render } from '@react-email/render';
+import { DeviationUpdatedEmail } from '../../emails/DeviationUpdated';
 
 export default function deviationRoutes(app: Express) {
   
