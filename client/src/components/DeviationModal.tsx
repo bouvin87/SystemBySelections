@@ -285,11 +285,12 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             
             <div>
               <Label htmlFor="workTaskId">Arbetsmoment</Label>
-              <Select name="workTaskId" defaultValue={deviation?.workTaskId?.toString() || ""}>
+              <Select name="workTaskId" defaultValue={deviation?.workTaskId?.toString() || "0"}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj arbetsmoment" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="0">Ingen vald</SelectItem>
                   {workTasks.map((task) => (
                     <SelectItem key={task.id} value={task.id.toString()}>
                       {task.name}
