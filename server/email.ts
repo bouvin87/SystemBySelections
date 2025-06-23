@@ -219,7 +219,7 @@ export class EmailNotificationService {
   ) {
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
     
-    const emailHtml = render(DeviationCreatedEmail({
+    const emailHtml = await render(DeviationCreatedEmail({
       deviation,
       creator,
       type,
@@ -246,7 +246,7 @@ export class EmailNotificationService {
   ) {
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
     
-    const emailHtml = render(DeviationAssignedEmail({
+    const emailHtml = await render(DeviationAssignedEmail({
       deviation,
       assignedUser,
       assigner,
