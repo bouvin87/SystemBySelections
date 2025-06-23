@@ -127,8 +127,16 @@ const header = {
 
 const headerText = {
   color: '#ffffff',
-  fontSize: '20px',
-  fontWeight: '600',
+  fontSize: '24px',
+  fontWeight: '700',
+  margin: '0 0 4px',
+  textAlign: 'center' as const,
+};
+
+const headerSubtext = {
+  color: 'rgba(255, 255, 255, 0.9)',
+  fontSize: '14px',
+  fontWeight: '500',
   margin: '0',
   textAlign: 'center' as const,
 };

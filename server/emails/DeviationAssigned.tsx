@@ -132,7 +132,15 @@ const header = {
 const headerText = {
   color: '#ffffff',
   fontSize: '24px',
-  fontWeight: 'bold',
+  fontWeight: '700',
+  margin: '0 0 4px',
+  textAlign: 'center' as const,
+};
+
+const headerSubtext = {
+  color: 'rgba(255, 255, 255, 0.9)',
+  fontSize: '14px',
+  fontWeight: '500',
   margin: '0',
   textAlign: 'center' as const,
 };
