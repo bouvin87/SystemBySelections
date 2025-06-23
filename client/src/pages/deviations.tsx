@@ -142,7 +142,7 @@ export default function DeviationsPage() {
       const dept = departments.find(d => d.id === deviation.departmentId);
       const deptName = dept?.name || 'Okänd';
       if (!data[deptName]) {
-        data[deptName] = { value: 0, color: chartColors[Object.keys(data).length % chartColors.length] };
+        data[deptName] = { value: 0, color: dept?.color || '#6b7280' };
       }
       data[deptName].value += 1;
     });
@@ -388,7 +388,7 @@ export default function DeviationsPage() {
                     {filters.department.map((deptId) => {
                       const dept = departments.find(d => d.id.toString() === deptId);
                       return dept ? (
-                        <div key={deptId} className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                        <div key={deptId} className="px-2 py-1 rounded-md text-sm flex items-center gap-1" style={{ backgroundColor: dept.color + "20", borderColor: dept.color, color: dept.color, border: `1px solid ${dept.color}` }}>
                           {dept.name}
                           <X 
                             className="h-3 w-3 cursor-pointer" 
@@ -644,7 +644,7 @@ export default function DeviationsPage() {
                                 </Badge>
                               )}
                               {department && (
-                                <Badge variant="outline">
+                                <Badge variant="outline" style={{ borderColor: department.color, color: department.color }}>
                                   {department.name}
                                 </Badge>
                               )}
