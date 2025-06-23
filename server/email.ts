@@ -1,11 +1,6 @@
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
-import type {
-  User,
-  Deviation,
-  DeviationType,
-  DeviationStatus,
-} from "@shared/schema";
+import type { User, DeviationType, DeviationStatus } from "@shared/schema";
 import { DeviationCreatedEmail } from "./emails/DeviationCreated";
 import { DeviationAssignedEmail } from "./emails/DeviationAssigned";
 import { DeviationStatusChangedEmail } from "./emails/DeviationStatusChanged";
@@ -34,14 +29,21 @@ const createTransporter = () => {
   });
 };
 
-// React Email templates are imported and used directly in the service methods below
 
-// Email notification functions
+
 export class EmailNotificationService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.transporter = createTransporter();
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_PORT === "465",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
   }
 
   private async sendEmail(
@@ -58,22 +60,13 @@ export class EmailNotificationService {
 
       const info = await this.transporter.sendMail({
         from: {
-          name: "System by Selections",
+          name: "System by Selection",
           address: process.env.FROM_EMAIL,
         },
         to: recipients.join(", "),
         subject: template.subject,
         html: template.html,
         text: this.htmlToText(template.html),
-        headers: {
-          "List-Unsubscribe": `<mailto:unsubscribe@${process.env.DOMAIN_NAME || "systembyselections.se"}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          "X-Entity-Ref-ID": "system-by-selection",
-          "Reply-To": process.env.FROM_EMAIL,
-          "Message-ID": `<${Date.now()}-${Math.random().toString(36)}@${process.env.DOMAIN_NAME || "systembyselections.se"}>`,
-          "X-Campaign-ID": "deviation-notifications",
-          "X-Sender-ID": "system-by-selection-notifications",
-        },
       });
 
       console.log("Email sent:", info.messageId);
@@ -85,16 +78,10 @@ export class EmailNotificationService {
   }
 
   private htmlToText(html: string): string {
-    // Simple HTML to text conversion for React Email output
-    if (!html || typeof html !== "string") {
-      return "Notifiering från System by Selection";
-    }
+    if (!html) return "Notifiering från System by Selection";
     return html
       .replace(/<[^>]*>/g, "")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
+      .replace(/&\w+;/g, " ")
       .replace(/\s+/g, " ")
       .trim() || "Notifiering från System by Selection";
   }
@@ -105,27 +92,19 @@ export class EmailNotificationService {
     type: DeviationType,
     notifyUsers: User[],
   ) {
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5000";
-
     const emailHtml = await render(
       DeviationCreatedEmail({
         deviation,
         creator,
         type,
-        baseUrl,
+        baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
 
-    const template = {
-      subject: `Ny avvikelse: ${deviation.title}`,
-      html: emailHtml,
-    };
-
-    const emails = notifyUsers.map((user) => user.email);
-
-    if (emails.length > 0) {
-      await this.sendEmail(emails, template);
-    }
+    await this.sendEmail(
+      notifyUsers.map((user) => user.email),
+      { subject: `Ny avvikelse: ${deviation.title}`, html: emailHtml }
+    );
   }
 
   async notifyDeviationAssigned(
@@ -134,24 +113,20 @@ export class EmailNotificationService {
     assigner: User,
     type: DeviationType,
   ) {
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5000";
-
     const emailHtml = await render(
       DeviationAssignedEmail({
         deviation,
         assignedUser,
         assigner,
         type,
-        baseUrl,
+        baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
 
-    const template = {
+    await this.sendEmail(assignedUser.email, {
       subject: `Avvikelse tilldelad: ${deviation.title}`,
       html: emailHtml,
-    };
-
-    await this.sendEmail(assignedUser.email, template);
+    });
   }
 
   async notifyStatusChanged(
@@ -162,8 +137,6 @@ export class EmailNotificationService {
     type: DeviationType,
     notifyUsers: User[],
   ) {
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5000";
-
     const emailHtml = await render(
       DeviationStatusChangedEmail({
         deviation,
@@ -171,20 +144,14 @@ export class EmailNotificationService {
         newStatus,
         changedBy,
         type,
-        baseUrl,
+        baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
 
-    const template = {
-      subject: `Avvikelse uppdaterad: ${deviation.title}`,
-      html: emailHtml,
-    };
-
-    const emails = notifyUsers.map((user) => user.email);
-
-    if (emails.length > 0) {
-      await this.sendEmail(emails, template);
-    }
+    await this.sendEmail(
+      notifyUsers.map((user) => user.email),
+      { subject: `Statusändring: ${deviation.title}`, html: emailHtml }
+    );
   }
 
   async notifyNewComment(
@@ -194,28 +161,20 @@ export class EmailNotificationService {
     type: DeviationType,
     notifyUsers: User[],
   ) {
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5000";
-
     const emailHtml = await render(
       DeviationCommentAddedEmail({
         deviation,
         comment,
         commenter,
         type,
-        baseUrl,
+        baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
 
-    const template = {
-      subject: `Ny kommentar: ${deviation.title}`,
-      html: emailHtml,
-    };
-
-    const emails = notifyUsers.map((user) => user.email);
-
-    if (emails.length > 0) {
-      await this.sendEmail(emails, template);
-    }
+    await this.sendEmail(
+      notifyUsers.map((user) => user.email),
+      { subject: `Ny kommentar: ${deviation.title}`, html: emailHtml }
+    );
   }
 
   async testConnection() {
