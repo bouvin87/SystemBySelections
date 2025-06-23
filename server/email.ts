@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer';
+import { render } from '@react-email/render';
 import type { User, Deviation, DeviationType, DeviationStatus } from '@shared/schema';
+import { DeviationCreatedEmail } from './emails/DeviationCreated';
+import { DeviationAssignedEmail } from './emails/DeviationAssigned';
 
 // Email transporter configuration
 const createTransporter = () => {
@@ -10,6 +13,19 @@ const createTransporter = () => {
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
+    },
+    // Anti-spam configuration
+    headers: {
+      'X-Priority': '3',
+      'X-MSMail-Priority': 'Normal',
+      'X-Mailer': 'System by Selection',
+      'X-MimeOLE': 'System by Selection',
+    },
+    // DKIM and SPF setup - these need to be configured at DNS level
+    dkim: {
+      domainName: process.env.DOMAIN_NAME || 'systembyselections.se',
+      keySelector: 'default',
+      privateKey: process.env.DKIM_PRIVATE_KEY,
     },
   });
 };
@@ -157,10 +173,19 @@ export class EmailNotificationService {
       const recipients = Array.isArray(to) ? to : [to];
       
       const info = await this.transporter.sendMail({
-        from: process.env.FROM_EMAIL,
+        from: {
+          name: 'System by Selection',
+          address: process.env.FROM_EMAIL,
+        },
         to: recipients.join(', '),
         subject: template.subject,
         html: template.html,
+        text: this.htmlToText(template.html), // Plain text fallback
+        headers: {
+          'List-Unsubscribe': `<mailto:unsubscribe@${process.env.DOMAIN_NAME || 'systembyselections.se'}>`,
+          'X-Entity-Ref-ID': 'system-by-selection',
+          'Reply-To': process.env.FROM_EMAIL,
+        },
       });
 
       console.log('Email sent:', info.messageId);
@@ -171,13 +196,38 @@ export class EmailNotificationService {
     }
   }
 
+  private htmlToText(html: string): string {
+    // Simple HTML to text conversion
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   async notifyDeviationCreated(
     deviation: any,
     creator: User,
     type: DeviationType,
     notifyUsers: User[]
   ) {
-    const template = emailTemplates.deviationCreated(deviation, creator, type);
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    
+    const emailHtml = render(DeviationCreatedEmail({
+      deviation,
+      creator,
+      type,
+      baseUrl,
+    }));
+
+    const template = {
+      subject: `Ny avvikelse: ${deviation.title}`,
+      html: emailHtml,
+    };
+
     const emails = notifyUsers.map(user => user.email);
     
     if (emails.length > 0) {
@@ -191,7 +241,21 @@ export class EmailNotificationService {
     assigner: User,
     type: DeviationType
   ) {
-    const template = emailTemplates.deviationAssigned(deviation, assignedUser, assigner, type);
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+    
+    const emailHtml = render(DeviationAssignedEmail({
+      deviation,
+      assignedUser,
+      assigner,
+      type,
+      baseUrl,
+    }));
+
+    const template = {
+      subject: `Avvikelse tilldelad: ${deviation.title}`,
+      html: emailHtml,
+    };
+
     await this.sendEmail(assignedUser.email, template);
   }
 
