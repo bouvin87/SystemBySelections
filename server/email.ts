@@ -270,7 +270,36 @@ export class EmailNotificationService {
     type: DeviationType,
     notifyUsers: User[]
   ) {
-    const template = emailTemplates.deviationStatusChanged(deviation, oldStatus, newStatus, changedBy, type);
+    // For now, use a simple template since we haven't created React Email for status changes yet
+    const template = {
+      subject: `Avvikelse uppdaterad: ${deviation.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Avvikelse statusändring</h2>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #333;">${deviation.title}</h3>
+            <p><strong>Status ändrad:</strong></p>
+            <p>
+              <span style="background: ${oldStatus.color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                ${oldStatus.name}
+              </span>
+              →
+              <span style="background: ${newStatus.color}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                ${newStatus.name}
+              </span>
+            </p>
+            <p><strong>Ändrad av:</strong> ${changedBy.firstName} ${changedBy.lastName}</p>
+          </div>
+          <p>
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:5000'}/deviations/${deviation.id}" 
+               style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+              Visa avvikelse
+            </a>
+          </p>
+        </div>
+      `
+    };
+
     const emails = notifyUsers.map(user => user.email);
     
     if (emails.length > 0) {

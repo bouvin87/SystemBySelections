@@ -202,8 +202,49 @@ export default function deviationRoutes(app: Express) {
           updateData.dueDate = new Date(updateData.dueDate);
         }
         
+        // Get original deviation for comparison
+        const originalDeviation = await storage.getDeviation(deviationId, tenantId);
+        if (!originalDeviation) {
+          return res.status(404).json({ message: 'Deviation not found' });
+        }
+
         const userId = req.user?.userId;
         const updatedDeviation = await storage.updateDeviation(deviationId, updateData, tenantId, userId);
+        
+        // Send email notifications for specific changes
+        try {
+          const changedBy = await storage.getUserById(userId);
+          const type = await storage.getDeviationTypeById(updatedDeviation.deviationTypeId, tenantId);
+          
+          // Check for assignment change
+          if (updateData.assignedToUserId && originalDeviation.assignedToUserId !== updateData.assignedToUserId) {
+            const assignedUser = await storage.getUserById(updateData.assignedToUserId);
+            if (assignedUser && changedBy && type) {
+              console.log(`Sending assignment email to ${assignedUser.email} for deviation ${updatedDeviation.id}`);
+              await emailService.notifyDeviationAssigned(updatedDeviation, assignedUser, changedBy, type);
+            }
+          }
+          
+          // Check for status change
+          if (updateData.statusId && originalDeviation.statusId !== updateData.statusId) {
+            const oldStatus = await storage.getDeviationStatusById(originalDeviation.statusId, tenantId);
+            const newStatus = await storage.getDeviationStatusById(updateData.statusId, tenantId);
+            
+            if (oldStatus && newStatus && changedBy && type) {
+              // Get users to notify
+              const allUsers = await storage.getUsers(tenantId);
+              const notifyUsers = allUsers.filter(user => 
+                user.role === 'admin' || user.role === 'underadmin' || user.id === updatedDeviation.assignedToUserId
+              );
+              
+              console.log(`Sending status change email to ${notifyUsers.length} users for deviation ${updatedDeviation.id}`);
+              await emailService.notifyStatusChanged(updatedDeviation, oldStatus, newStatus, changedBy, type, notifyUsers);
+            }
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+        }
+        
         res.json(updatedDeviation);
         
       } catch (error) {
