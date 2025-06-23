@@ -7,10 +7,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, TrendingUp, Filter, X } from "lucide-react";
 import DeviationModal from "@/components/DeviationModal";
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, ComposedChart } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LineChart,
+  Line,
+  ComposedChart,
+} from "recharts";
 
 // Types
 interface DeviationType {
@@ -104,14 +125,17 @@ export default function DeviationsPage() {
     const matchesSearch = deviation.title
       .toLowerCase()
       .includes(filters.search.toLowerCase());
-    
-    const matchesStatus = filters.status.length === 0 || 
+
+    const matchesStatus =
+      filters.status.length === 0 ||
       filters.status.includes(deviation.statusId?.toString() || "");
-    
-    const matchesType = filters.type.length === 0 ||
+
+    const matchesType =
+      filters.type.length === 0 ||
       filters.type.includes(deviation.deviationTypeId?.toString() || "");
-    
-    const matchesDepartment = filters.department.length === 0 ||
+
+    const matchesDepartment =
+      filters.department.length === 0 ||
       filters.department.includes(deviation.departmentId?.toString() || "");
 
     // Date filtering
@@ -120,7 +144,7 @@ export default function DeviationsPage() {
       const deviationDate = new Date(deviation.createdAt);
       const startDate = filters.startDate ? new Date(filters.startDate) : null;
       const endDate = filters.endDate ? new Date(filters.endDate) : null;
-      
+
       if (startDate && deviationDate < startDate) return false;
       if (endDate && deviationDate > endDate) return false;
       return true;
@@ -138,76 +162,107 @@ export default function DeviationsPage() {
   // Chart data processing
   const getDepartmentChartData = () => {
     const data: Record<string, { value: number; color: string }> = {};
-    filteredDeviations.forEach(deviation => {
-      const dept = departments.find(d => d.id === deviation.departmentId);
-      const deptName = dept?.name || 'Okänd';
+    filteredDeviations.forEach((deviation) => {
+      const dept = departments.find((d) => d.id === deviation.departmentId);
+      const deptName = dept?.name || "Okänd";
       if (!data[deptName]) {
-        data[deptName] = { value: 0, color: dept?.color || '#6b7280' };
+        data[deptName] = { value: 0, color: dept?.color || "#6b7280" };
       }
       data[deptName].value += 1;
     });
-    return Object.entries(data).map(([name, item]) => ({ name, value: item.value, color: item.color }));
+    return Object.entries(data).map(([name, item]) => ({
+      name,
+      value: item.value,
+      color: item.color,
+    }));
   };
 
   const getTypeChartData = () => {
     const data: Record<string, { value: number; color: string }> = {};
-    filteredDeviations.forEach(deviation => {
-      const type = deviationTypes.find(t => t.id === deviation.deviationTypeId);
-      const typeName = type?.name || 'Okänd';
+    filteredDeviations.forEach((deviation) => {
+      const type = deviationTypes.find(
+        (t) => t.id === deviation.deviationTypeId,
+      );
+      const typeName = type?.name || "Okänd";
       if (!data[typeName]) {
-        data[typeName] = { value: 0, color: type?.color || chartColors[Object.keys(data).length % chartColors.length] };
+        data[typeName] = {
+          value: 0,
+          color:
+            type?.color ||
+            chartColors[Object.keys(data).length % chartColors.length],
+        };
       }
       data[typeName].value += 1;
     });
-    return Object.entries(data).map(([name, item]) => ({ name, value: item.value, color: item.color }));
+    return Object.entries(data).map(([name, item]) => ({
+      name,
+      value: item.value,
+      color: item.color,
+    }));
   };
 
   const getStatusChartData = () => {
     const data: Record<string, { value: number; color: string }> = {};
-    filteredDeviations.forEach(deviation => {
-      const status = deviationStatuses.find(s => s.id === deviation.statusId);
-      const statusName = status?.name || 'Ingen status';
+    filteredDeviations.forEach((deviation) => {
+      const status = deviationStatuses.find((s) => s.id === deviation.statusId);
+      const statusName = status?.name || "Ingen status";
       if (!data[statusName]) {
-        data[statusName] = { value: 0, color: status?.color || '#9ca3af' };
+        data[statusName] = { value: 0, color: status?.color || "#9ca3af" };
       }
       data[statusName].value += 1;
     });
-    return Object.entries(data).map(([name, item]) => ({ name, value: item.value, color: item.color }));
+    return Object.entries(data).map(([name, item]) => ({
+      name,
+      value: item.value,
+      color: item.color,
+    }));
   };
 
   const getMonthlyData = () => {
     const monthlyData: Record<string, any> = {};
-    
-    filteredDeviations.forEach(deviation => {
+
+    filteredDeviations.forEach((deviation) => {
       const date = new Date(deviation.createdAt);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = { month: monthKey, total: 0 };
-        deviationTypes.forEach(type => {
+        deviationTypes.forEach((type) => {
           monthlyData[monthKey][type.name] = 0;
         });
       }
-      
+
       monthlyData[monthKey].total += 1;
-      const type = deviationTypes.find(t => t.id === deviation.deviationTypeId);
+      const type = deviationTypes.find(
+        (t) => t.id === deviation.deviationTypeId,
+      );
       if (type) {
         monthlyData[monthKey][type.name] += 1;
       }
     });
-    
-    return Object.values(monthlyData).sort((a: any, b: any) => a.month.localeCompare(b.month));
+
+    return Object.values(monthlyData).sort((a: any, b: any) =>
+      a.month.localeCompare(b.month),
+    );
   };
 
   const getTypeColors = () => {
     const colors: Record<string, string> = {};
-    deviationTypes.forEach(type => {
+    deviationTypes.forEach((type) => {
       colors[type.name] = type.color;
     });
     return colors;
   };
 
-  const chartColors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00C49F', '#FFBB28', '#FF8042'];
+  const chartColors = [
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+    "#ff7300",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+  ];
 
   if (isLoading) {
     return (
@@ -257,11 +312,14 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Typ</Label>
-                <Select 
+                <Select
                   value=""
                   onValueChange={(value) => {
                     if (value && !filters.type.includes(value)) {
-                      setFilters(prev => ({ ...prev, type: [...prev.type, value] }));
+                      setFilters((prev) => ({
+                        ...prev,
+                        type: [...prev.type, value],
+                      }));
                     }
                   }}
                 >
@@ -270,14 +328,22 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {deviationTypes
-                      .filter((type) => type.isActive && !filters.type.includes(type.id.toString()))
+                      .filter(
+                        (type) =>
+                          type.isActive &&
+                          !filters.type.includes(type.id.toString()),
+                      )
                       .sort((a, b) => a.order - b.order)
                       .map((type) => (
                         <SelectItem key={type.id} value={type.id.toString()}>
                           {type.name}
                         </SelectItem>
                       ))}
-                    {deviationTypes.filter((type) => type.isActive && !filters.type.includes(type.id.toString())).length === 0 && (
+                    {deviationTypes.filter(
+                      (type) =>
+                        type.isActive &&
+                        !filters.type.includes(type.id.toString()),
+                    ).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla typer är redan valda
                       </SelectItem>
@@ -287,16 +353,23 @@ export default function DeviationsPage() {
                 {filters.type.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {filters.type.map((typeId) => {
-                      const type = deviationTypes.find(t => t.id.toString() === typeId);
+                      const type = deviationTypes.find(
+                        (t) => t.id.toString() === typeId,
+                      );
                       return type ? (
-                        <div key={typeId} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                        <div
+                          key={typeId}
+                          className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                        >
                           {type.name}
-                          <X 
-                            className="h-3 w-3 cursor-pointer" 
-                            onClick={() => setFilters(prev => ({ 
-                              ...prev, 
-                              type: prev.type.filter(id => id !== typeId) 
-                            }))}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                type: prev.type.filter((id) => id !== typeId),
+                              }))
+                            }
                           />
                         </div>
                       ) : null;
@@ -307,11 +380,14 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Status</Label>
-                <Select 
+                <Select
                   value=""
                   onValueChange={(value) => {
                     if (value && !filters.status.includes(value)) {
-                      setFilters(prev => ({ ...prev, status: [...prev.status, value] }));
+                      setFilters((prev) => ({
+                        ...prev,
+                        status: [...prev.status, value],
+                      }));
                     }
                   }}
                 >
@@ -320,14 +396,25 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {deviationStatuses
-                      .filter((status) => status.isActive && !filters.status.includes(status.id.toString()))
+                      .filter(
+                        (status) =>
+                          status.isActive &&
+                          !filters.status.includes(status.id.toString()),
+                      )
                       .sort((a, b) => a.order - b.order)
                       .map((status) => (
-                        <SelectItem key={status.id} value={status.id.toString()}>
+                        <SelectItem
+                          key={status.id}
+                          value={status.id.toString()}
+                        >
                           {status.name}
                         </SelectItem>
                       ))}
-                    {deviationStatuses.filter((status) => status.isActive && !filters.status.includes(status.id.toString())).length === 0 && (
+                    {deviationStatuses.filter(
+                      (status) =>
+                        status.isActive &&
+                        !filters.status.includes(status.id.toString()),
+                    ).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla statusar är redan valda
                       </SelectItem>
@@ -337,16 +424,25 @@ export default function DeviationsPage() {
                 {filters.status.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {filters.status.map((statusId) => {
-                      const status = deviationStatuses.find(s => s.id.toString() === statusId);
+                      const status = deviationStatuses.find(
+                        (s) => s.id.toString() === statusId,
+                      );
                       return status ? (
-                        <div key={statusId} className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                        <div
+                          key={statusId}
+                          className="bg-green-100 text-green-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                        >
                           {status.name}
-                          <X 
-                            className="h-3 w-3 cursor-pointer" 
-                            onClick={() => setFilters(prev => ({ 
-                              ...prev, 
-                              status: prev.status.filter(id => id !== statusId) 
-                            }))}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                status: prev.status.filter(
+                                  (id) => id !== statusId,
+                                ),
+                              }))
+                            }
                           />
                         </div>
                       ) : null;
@@ -357,11 +453,14 @@ export default function DeviationsPage() {
 
               <div>
                 <Label>Avdelning</Label>
-                <Select 
+                <Select
                   value=""
                   onValueChange={(value) => {
                     if (value && !filters.department.includes(value)) {
-                      setFilters(prev => ({ ...prev, department: [...prev.department, value] }));
+                      setFilters((prev) => ({
+                        ...prev,
+                        department: [...prev.department, value],
+                      }));
                     }
                   }}
                 >
@@ -370,13 +469,21 @@ export default function DeviationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {departments
-                      .filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString()))
+                      .filter(
+                        (dept) =>
+                          dept.isActive &&
+                          !filters.department.includes(dept.id.toString()),
+                      )
                       .map((dept) => (
                         <SelectItem key={dept.id} value={dept.id.toString()}>
                           {dept.name}
                         </SelectItem>
                       ))}
-                    {departments.filter((dept) => dept.isActive && !filters.department.includes(dept.id.toString())).length === 0 && (
+                    {departments.filter(
+                      (dept) =>
+                        dept.isActive &&
+                        !filters.department.includes(dept.id.toString()),
+                    ).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla avdelningar är redan valda
                       </SelectItem>
@@ -386,16 +493,31 @@ export default function DeviationsPage() {
                 {filters.department.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {filters.department.map((deptId) => {
-                      const dept = departments.find(d => d.id.toString() === deptId);
+                      const dept = departments.find(
+                        (d) => d.id.toString() === deptId,
+                      );
                       return dept ? (
-                        <div key={deptId} className="px-2 py-1 rounded-md text-sm flex items-center gap-1" style={{ backgroundColor: dept.color + "20", borderColor: dept.color, color: dept.color, border: `1px solid ${dept.color}` }}>
+                        <div
+                          key={deptId}
+                          className="px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                          style={{
+                            backgroundColor: dept.color + "20",
+                            borderColor: dept.color,
+                            color: dept.color,
+                            border: `1px solid ${dept.color}`,
+                          }}
+                        >
                           {dept.name}
-                          <X 
-                            className="h-3 w-3 cursor-pointer" 
-                            onClick={() => setFilters(prev => ({ 
-                              ...prev, 
-                              department: prev.department.filter(id => id !== deptId) 
-                            }))}
+                          <X
+                            className="h-3 w-3 cursor-pointer"
+                            onClick={() =>
+                              setFilters((prev) => ({
+                                ...prev,
+                                department: prev.department.filter(
+                                  (id) => id !== deptId,
+                                ),
+                              }))
+                            }
                           />
                         </div>
                       ) : null;
@@ -410,7 +532,10 @@ export default function DeviationsPage() {
                   type="date"
                   value={filters.startDate}
                   onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, startDate: e.target.value }))
+                    setFilters((prev) => ({
+                      ...prev,
+                      startDate: e.target.value,
+                    }))
                   }
                 />
               </div>
@@ -426,7 +551,7 @@ export default function DeviationsPage() {
                 />
               </div>
             </div>
-            
+
             <div className="mt-4 flex gap-2">
               <Button
                 variant="outline"
@@ -444,18 +569,21 @@ export default function DeviationsPage() {
                 Rensa filter
               </Button>
               <div className="text-sm text-gray-500 flex items-center">
-                Visar {filteredDeviations.length} av {deviations.length} avvikelser
+                Visar {filteredDeviations.length} av {deviations.length}{" "}
+                avvikelser
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Chart Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Department Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">Avdelningar</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Avdelningar
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-48">
@@ -479,17 +607,21 @@ export default function DeviationsPage() {
                 </ResponsiveContainer>
               </div>
               <div className="text-center mt-2">
-                <span className="text-2xl font-bold">{filteredDeviations.length}</span>
+                <span className="text-2xl font-bold">
+                  {filteredDeviations.length}
+                </span>
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
               <div className="mt-2 space-y-1">
                 {getDepartmentChartData().map((item) => (
                   <div key={item.name} className="flex items-center text-xs">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
+                    <div
+                      className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span>{item.name} - {item.value}</span>
+                    <span>
+                      {item.name} - {item.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -499,7 +631,9 @@ export default function DeviationsPage() {
           {/* Type Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">Typer</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Typer
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-48">
@@ -522,14 +656,22 @@ export default function DeviationsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              <div className="text-center mt-2">
+                <span className="text-2xl font-bold">
+                  {filteredDeviations.length}
+                </span>
+                <p className="text-sm text-gray-500">Totalt</p>
+              </div>
               <div className="mt-2 space-y-1">
                 {getTypeChartData().map((item) => (
                   <div key={item.name} className="flex items-center text-xs">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
+                    <div
+                      className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span>{item.name} - {item.value}</span>
+                    <span>
+                      {item.name} - {item.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -539,7 +681,9 @@ export default function DeviationsPage() {
           {/* Status Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">Status</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Status
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-48">
@@ -563,17 +707,21 @@ export default function DeviationsPage() {
                 </ResponsiveContainer>
               </div>
               <div className="text-center mt-2">
-                <span className="text-2xl font-bold">{filteredDeviations.length}</span>
+                <span className="text-2xl font-bold">
+                  {filteredDeviations.length}
+                </span>
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
               <div className="mt-2 space-y-1">
                 {getStatusChartData().map((item) => (
                   <div key={item.name} className="flex items-center text-xs">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
+                    <div
+                      className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span>{item.name} - {item.value}</span>
+                    <span>
+                      {item.name} - {item.value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -581,9 +729,11 @@ export default function DeviationsPage() {
           </Card>
 
           {/* Monthly Chart - spans full width */}
-          <Card className="md:col-span-2 lg:col-span-4">
+          <Card className="md:col-span-2 lg:col-span-3">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">Inlämnade per månad</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Inlämnade per månad
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-64">
@@ -594,9 +744,18 @@ export default function DeviationsPage() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} />
+                    <Line
+                      type="monotone"
+                      dataKey="total"
+                      stroke="#2563eb"
+                      strokeWidth={3}
+                    />
                     {deviationTypes.map((type) => (
-                      <Bar key={type.id} dataKey={type.name} fill={type.color} />
+                      <Bar
+                        key={type.id}
+                        dataKey={type.name}
+                        fill={type.color}
+                      />
                     ))}
                   </ComposedChart>
                 </ResponsiveContainer>
@@ -618,43 +777,69 @@ export default function DeviationsPage() {
                 </div>
               ) : (
                 filteredDeviations.map((deviation) => {
-                  const deviationType = deviationTypes.find(t => t.id === deviation.deviationTypeId);
-                  const status = deviationStatuses.find(s => s.id === deviation.statusId);
-                  const department = departments.find(d => d.id === deviation.departmentId);
-                  
+                  const deviationType = deviationTypes.find(
+                    (t) => t.id === deviation.deviationTypeId,
+                  );
+                  const status = deviationStatuses.find(
+                    (s) => s.id === deviation.statusId,
+                  );
+                  const department = departments.find(
+                    (d) => d.id === deviation.departmentId,
+                  );
+
                   return (
-                    <Link key={deviation.id} href={`/deviations/${deviation.id}`}>
+                    <Link
+                      key={deviation.id}
+                      href={`/deviations/${deviation.id}`}
+                    >
                       <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               {deviationType && (
-                                <div 
+                                <div
                                   className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: deviationType.color }}
+                                  style={{
+                                    backgroundColor: deviationType.color,
+                                  }}
                                 />
                               )}
-                              <h3 className="font-semibold">{deviation.title}</h3>
+                              <h3 className="font-semibold">
+                                {deviation.title}
+                              </h3>
                             </div>
-                            
+
                             <div className="flex gap-2 mb-2">
                               {status && (
-                                <Badge style={{ backgroundColor: status.color, color: 'white' }}>
+                                <Badge
+                                  style={{
+                                    backgroundColor: status.color,
+                                    color: "white",
+                                  }}
+                                >
                                   {status.name}
                                 </Badge>
                               )}
                               {department && (
-                                <Badge variant="outline" style={{ borderColor: department.color, color: department.color }}>
+                                <Badge
+                                  variant="outline"
+                                  style={{
+                                    borderColor: department.color,
+                                    color: department.color,
+                                  }}
+                                >
                                   {department.name}
                                 </Badge>
                               )}
                             </div>
-                            
+
                             {deviation.description && (
-                              <p className="text-sm text-gray-600">{deviation.description}</p>
+                              <p className="text-sm text-gray-600">
+                                {deviation.description}
+                              </p>
                             )}
                           </div>
-                          
+
                           <div className="flex items-center">
                             <Button size="sm" variant="secondary">
                               <TrendingUp className="mr-2 h-4 w-4" />

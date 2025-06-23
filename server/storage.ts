@@ -862,6 +862,11 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(deviationStatuses).where(eq(deviationStatuses.tenantId, tenantId)).orderBy(deviationStatuses.order, deviationStatuses.name);
   }
 
+  async getDeviationStatusById(id: number, tenantId: number): Promise<DeviationStatus | null> {
+    const result = await db.select().from(deviationStatuses).where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)));
+    return result[0] || null;
+  }
+
   async getDeviationStatus(id: number, tenantId: number): Promise<DeviationStatus | undefined> {
     const result = await db.select().from(deviationStatuses).where(and(eq(deviationStatuses.id, id), eq(deviationStatuses.tenantId, tenantId)));
     return result[0];
