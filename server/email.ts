@@ -180,7 +180,7 @@ export class EmailNotificationService {
         to: recipients.join(', '),
         subject: template.subject,
         html: template.html,
-        text: this.htmlToText(template.html), // Plain text fallback
+        text: typeof template.html === 'string' ? this.htmlToText(template.html) : 'Ny avvikelse i systemet', // Plain text fallback
         headers: {
           'List-Unsubscribe': `<mailto:unsubscribe@${process.env.DOMAIN_NAME || 'systembyselections.se'}>`,
           'X-Entity-Ref-ID': 'system-by-selection',
@@ -198,6 +198,9 @@ export class EmailNotificationService {
 
   private htmlToText(html: string): string {
     // Simple HTML to text conversion
+    if (typeof html !== 'string') {
+      return String(html);
+    }
     return html
       .replace(/<[^>]*>/g, '')
       .replace(/&nbsp;/g, ' ')
