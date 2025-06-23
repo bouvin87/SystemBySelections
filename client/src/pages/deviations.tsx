@@ -269,12 +269,14 @@ export default function DeviationsPage() {
                     <SelectValue placeholder="Välj typer" />
                   </SelectTrigger>
                   <SelectContent>
-                    {deviationTypes
-                      .filter((type) => type.isActive && !filters.type.includes(type.id.toString()))
-                      .sort((a, b) => a.order - b.order)
-                      .length > 0 ? (
-                        deviationTypes
-                          .filter((type) => type.isActive && !filters.type.includes(type.id.toString()))
+                    {(() => {
+                      const availableTypes = deviationTypes.filter((type) => type.isActive && !filters.type.includes(type.id.toString()));
+                      console.log('Available types:', availableTypes.map(t => ({id: t.id, name: t.name})));
+                      console.log('Current type filters:', filters.type);
+                      console.log('All deviation types:', deviationTypes.map(t => ({id: t.id, name: t.name, isActive: t.isActive})));
+                      
+                      return availableTypes.length > 0 ? (
+                        availableTypes
                           .sort((a, b) => a.order - b.order)
                           .map((type) => (
                             <SelectItem key={type.id} value={type.id.toString()}>
@@ -283,9 +285,10 @@ export default function DeviationsPage() {
                           ))
                       ) : (
                         <SelectItem value="no-options" disabled>
-                          Alla typer är redan valda
+                          Alla typer är redan valda (Debug: {deviationTypes.length} typer, {filters.type.length} valda)
                         </SelectItem>
-                      )}
+                      );
+                    })()}
                   </SelectContent>
                 </Select>
                 {filters.type.length > 0 && (
