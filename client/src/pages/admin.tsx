@@ -2676,6 +2676,7 @@ function DeviationStatusesManagement() {
       order: z.number().min(0, "Ordning måste vara 0 eller högre"),
       isActive: z.boolean(),
       isDefault: z.boolean(),
+      isCompleted: z.boolean(),
     })),
     defaultValues: {
       name: "",
@@ -2683,6 +2684,7 @@ function DeviationStatusesManagement() {
       order: 0,
       isActive: true,
       isDefault: false,
+      isCompleted: false,
     },
   });
 
@@ -2693,6 +2695,7 @@ function DeviationStatusesManagement() {
       order: z.number().min(0, "Ordning måste vara 0 eller högre"),
       isActive: z.boolean(),
       isDefault: z.boolean(),
+      isCompleted: z.boolean(),
     })),
     defaultValues: {
       name: "",
@@ -2700,6 +2703,7 @@ function DeviationStatusesManagement() {
       order: 0,
       isActive: true,
       isDefault: false,
+      isCompleted: false,
     },
   });
 
@@ -2725,6 +2729,7 @@ function DeviationStatusesManagement() {
       order: status.order,
       isActive: status.isActive,
       isDefault: status.isDefault,
+      isCompleted: status.isCompleted || false,
     });
   };
 
@@ -2888,7 +2893,7 @@ function DeviationStatusesManagement() {
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Ordning: {status.order} • {status.isActive ? 'Aktiv' : 'Inaktiv'}
+                      Ordning: {status.order} • {status.isActive ? 'Aktiv' : 'Inaktiv'} • {status.isDefault ? 'Standard' : 'Inte standard'} • {status.isCompleted ? 'Avslutad' : 'Pågående'}
                     </div>
                   </div>
                 </div>

@@ -276,6 +276,7 @@ export const deviationStatuses = pgTable("deviation_statuses", {
   order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   isDefault: boolean("is_default").notNull().default(false),
+  isCompleted: boolean("is_completed").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
