@@ -62,6 +62,7 @@ export const departments = pgTable("departments", {
   tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
   name: text("name").notNull(),
   description: text("description"),
+  color: varchar("color", { length: 7 }).notNull().default("#3b82f6"), // hex color
   isActive: boolean("is_active").notNull().default(true),
   order: integer("order").notNull().default(0),
   responsibleUserId: integer("responsible_user_id").references(() => users.id),

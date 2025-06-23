@@ -1924,6 +1924,7 @@ export default function Admin() {
                               const data: InsertDepartment = {
                                 name: formData.get("name") as string,
                                 description: formData.get("description") as string || undefined,
+                                color: (formData.get("color") as string) || "#3b82f6",
                                 isActive: formData.get("isActive") === "on",
                                 order: parseInt(formData.get("order") as string) || 0,
                                 responsibleUserId: responsibleUserIdValue && responsibleUserIdValue !== "0" ? parseInt(responsibleUserIdValue) : undefined,
@@ -1948,6 +1949,15 @@ export default function Admin() {
                                 id="description"
                                 name="description"
                                 defaultValue={editingItem?.description || ""}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="color">Färg</Label>
+                              <Input
+                                id="color"
+                                name="color"
+                                type="color"
+                                defaultValue={editingItem?.color || "#3b82f6"}
                               />
                             </div>
                             <div className="flex items-center space-x-2">
@@ -1997,28 +2007,34 @@ export default function Admin() {
                         <Card key={department.id}>
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <h4 className="text-sm font-medium text-gray-900">
-                                  {department.name}
-                                </h4>
-                                {department.description && (
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    {department.description}
-                                  </p>
-                                )}
-                                <div className="mt-2 space-y-1">
-                                  <Badge
-                                    variant={
-                                      department.isActive ? "default" : "secondary"
-                                    }
-                                  >
-                                    {department.isActive ? "Aktiv" : "Inaktiv"}
-                                  </Badge>
-                                  {department.responsibleUserId && (
-                                    <p className="text-xs text-gray-500">
-                                      Ansvarig: {users.find(u => u.id === department.responsibleUserId)?.firstName} {users.find(u => u.id === department.responsibleUserId)?.lastName}
+                              <div className="flex items-center space-x-3 flex-1">
+                                <div
+                                  className="w-4 h-4 rounded-full"
+                                  style={{ backgroundColor: department.color }}
+                                />
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-gray-900">
+                                    {department.name}
+                                  </h4>
+                                  {department.description && (
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {department.description}
                                     </p>
                                   )}
+                                  <div className="mt-2 space-y-1">
+                                    <Badge
+                                      variant={
+                                        department.isActive ? "default" : "secondary"
+                                      }
+                                    >
+                                      {department.isActive ? "Aktiv" : "Inaktiv"}
+                                    </Badge>
+                                    {department.responsibleUserId && (
+                                      <p className="text-xs text-gray-500">
+                                        Ansvarig: {users.find(u => u.id === department.responsibleUserId)?.firstName} {users.find(u => u.id === department.responsibleUserId)?.lastName}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex space-x-2">
