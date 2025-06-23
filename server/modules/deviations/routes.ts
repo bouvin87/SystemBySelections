@@ -213,11 +213,20 @@ export default function deviationRoutes(app: Express) {
         
         // Send email notifications for specific changes
         try {
+          console.log('=== EMAIL NOTIFICATION DEBUG ===');
+          console.log('Update data received:', JSON.stringify(updateData, null, 2));
+          console.log('Original deviation:', JSON.stringify({
+            id: originalDeviation.id,
+            statusId: originalDeviation.statusId,
+            assignedToUserId: originalDeviation.assignedToUserId
+          }, null, 2));
+          
           const changedBy = await storage.getUserById(userId);
           const type = await storage.getDeviationTypeById(updatedDeviation.deviationTypeId, tenantId);
           
           // Check for assignment change
-          if (updateData.assignedToUserId && originalDeviation.assignedToUserId !== updateData.assignedToUserId) {
+          if (updateData.assignedToUserId !== undefined && originalDeviation.assignedToUserId !== updateData.assignedToUserId) {
+            console.log('Assignment change detected');
             const assignedUser = await storage.getUserById(updateData.assignedToUserId);
             if (assignedUser && changedBy && type) {
               console.log(`Sending assignment email to ${assignedUser.email} for deviation ${updatedDeviation.id}`);
@@ -225,11 +234,29 @@ export default function deviationRoutes(app: Express) {
             }
           }
           
-          // Check for status change
-          if (updateData.statusId !== undefined && originalDeviation.statusId !== updateData.statusId) {
-            console.log(`Status change detected: ${originalDeviation.statusId} -> ${updateData.statusId}`);
+          // Check for status change - including all possible field names
+          const statusChanged = (
+            (updateData.statusId !== undefined && originalDeviation.statusId !== updateData.statusId) ||
+            (updateData.status !== undefined && originalDeviation.statusId !== updateData.status) ||
+            (updateData.deviationStatusId !== undefined && originalDeviation.statusId !== updateData.deviationStatusId)
+          );
+          
+          console.log('Status change check:', {
+            updateDataStatusId: updateData.statusId,
+            updateDataStatus: updateData.status,
+            updateDataDeviationStatusId: updateData.deviationStatusId,
+            originalStatusId: originalDeviation.statusId,
+            statusChanged
+          });
+          
+          if (statusChanged) {
+            const newStatusId = updateData.statusId || updateData.status || updateData.deviationStatusId;
+            console.log(`Status change detected: ${originalDeviation.statusId} -> ${newStatusId}`);
+            
             const oldStatus = await storage.getDeviationStatusById(originalDeviation.statusId, tenantId);
-            const newStatus = await storage.getDeviationStatusById(updateData.statusId, tenantId);
+            const newStatus = await storage.getDeviationStatusById(newStatusId, tenantId);
+            
+            console.log('Status objects:', { oldStatus: oldStatus?.name, newStatus: newStatus?.name });
             
             if (oldStatus && newStatus && changedBy && type) {
               // Get users to notify (creator, assigned user, admins)
@@ -250,9 +277,18 @@ export default function deviationRoutes(app: Express) {
               console.log(`Recipients: ${uniqueNotifyUsers.map(u => u.email).join(', ')}`);
               await emailService.notifyStatusChanged(updatedDeviation, oldStatus, newStatus, changedBy, type, uniqueNotifyUsers);
             } else {
-              console.log('Missing data for status change notification:', { oldStatus: !!oldStatus, newStatus: !!newStatus, changedBy: !!changedBy, type: !!type });
+              console.log('Missing data for status change notification:', { 
+                oldStatus: !!oldStatus, 
+                newStatus: !!newStatus, 
+                changedBy: !!changedBy, 
+                type: !!type 
+              });
             }
+          } else {
+            console.log('No status change detected');
           }
+          
+          console.log('=== END EMAIL DEBUG ===');
         } catch (emailError) {
           console.error('Failed to send email notification:', emailError);
         }
