@@ -226,19 +226,31 @@ export default function deviationRoutes(app: Express) {
           }
           
           // Check for status change
-          if (updateData.statusId && originalDeviation.statusId !== updateData.statusId) {
+          if (updateData.statusId !== undefined && originalDeviation.statusId !== updateData.statusId) {
+            console.log(`Status change detected: ${originalDeviation.statusId} -> ${updateData.statusId}`);
             const oldStatus = await storage.getDeviationStatusById(originalDeviation.statusId, tenantId);
             const newStatus = await storage.getDeviationStatusById(updateData.statusId, tenantId);
             
             if (oldStatus && newStatus && changedBy && type) {
-              // Get users to notify
+              // Get users to notify (creator, assigned user, admins)
               const allUsers = await storage.getUsers(tenantId);
               const notifyUsers = allUsers.filter(user => 
-                user.role === 'admin' || user.role === 'underadmin' || user.id === updatedDeviation.assignedToUserId
+                user.id === updatedDeviation.createdByUserId ||
+                user.id === updatedDeviation.assignedToUserId ||
+                user.role === 'admin' || 
+                user.role === 'underadmin'
               );
               
-              console.log(`Sending status change email to ${notifyUsers.length} users for deviation ${updatedDeviation.id}`);
-              await emailService.notifyStatusChanged(updatedDeviation, oldStatus, newStatus, changedBy, type, notifyUsers);
+              // Remove duplicates and exclude the person who made the change
+              const uniqueNotifyUsers = notifyUsers.filter((user, index, self) => 
+                user.id !== userId && index === self.findIndex(u => u.id === user.id)
+              );
+              
+              console.log(`Sending status change email to ${uniqueNotifyUsers.length} users for deviation ${updatedDeviation.id}`);
+              console.log(`Recipients: ${uniqueNotifyUsers.map(u => u.email).join(', ')}`);
+              await emailService.notifyStatusChanged(updatedDeviation, oldStatus, newStatus, changedBy, type, uniqueNotifyUsers);
+            } else {
+              console.log('Missing data for status change notification:', { oldStatus: !!oldStatus, newStatus: !!newStatus, changedBy: !!changedBy, type: !!type });
             }
           }
         } catch (emailError) {
