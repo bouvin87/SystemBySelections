@@ -160,9 +160,12 @@ export default function DeviationsPage() {
     const data: Record<string, number> = {};
     filteredDeviations.forEach(deviation => {
       const status = deviationStatuses.find(s => s.id === deviation.statusId);
-      const statusName = status?.name || 'Okänd status';
+      const statusName = status?.name || `Okänd status (ID: ${deviation.statusId})`;
       data[statusName] = (data[statusName] || 0) + 1;
     });
+    console.log('Status chart data:', data);
+    console.log('Filtered deviations:', filteredDeviations.map(d => ({ id: d.id, statusId: d.statusId })));
+    console.log('Available statuses:', deviationStatuses.map(s => ({ id: s.id, name: s.name })));
     return Object.entries(data).map(([name, value]) => ({ name, value }));
   };
 
