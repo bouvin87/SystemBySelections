@@ -310,10 +310,20 @@ export default function deviationRoutes(app: Express) {
           });
           
           if (hasGeneralChanges && changedBy && type) {
-            // For general updates, only notify creator and assigned user (not all admins)
+            // For general updates, notify creator, assigned user, and department responsible
             const allUsers = await storage.getUsers(tenantId);
+            
+            // Get department responsible user if exists
+            let departmentResponsibleId = null;
+            if (updatedDeviation.departmentId) {
+              const department = await storage.getDepartment(updatedDeviation.departmentId, tenantId);
+              departmentResponsibleId = department?.responsibleUserId;
+            }
+            
             const notifyUsers = allUsers.filter(user => 
-              (user.id === updatedDeviation.createdByUserId || user.id === updatedDeviation.assignedToUserId) &&
+              (user.id === updatedDeviation.createdByUserId || // Creator
+               user.id === updatedDeviation.assignedToUserId || // Assigned user
+               (departmentResponsibleId && user.id === departmentResponsibleId)) && // Department responsible
               user.id !== userId // Don't notify the person making the change
             );
             
@@ -321,6 +331,14 @@ export default function deviationRoutes(app: Express) {
             const uniqueNotifyUsers = notifyUsers.filter((user, index, self) => 
               index === self.findIndex(u => u.id === user.id)
             );
+            
+            console.log('Notification recipients logic:', {
+              createdBy: updatedDeviation.createdByUserId,
+              assignedTo: updatedDeviation.assignedToUserId,
+              departmentResponsible: departmentResponsibleId,
+              changedBy: userId,
+              filteredUsers: uniqueNotifyUsers.map(u => ({ id: u.id, email: u.email }))
+            });
             
             if (uniqueNotifyUsers.length > 0) {
               console.log(`Sending general update email to ${uniqueNotifyUsers.length} users for deviation ${updatedDeviation.id}`);
