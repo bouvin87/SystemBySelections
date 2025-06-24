@@ -31,6 +31,11 @@ interface DeviationCreatedEmailProps {
   };
   department: {
     name: string;
+    color: string;
+  };
+  status: {
+    name: string;
+    color: string;
   };
   baseUrl?: string;
 }
@@ -40,6 +45,7 @@ export const DeviationCreatedEmail = ({
   creator,
   type,
   department,
+  status,
   baseUrl = "http://localhost:5000",
 }: DeviationCreatedEmailProps) => {
   const previewText = `Ny avvikelse: ${deviation.title}`;
@@ -66,20 +72,54 @@ export const DeviationCreatedEmail = ({
                 <strong>Rubrik:</strong>
                 {deviation.title}
               </Text>
-
-              <Text style={styles.metaText}>
-                <strong>Typ:</strong> {type.name}
-              </Text>
-
-              <Text style={styles.metaText}>
-                <strong>Avdelning:</strong> {department.name}
-              </Text>
-
               {deviation.description && (
                 <Text style={styles.metaText}>
                   <strong>Beskrivning:</strong> {deviation.description}
                 </Text>
               )}
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${status.color}`,
+                  color: status.color,
+                  backgroundColor: "transparent",
+                  marginRight: "1em",
+                }}
+              >
+                {status.name}
+              </span>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${type.color}`,
+                  color: type.color,
+                  backgroundColor: "transparent",
+                }}
+              >
+                {type.name}
+              </span>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${department.color}`,
+                  color: department.color,
+                  backgroundColor: "transparent",
+                }}
+              >
+                {department.name}
+              </span>
 
               <Text style={styles.metaText}>
                 <strong>Skapad av:</strong> {creatorName}

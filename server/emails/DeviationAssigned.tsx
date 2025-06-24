@@ -32,6 +32,14 @@ interface DeviationAssignedEmailProps {
     name: string;
     color: string;
   };
+  department: {
+    name: string;
+    color: string;
+  };
+  status: {
+    name: string;
+    color: string;
+  };
   baseUrl?: string;
 }
 
@@ -40,6 +48,8 @@ export const DeviationAssignedEmail = ({
   assignedUser,
   assigner,
   type,
+  department,
+  status,
   baseUrl = "http://localhost:5000",
 }: DeviationAssignedEmailProps) => {
   const previewText = `Du har tilldelats avvikelse: ${deviation.title}`;

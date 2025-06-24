@@ -25,6 +25,15 @@ interface DeviationUpdatedEmailProps {
   };
   type: {
     name: string;
+    color: string;
+  };
+  department: {
+    name: string;
+    color: string;
+  };
+  status: {
+    name: string;
+    color: string;
   };
   baseUrl: string;
 }
@@ -33,6 +42,8 @@ export const DeviationUpdatedEmail = ({
   deviation,
   changedBy,
   type,
+  department,
+  status,
   baseUrl,
 }: DeviationUpdatedEmailProps) => {
   const previewText = `Avvikelse uppdaterad: ${deviation.title}`;
@@ -57,13 +68,52 @@ export const DeviationUpdatedEmail = ({
               <Text style={styles.deviationTitle}>{deviation.title}</Text>
 
               <Text style={styles.metaText}>
-                <strong>Typ:</strong> {type.name}
-              </Text>
-
-              <Text style={styles.metaText}>
                 <strong>Beskrivning:</strong>{" "}
                 {deviation.description || "Ingen beskrivning"}
               </Text>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${status.color}`,
+                  color: status.color,
+                  backgroundColor: "transparent",
+                  marginRight: "1em",
+                }}
+              >
+                {status.name}
+              </span>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${type.color}`,
+                  color: type.color,
+                  backgroundColor: "transparent",
+                }}
+              >
+                {type.name}
+              </span>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${department.color}`,
+                  color: department.color,
+                  backgroundColor: "transparent",
+                }}
+              >
+                {department.name}
+              </span>
 
               <Text style={styles.metaText}>
                 <strong>Uppdaterad av:</strong> {changedByName}

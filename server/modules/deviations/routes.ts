@@ -14,8 +14,6 @@ import {
   validateTenantOwnership,
   enforceTenantIsolation,
 } from "../../middleware/auth";
-import { render } from "@react-email/render";
-import { DeviationUpdatedEmail } from "../../emails/DeviationUpdated";
 
 // Define AuthenticatedRequest type locally
 interface AuthenticatedRequest extends Request {
@@ -173,9 +171,12 @@ export default function deviationRoutes(app: Express) {
             deviation.deviationTypeId,
             tenantId,
           );
-          const department = deviation.departmentId
-            ? await storage.getDepartment(deviation.departmentId, tenantId)
-            : undefined;
+          const department = await storage.getDepartment(deviation.departmentId!, tenantId);
+
+          const status = await storage.getDeviationStatus(
+            deviation.statusId!,
+            tenantId,
+          );
 
           if (creator && type) {
             const notifyUsers = [creator]; // Always notify creator
@@ -198,6 +199,7 @@ export default function deviationRoutes(app: Express) {
               creator,
               type,
               department,
+              status,
               notifyUsers,
             );
           }
@@ -259,6 +261,15 @@ export default function deviationRoutes(app: Express) {
           userId,
         );
 
+        const department = updatedDeviation.departmentId
+          ? await storage.getDepartment(updatedDeviation.departmentId, tenantId)
+          : undefined;
+
+        const status = await storage.getDeviationStatus(
+          updatedDeviation.statusId!,
+          tenantId,
+        );
+
         // Send email notifications for specific changes
         try {
           console.log("=== EMAIL NOTIFICATION DEBUG ===");
@@ -303,6 +314,8 @@ export default function deviationRoutes(app: Express) {
                 assignedUser,
                 changedBy,
                 type,
+                department,
+                status,
               );
             }
           }
@@ -334,7 +347,7 @@ export default function deviationRoutes(app: Express) {
             );
 
             const oldStatus = await storage.getDeviationStatusById(
-              originalDeviation.statusId,
+              originalDeviation.statusId!,
               tenantId,
             );
             const newStatus = await storage.getDeviationStatusById(
@@ -377,6 +390,8 @@ export default function deviationRoutes(app: Express) {
                 newStatus,
                 changedBy,
                 type,
+                department,
+                status,
                 uniqueNotifyUsers,
               );
             } else {
@@ -476,25 +491,14 @@ export default function deviationRoutes(app: Express) {
               );
 
               // Use React Email template for updates
-              const baseUrl =
-                process.env.FRONTEND_URL || "http://localhost:5000";
-
-              const emailHtml = await render(
-                DeviationUpdatedEmail({
-                  deviation: updatedDeviation,
-                  changedBy,
-                  type,
-                  baseUrl,
-                }),
+              await emailService.notifyDeviationUpdated(
+                updatedDeviation,
+                changedBy,
+                type,
+                department,
+                status,
+                uniqueNotifyUsers,
               );
-
-              const template = {
-                subject: `Avvikelse uppdaterad: ${updatedDeviation.title}`,
-                html: emailHtml,
-              };
-
-              const emails = uniqueNotifyUsers.map((user) => user.email);
-              await emailService.sendEmail(emails, template);
             }
           }
 
@@ -589,6 +593,13 @@ export default function deviationRoutes(app: Express) {
         if (!deviation) {
           return res.status(404).json({ message: "Deviation not found" });
         }
+        const department = deviation.departmentId
+          ? await storage.getDepartment(deviation.departmentId, tenantId)
+          : undefined;
+
+        const status = deviation.statusId
+          ? await storage.getDeviationStatus(deviation.statusId, tenantId)
+          : undefined;
 
         const validatedData = insertDeviationCommentSchema.parse({
           ...req.body,
@@ -629,6 +640,8 @@ export default function deviationRoutes(app: Express) {
               req.body.comment,
               commenter,
               type,
+              department,
+              status,
               notifyUsers,
             );
           }

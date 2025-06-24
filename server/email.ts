@@ -1,6 +1,11 @@
 import nodemailer from "nodemailer";
 import { render } from "@react-email/render";
-import type { User, DeviationType, DeviationStatus } from "@shared/schema";
+import type {
+  User,
+  DeviationType,
+  DeviationStatus,
+  Department,
+} from "@shared/schema";
 import { DeviationCreatedEmail } from "./emails/DeviationCreated";
 import { DeviationAssignedEmail } from "./emails/DeviationAssigned";
 import { DeviationStatusChangedEmail } from "./emails/DeviationStatusChanged";
@@ -90,7 +95,8 @@ export class EmailNotificationService {
     deviation: any,
     creator: User,
     type: DeviationType,
-    department: { name: string } | undefined,
+    department: Department,
+    status: DeviationStatus,
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -98,7 +104,8 @@ export class EmailNotificationService {
         deviation,
         creator,
         type,
-        department: department || { name: "Okänd avdelning" },
+        department,
+        status,
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
@@ -108,11 +115,39 @@ export class EmailNotificationService {
       { subject: `Ny avvikelse: ${deviation.title}`, html: emailHtml },
     );
   }
+  async notifyDeviationUpdated(
+    deviation: any,
+    changedBy: User,
+    type: DeviationType,
+    department: { name: string; color: string },
+    status: DeviationStatus,
+    notifyUsers: User[],
+  ) {
+    const emailHtml = await render(
+      DeviationUpdatedEmail({
+        deviation,
+        changedBy,
+        type,
+        department,
+        status,
+        baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
+      }),
+    );
+    await this.sendEmail(
+      notifyUsers.map((u) => u.email),
+      {
+        subject: `Avvikelse uppdaterad: ${deviation.title}`,
+        html: emailHtml,
+      },
+    );
+  }
 
   async notifyDeviationAssigned(
     deviation: any,
     assignedUser: User,
     assigner: User,
+    department: { name: string; color: string },
+    status: DeviationStatus,
     type: DeviationType,
   ) {
     const emailHtml = await render(
@@ -121,6 +156,8 @@ export class EmailNotificationService {
         assignedUser,
         assigner,
         type,
+        department: department || { name: "Okänd avdelning", color: "#6b7280" },
+        status,
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
@@ -137,6 +174,8 @@ export class EmailNotificationService {
     newStatus: DeviationStatus,
     changedBy: User,
     type: DeviationType,
+    department: { name: string; color: string },
+    status: DeviationStatus,
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -146,6 +185,8 @@ export class EmailNotificationService {
         newStatus,
         changedBy,
         type,
+        department: department || { name: "Okänd avdelning", color: "#6b7280" },
+        status,
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
@@ -161,6 +202,8 @@ export class EmailNotificationService {
     comment: string,
     commenter: User,
     type: DeviationType,
+    department: { name: string; color: string } | undefined,
+    status: DeviationStatus,
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -169,6 +212,8 @@ export class EmailNotificationService {
         comment,
         commenter,
         type,
+        department: department || { name: "Okänd avdelning", color: "#6b7280" },
+        status: status || { name: "Okänd status", color: "#6b7280" },
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );

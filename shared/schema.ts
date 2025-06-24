@@ -229,6 +229,8 @@ export type WorkStation = typeof workStations.$inferSelect;
 export type InsertWorkStation = z.infer<typeof insertWorkStationSchema>;
 export type Shift = typeof shifts.$inferSelect;
 export type InsertShift = z.infer<typeof insertShiftSchema>;
+export type Department = typeof departments.$inferSelect;
+export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Question = typeof questions.$inferSelect;
@@ -405,6 +407,7 @@ export type DeviationComment = typeof deviationComments.$inferSelect;
 export type InsertDeviationComment = z.infer<typeof insertDeviationCommentSchema>;
 export type DeviationLog = typeof deviationLogs.$inferSelect;
 export type InsertDeviationLog = z.infer<typeof insertDeviationLogSchema>;
+
 
 // Deviation schemas
 export const insertDeviationTypeSchema = createInsertSchema(deviationTypes).omit({
