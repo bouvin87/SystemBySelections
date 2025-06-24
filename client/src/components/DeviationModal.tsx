@@ -456,7 +456,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               <input type="hidden" name="dueDate" value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")} />
             </div>
       )}
-
+            </div>
           {/* File Upload Section - Only for Create Mode */}
           {mode === 'create' && (
             <div className="space-y-4">
@@ -470,16 +470,8 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             </div>
           )}
 
-          {/* Attachments and Comments Section - Only for Edit Mode */}
-          {mode === 'edit' && deviation && (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Bilagor</h3>
-                <AttachmentList deviationId={deviation.id} canUpload={true} />
-              </div>
-            </div>
-          )}
-          </div>
+          
+          
           
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
