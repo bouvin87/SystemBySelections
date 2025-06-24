@@ -171,12 +171,13 @@ export default function deviationRoutes(app: Express) {
             deviation.deviationTypeId,
             tenantId,
           );
-          const department = await storage.getDepartment(deviation.departmentId!, tenantId);
+          const department = deviation.departmentId 
+            ? await storage.getDepartment(deviation.departmentId, tenantId)
+            : null;
 
-          const status = await storage.getDeviationStatus(
-            deviation.statusId!,
-            tenantId,
-          );
+          const status = deviation.statusId 
+            ? await storage.getDeviationStatus(deviation.statusId, tenantId)
+            : null;
 
           if (creator && type) {
             const notifyUsers = [creator]; // Always notify creator
@@ -198,8 +199,6 @@ export default function deviationRoutes(app: Express) {
               deviation,
               creator,
               type,
-              department,
-              status,
               notifyUsers,
             );
           }

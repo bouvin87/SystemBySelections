@@ -95,8 +95,6 @@ export class EmailNotificationService {
     deviation: any,
     creator: User,
     type: DeviationType,
-    department: Department,
-    status: DeviationStatus,
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -104,8 +102,6 @@ export class EmailNotificationService {
         deviation,
         creator,
         type,
-        department,
-        status,
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
     );
