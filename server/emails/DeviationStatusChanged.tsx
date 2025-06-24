@@ -7,6 +7,9 @@ import {
   Preview,
   Section,
   Text,
+  Hr,
+  Column,
+  Row,
 } from "@react-email/components";
 import * as React from "react";
 import EmailFooter from "./EmailFooter";
@@ -34,6 +37,7 @@ interface DeviationStatusChangedEmailProps {
   };
   type: {
     name: string;
+    color: string;
   };
   department: {
     name: string;
@@ -76,6 +80,10 @@ export const DeviationStatusChangedEmail = ({
 
             <Section style={styles.deviationCard}>
               <Text style={styles.deviationTitle}>{deviation.title}</Text>
+              <Text style={styles.metaText}>
+                <strong>Beskrivning:</strong>{" "}
+                {deviation.description || "Ingen beskrivning"}
+              </Text>
 
               {/* Statusändring */}
               <Section style={{ margin: "16px 0" }}>
@@ -120,25 +128,67 @@ export const DeviationStatusChangedEmail = ({
                 </Section>
               </Section>
 
-              <Text style={styles.metaText}>
-                <strong>Typ:</strong> {type.name}
-              </Text>
-
-              <Text style={styles.metaText}>
-                <strong>Beskrivning:</strong>{" "}
-                {deviation.description || "Ingen beskrivning"}
-              </Text>
-
-              <Text style={styles.metaText}>
-                <strong>Ändrad av:</strong> {changedByName}
-              </Text>
-
-              {deviation.dueDate && (
-                <Text style={styles.metaText}>
-                  <strong>Förfallodatum:</strong>{" "}
-                  {new Date(deviation.dueDate).toLocaleDateString("sv-SE")}
-                </Text>
-              )}
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${status?.color || "#3b82f6"}`,
+                  color: status?.color || "#3b82f6",
+                  backgroundColor: "transparent",
+                  marginRight: "1em",
+                }}
+              >
+                {status?.name || "Ny"}
+              </span>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${type.color}`,
+                  color: type.color,
+                  backgroundColor: "transparent",
+                  marginRight: "1em",
+                }}
+              >
+                {type.name}
+              </span>
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "2px 8px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  borderRadius: "4px",
+                  border: `1px solid ${department?.color}`,
+                  color: department?.color,
+                  backgroundColor: "transparent",
+                  marginRight: "1em",
+                }}
+              >
+                {department?.name}
+              </span>
+              <Hr className="my-[16px] border-gray-300 border-t-2" />
+              <Row>
+                <Column>
+                  <Text style={styles.metaText}>
+                    <strong>Uppdaterad av:</strong> {changedByName}
+                  </Text>
+                </Column>
+                <Column>
+                  {deviation.dueDate && (
+                    <Text style={styles.metaText}>
+                      <strong>Förfallodatum:</strong>{" "}
+                      {new Date(deviation.dueDate).toLocaleDateString("sv-SE")}
+                    </Text>
+                  )}
+                </Column>
+              </Row>
             </Section>
 
             <Section style={styles.buttonContainer}>

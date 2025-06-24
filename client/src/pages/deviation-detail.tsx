@@ -6,6 +6,7 @@ import { sv } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +37,6 @@ import {
 } from "react-vertical-timeline-component";
 import "react-vertical-timeline-component/style.min.css";
 import "react-vertical-timeline-component/style.min.css";
-import { Department } from "@shared/schema";
 
 interface Deviation {
   id: number;
@@ -601,6 +601,7 @@ export default function DeviationDetailPage() {
   const { id } = useParams();
   const deviationId = parseInt(id || "0");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { user } = useAuth();
 
   // Fetch deviation
   const { data: deviation, isLoading } = useQuery<Deviation>({
@@ -680,6 +681,33 @@ export default function DeviationDetailPage() {
       ? departments.find((d) => d.id === deviation.departmentId)
       : null;
 
+  // Check if user can edit this deviation
+  const canEdit = () => {
+    if (!user) return false;
+    
+    // Admin and superadmin can always edit
+    if (user.role === 'admin' || user.role === 'superadmin') {
+      return true;
+    }
+    
+    // Creator can edit their own deviations
+    if (deviation.createdByUserId === user.id) {
+      return true;
+    }
+    
+    // Assigned user can edit
+    if (deviation.assignedToUserId === user.id) {
+      return true;
+    }
+    
+    // Department responsible can edit deviations in their department
+    if (assignedDepartment && assignedDepartment.responsibleUserId === user.id) {
+      return true;
+    }
+    
+    return false;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
@@ -693,14 +721,16 @@ export default function DeviationDetailPage() {
                 Tillbaka
               </Button>
             </Link>
-            <Button
-              onClick={() => setIsEditModalOpen(true)}
-              variant="outline"
-              size="sm"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Redigera
-            </Button>
+            {canEdit() && (
+              <Button
+                onClick={() => setIsEditModalOpen(true)}
+                variant="outline"
+                size="sm"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Redigera
+              </Button>
+            )}
           </div>
         </div>
 

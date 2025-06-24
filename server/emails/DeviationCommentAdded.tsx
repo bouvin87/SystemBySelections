@@ -12,7 +12,7 @@ import * as React from "react";
 import EmailFooter from "./EmailFooter";
 import { emailStyles as styles } from "./EmailStyles";
 import DeviationInfoBox from "./DeviationInfoBox";
-import { Badge } from "@/components/ui/badge";
+
 
 interface DeviationCommentAddedEmailProps {
   deviation: {

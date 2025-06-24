@@ -155,8 +155,8 @@ export class EmailNotificationService {
     assignedUser: User,
     assigner: User,
     type: { name: string; color: string },
+    status: { name: string; color: string },
     department?: { name: string; color: string },
-    status?: { name: string; color: string },
   ) {
     const emailHtml = await render(
       DeviationAssignedEmail({
