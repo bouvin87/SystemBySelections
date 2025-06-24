@@ -118,9 +118,9 @@ export class EmailNotificationService {
   async notifyDeviationUpdated(
     deviation: any,
     changedBy: User,
-    type: DeviationType,
+    type: { name: string; color: string },
     department: { name: string; color: string },
-    status: DeviationStatus,
+    status: { name: string; color: string },
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -170,12 +170,12 @@ export class EmailNotificationService {
 
   async notifyStatusChanged(
     deviation: any,
-    oldStatus: DeviationStatus,
-    newStatus: DeviationStatus,
+    oldStatus: any,
+    newStatus: any,
     changedBy: User,
-    type: DeviationType,
+    type: { name: string; color: string },
     department: { name: string; color: string },
-    status: DeviationStatus,
+    status: { name: string; color: string },
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
@@ -201,9 +201,9 @@ export class EmailNotificationService {
     deviation: any,
     comment: string,
     commenter: User,
-    type: DeviationType,
-    department: { name: string; color: string } | undefined,
-    status: DeviationStatus,
+    type: { name: string; color: string },
+    department?: { name: string; color: string },
+    status?: { name: string; color: string },
     notifyUsers: User[],
   ) {
     const emailHtml = await render(
