@@ -74,13 +74,13 @@ export const DeviationCreatedEmail = ({
                   fontSize: "12px",
                   fontWeight: 600,
                   borderRadius: "4px",
-                  border: `1px solid ${status.color}`,
-                  color: status.color,
+                  border: `1px solid #3b82f6`,
+                  color: "#3b82f6",
                   backgroundColor: "transparent",
                   marginRight: "1em",
                 }}
               >
-                {status.name}
+                Ny
               </span>
               <span
                 style={{
@@ -103,12 +103,12 @@ export const DeviationCreatedEmail = ({
                   fontSize: "12px",
                   fontWeight: 600,
                   borderRadius: "4px",
-                  border: `1px solid ${department.color}`,
-                  color: department.color,
+                  border: `1px solid ${type.color}`,
+                  color: type.color,
                   backgroundColor: "transparent",
                 }}
               >
-                {department.name}
+                {type.name}
               </span>
 
               <Text style={styles.metaText}>
