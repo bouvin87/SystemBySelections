@@ -10,6 +10,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { DeviationStatus } from "@shared/schema";
+import { FileUploadSimple } from "./FileUploadSimple";
+import { AttachmentList } from "./AttachmentList";
 
 interface DeviationType {
   id: number;
@@ -80,6 +82,8 @@ interface DeviationModalProps {
 export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, mode = 'create' }: DeviationModalProps) {
   const { toast } = useToast();
   const [selectedDueDate, setSelectedDueDate] = useState<string>("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [createdDeviationId, setCreatedDeviationId] = useState<number | null>(null);
 
   // Fetch deviation types
   const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
@@ -191,6 +195,52 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       });
     },
   });
+
+  const uploadFiles = async (deviationId: number) => {
+    try {
+      const formData = new FormData();
+      selectedFiles.forEach(file => {
+        formData.append('files', file);
+      });
+
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`/api/deviations/${deviationId}/attachments`, {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('File upload failed');
+      }
+
+      completeCreation();
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Varning",
+        description: "Avvikelsen skapades men filuppladdningen misslyckades. Du kan lägga till filer senare.",
+        variant: "destructive",
+      });
+      completeCreation();
+    }
+  };
+
+  const completeCreation = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
+    onClose();
+    setSelectedFiles([]);
+    setCreatedDeviationId(null);
+    toast({
+      title: "Avvikelse skapad",
+      description: selectedFiles.length > 0 
+        ? `Avvikelsen har skapats med ${selectedFiles.length} fil(er).`
+        : "En ny avvikelse har skapats framgångsrikt.",
+    });
+    onSuccess?.();
+  };
 
   const handleSubmit = (formData: FormData) => {
     const data = {
@@ -406,6 +456,29 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               <input type="hidden" name="dueDate" value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")} />
             </div>
       )}
+
+          {/* File Upload Section - Only for Create Mode */}
+          {mode === 'create' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Bilagor</h3>
+              <FileUploadSimple
+                selectedFiles={selectedFiles}
+                onFilesChange={setSelectedFiles}
+                maxFiles={5}
+                maxSize={10}
+              />
+            </div>
+          )}
+
+          {/* Attachments and Comments Section - Only for Edit Mode */}
+          {mode === 'edit' && deviation && (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Bilagor</h3>
+                <AttachmentList deviationId={deviation.id} canUpload={true} />
+              </div>
+            </div>
+          )}
           </div>
           
           <div className="flex justify-end gap-2 pt-4">
