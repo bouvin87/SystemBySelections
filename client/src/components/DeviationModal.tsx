@@ -198,8 +198,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
       priorityId: formData.get("priorityId") ? parseInt(formData.get("priorityId") as string) : undefined,
-
-
+      statusId: formData.get("statusId") ? parseInt(formData.get("statusId") as string) : undefined,
       workTaskId: formData.get("workTaskId") && formData.get("workTaskId") !== "0" ? parseInt(formData.get("workTaskId") as string) : undefined,
       locationId: formData.get("locationId") && formData.get("locationId") !== "0" ? parseInt(formData.get("locationId") as string) : undefined,
       departmentId: formData.get("departmentId") && formData.get("departmentId") !== "0" ? parseInt(formData.get("departmentId") as string) : undefined,
@@ -282,6 +281,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                 </SelectContent>
               </Select>
             </div>
+            {mode === 'edit' && (
             <div>
               <Label htmlFor="statusId">Status</Label>
               <Select name="statusId" defaultValue={deviation?.statusId?.toString() || ""}>
@@ -306,6 +306,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                 </SelectContent>
               </Select>
             </div>
+      )}
             {(deviationSettings?.usePriorities ?? true) && (
               <div>
                 <Label htmlFor="priorityId">Prioritet</Label>
