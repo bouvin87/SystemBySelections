@@ -18,6 +18,9 @@ import {
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
   insertUserSchema, insertChecklistResponseSchema, insertDeviationTypeSchema
 } from "@shared/schema";
+import { uploadMultiple } from "./middleware/upload";
+import path from "path";
+import fs from "fs";
 
 // Extend Request type for authenticated routes
 interface AuthenticatedRequest extends Request {

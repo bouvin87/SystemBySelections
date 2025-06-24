@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Navigation } from "@/components/Navigation";
 import DeviationModal from "@/components/DeviationModal";
+import { AttachmentList } from "@/components/AttachmentList";
 import {
   ArrowLeft,
   Edit,
@@ -900,6 +901,9 @@ export default function DeviationDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Attachments */}
+            <AttachmentList deviationId={deviation.id} canUpload={canEdit()} />
 
             {/* Comments */}
             <Card>

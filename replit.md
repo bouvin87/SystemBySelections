@@ -122,6 +122,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 24, 2025**: Added file attachment functionality for deviations
+  - Created deviation_attachments table for storing file metadata
+  - Implemented file upload with multer supporting images (JPEG, PNG, GIF, WebP) and PDFs
+  - Built FileUpload component with drag-and-drop, file validation, and progress tracking
+  - Created AttachmentList component showing files with download, preview, and delete options
+  - Added attachment management to DeviationModal and deviation detail page
+  - Integrated permission-based file upload (only authorized users can upload/delete)
+  - Files stored in uploads/deviations directory with unique naming
+
+- **June 24, 2025**: Implemented role-based editing permissions for deviations
+  - Only admin/superadmin, creator, assignee, or department manager can edit deviations
+  - Edit button now conditionally shows based on user permissions
+  - Fixed statusId saving issue in DeviationModal
+
 - **June 24, 2025**: Fixed TypeScript issues in email notification system
   - Resolved color property type mismatches (string | null vs string)
   - Updated all email service function signatures to use transformed objects
