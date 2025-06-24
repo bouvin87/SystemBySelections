@@ -326,6 +326,18 @@ export const deviationLogs = pgTable("deviation_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Deviation Attachments - Store file attachments for deviations
+export const deviationAttachments = pgTable("deviation_attachments", {
+  id: serial("id").primaryKey(),
+  deviationId: integer("deviation_id").notNull().references(() => deviations.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id), // Who uploaded the file
+  fileName: text("file_name").notNull(), // Original filename
+  fileSize: integer("file_size").notNull(), // File size in bytes
+  mimeType: text("mime_type").notNull(), // MIME type (image/jpeg, application/pdf, etc.)
+  filePath: text("file_path").notNull(), // Path to stored file
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations for Deviations
 export const deviationTypesRelations = relations(deviationTypes, ({ one, many }) => ({
   tenant: one(tenants, {
@@ -372,6 +384,7 @@ export const deviationsRelations = relations(deviations, ({ one, many }) => ({
   }),
   comments: many(deviationComments),
   logs: many(deviationLogs),
+  attachments: many(deviationAttachments),
 }));
 
 export const deviationCommentsRelations = relations(deviationComments, ({ one }) => ({
@@ -396,6 +409,17 @@ export const deviationLogsRelations = relations(deviationLogs, ({ one }) => ({
   }),
 }));
 
+export const deviationAttachmentsRelations = relations(deviationAttachments, ({ one }) => ({
+  deviation: one(deviations, {
+    fields: [deviationAttachments.deviationId],
+    references: [deviations.id],
+  }),
+  user: one(users, {
+    fields: [deviationAttachments.userId],
+    references: [users.id],
+  }),
+}));
+
 // Deviation types
 export type DeviationType = typeof deviationTypes.$inferSelect;
 export type InsertDeviationType = z.infer<typeof insertDeviationTypeSchema>;
@@ -407,6 +431,8 @@ export type DeviationComment = typeof deviationComments.$inferSelect;
 export type InsertDeviationComment = z.infer<typeof insertDeviationCommentSchema>;
 export type DeviationLog = typeof deviationLogs.$inferSelect;
 export type InsertDeviationLog = z.infer<typeof insertDeviationLogSchema>;
+export type DeviationAttachment = typeof deviationAttachments.$inferSelect;
+export type InsertDeviationAttachment = z.infer<typeof insertDeviationAttachmentSchema>;
 
 
 // Deviation schemas
@@ -429,6 +455,11 @@ export const insertDeviationCommentSchema = createInsertSchema(deviationComments
 });
 
 export const insertDeviationLogSchema = createInsertSchema(deviationLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDeviationAttachmentSchema = createInsertSchema(deviationAttachments).omit({
   id: true,
   createdAt: true,
 });

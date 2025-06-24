@@ -684,27 +684,30 @@ export default function DeviationDetailPage() {
   // Check if user can edit this deviation
   const canEdit = () => {
     if (!user) return false;
-    
+
     // Admin and superadmin can always edit
-    if (user.role === 'admin' || user.role === 'superadmin') {
+    if (user.role === "admin" || user.role === "superadmin") {
       return true;
     }
-    
+
     // Creator can edit their own deviations
     if (deviation.createdByUserId === user.id) {
       return true;
     }
-    
+
     // Assigned user can edit
     if (deviation.assignedToUserId === user.id) {
       return true;
     }
-    
+
     // Department responsible can edit deviations in their department
-    if (assignedDepartment && assignedDepartment.responsibleUserId === user.id) {
+    if (
+      assignedDepartment &&
+      assignedDepartment.responsibleUserId === user.id
+    ) {
       return true;
     }
-    
+
     return false;
   };
 
@@ -721,16 +724,15 @@ export default function DeviationDetailPage() {
                 Tillbaka
               </Button>
             </Link>
-            {canEdit() && (
-              <Button
-                onClick={() => setIsEditModalOpen(true)}
-                variant="outline"
-                size="sm"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Redigera
-              </Button>
-            )}
+            <Button
+              onClick={() => setIsEditModalOpen(true)}
+              variant="outline"
+              size="sm"
+              disabled={!canEdit()}
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Redigera
+            </Button>
           </div>
         </div>
 
@@ -802,7 +804,7 @@ export default function DeviationDetailPage() {
                   <div>
                     <Label>Avdelning</Label>
                     <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {assignedDepartment?.name || 'Ingen avdelning vald'}
+                      {assignedDepartment?.name || "Ingen avdelning vald"}
                     </p>
                   </div>
 
