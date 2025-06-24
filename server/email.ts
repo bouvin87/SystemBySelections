@@ -102,7 +102,11 @@ export class EmailNotificationService {
     const emailHtml = await render(
       DeviationCreatedEmail({
         deviation,
-        creator,
+        creator: {
+          ...creator,
+          firstName: creator.firstName || undefined,
+          lastName: creator.lastName || undefined,
+        },
         type,
         department,
         status,
@@ -126,7 +130,11 @@ export class EmailNotificationService {
     const emailHtml = await render(
       DeviationUpdatedEmail({
         deviation,
-        changedBy,
+        changedBy: {
+          ...changedBy,
+          firstName: changedBy.firstName || undefined,
+          lastName: changedBy.lastName || undefined,
+        },
         type,
         department,
         status,
@@ -153,8 +161,16 @@ export class EmailNotificationService {
     const emailHtml = await render(
       DeviationAssignedEmail({
         deviation,
-        assignedUser,
-        assigner,
+        assignedUser: {
+          ...assignedUser,
+          firstName: assignedUser.firstName || undefined,
+          lastName: assignedUser.lastName || undefined,
+        },
+        assigner: {
+          ...assigner,
+          firstName: assigner.firstName || undefined,
+          lastName: assigner.lastName || undefined,
+        },
         type,
         department: department || { name: "Okänd avdelning", color: "#6b7280" },
         status,
@@ -183,7 +199,11 @@ export class EmailNotificationService {
         deviation,
         oldStatus,
         newStatus,
-        changedBy,
+        changedBy: {
+          ...changedBy,
+          firstName: changedBy.firstName || undefined,
+          lastName: changedBy.lastName || undefined,
+        },
         type,
         department: department || { name: "Okänd avdelning", color: "#6b7280" },
         status,
@@ -210,7 +230,11 @@ export class EmailNotificationService {
       DeviationCommentAddedEmail({
         deviation,
         comment,
-        commenter,
+        commenter: {
+          ...commenter,
+          firstName: commenter.firstName || undefined,
+          lastName: commenter.lastName || undefined,
+        },
         type,
         department: department || { name: "Okänd avdelning", color: "#6b7280" },
         status: status || { name: "Okänd status", color: "#6b7280" },
