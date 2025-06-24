@@ -195,12 +195,26 @@ export default function deviationRoutes(app: Express) {
               }
             }
 
+            // Transform objects to ensure string colors for email templates
+            const typeForEmail = {
+              name: type.name,
+              color: type.color || '#3b82f6'
+            };
+            const departmentForEmail = department ? {
+              name: department.name,
+              color: department.color || '#6b7280'
+            } : undefined;
+            const statusForEmail = status ? {
+              name: status.name,
+              color: status.color || '#10b981'
+            } : undefined;
+
             await emailService.notifyDeviationCreated(
               deviation,
               creator,
-              type,
-              department,
-              status,
+              typeForEmail,
+              departmentForEmail,
+              statusForEmail,
               notifyUsers,
             );
           }
@@ -310,13 +324,27 @@ export default function deviationRoutes(app: Express) {
               console.log(
                 `Sending assignment email to ${assignedUser.email} for deviation ${updatedDeviation.id}`,
               );
+              // Transform objects for email templates
+              const typeForEmail = {
+                name: type.name,
+                color: type.color || '#3b82f6'
+              };
+              const departmentForEmail = department ? {
+                name: department.name,
+                color: department.color || '#6b7280'
+              } : undefined;
+              const statusForEmail = status ? {
+                name: status.name,
+                color: status.color || '#10b981'
+              } : undefined;
+
               await emailService.notifyDeviationAssigned(
                 updatedDeviation,
                 assignedUser,
                 changedBy,
-                type,
-                department,
-                status,
+                typeForEmail,
+                departmentForEmail,
+                statusForEmail,
               );
             }
           }
@@ -385,14 +413,28 @@ export default function deviationRoutes(app: Express) {
               console.log(
                 `Recipients: ${uniqueNotifyUsers.map((u) => u.email).join(", ")}`,
               );
+              // Transform objects for email templates
+              const typeForEmail = {
+                name: type.name,
+                color: type.color || '#3b82f6'
+              };
+              const departmentForEmail = department ? {
+                name: department.name,
+                color: department.color || '#6b7280'
+              } : { name: "Okänd avdelning", color: "#6b7280" };
+              const statusForEmail = status ? {
+                name: status.name,
+                color: status.color || '#10b981'
+              } : { name: "Okänd status", color: "#6b7280" };
+
               await emailService.notifyStatusChanged(
                 updatedDeviation,
                 oldStatus,
                 newStatus,
                 changedBy,
-                type,
-                department,
-                status,
+                typeForEmail,
+                departmentForEmail,
+                statusForEmail,
                 uniqueNotifyUsers,
               );
             } else {
@@ -491,13 +533,27 @@ export default function deviationRoutes(app: Express) {
                 `Recipients: ${uniqueNotifyUsers.map((u) => u.email).join(", ")}`,
               );
 
+              // Transform objects for email templates
+              const typeForEmail = {
+                name: type.name,
+                color: type.color || '#3b82f6'
+              };
+              const departmentForEmail = department ? {
+                name: department.name,
+                color: department.color || '#6b7280'
+              } : { name: "Okänd avdelning", color: "#6b7280" };
+              const statusForEmail = status ? {
+                name: status.name,
+                color: status.color || '#10b981'
+              } : { name: "Okänd status", color: "#6b7280" };
+
               // Use React Email template for updates
               await emailService.notifyDeviationUpdated(
                 updatedDeviation,
                 changedBy,
-                type,
-                department,
-                status,
+                typeForEmail,
+                departmentForEmail,
+                statusForEmail,
                 uniqueNotifyUsers,
               );
             }
@@ -636,13 +692,27 @@ export default function deviationRoutes(app: Express) {
             console.log(
               `Recipients: ${notifyUsers.map((u) => u.email).join(", ")}`,
             );
+            // Transform objects for email templates
+            const typeForEmail = {
+              name: type.name,
+              color: type.color || '#3b82f6'
+            };
+            const departmentForEmail = department ? {
+              name: department.name,
+              color: department.color || '#6b7280'
+            } : undefined;
+            const statusForEmail = status ? {
+              name: status.name,
+              color: status.color || '#10b981'
+            } : undefined;
+
             await emailService.notifyNewComment(
               deviation,
               req.body.comment,
               commenter,
-              type,
-              department,
-              status,
+              typeForEmail,
+              departmentForEmail,
+              statusForEmail,
               notifyUsers,
             );
           }

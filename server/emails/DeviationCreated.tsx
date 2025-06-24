@@ -1,10 +1,13 @@
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
+  Hr,
   Html,
   Preview,
+  Row,
   Section,
   Text,
 } from "@react-email/components";
@@ -113,22 +116,30 @@ export const DeviationCreatedEmail = ({
                   fontSize: "12px",
                   fontWeight: 600,
                   borderRadius: "4px",
-                  border: `1px solid ${type.color}`,
-                  color: type.color,
+                  border: `1px solid ${department?.color}`,
+                  color: department?.color,
                   backgroundColor: "transparent",
                 }}
               >
-                {type.name}
+                {department?.name}
               </span>
+              <Hr className="my-[16px] border-gray-300 border-t-2" />
+              <Row>
+                <Column>
+                  <Text style={styles.metaText}>
+                    <strong>Skapad av:</strong> {creatorName}
+                  </Text>
+                </Column>
+                <Column>
+                  <Text style={styles.metaText}>
+                    <strong>Datum:</strong>{" "}
+                    {new Date(deviation.createdAt).toLocaleString("sv-SE")}
+                  </Text>
+                </Column>
+              </Row>
+              
 
-              <Text style={styles.metaText}>
-                <strong>Skapad av:</strong> {creatorName}
-              </Text>
-
-              <Text style={styles.metaText}>
-                <strong>Datum:</strong>{" "}
-                {new Date(deviation.createdAt).toLocaleString("sv-SE")}
-              </Text>
+              
             </Section>
 
             <Section style={styles.buttonContainer}>
