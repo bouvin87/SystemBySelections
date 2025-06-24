@@ -32,11 +32,11 @@ interface DeviationAssignedEmailProps {
     name: string;
     color: string;
   };
-  department: {
+  department?: {
     name: string;
     color: string;
   };
-  status: {
+  status?: {
     name: string;
     color: string;
   };
