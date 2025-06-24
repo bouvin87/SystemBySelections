@@ -1,7 +1,7 @@
 import { 
   tenants, users, workTasks, workStations, shifts, departments, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
-  deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings,
+  deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -16,7 +16,8 @@ import {
   type Deviation, type InsertDeviation,
   type DeviationComment, type InsertDeviationComment,
   type DeviationLog, type InsertDeviationLog,
-  type DeviationSetting, type InsertDeviationSetting
+  type DeviationSetting, type InsertDeviationSetting,
+  type DeviationAttachment, type InsertDeviationAttachment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -200,6 +201,11 @@ export interface IStorage {
     overdue: number;
     highPriority: number;
   }>;
+  
+  // Deviation Attachments
+  getDeviationAttachments(deviationId: number, tenantId: number): Promise<DeviationAttachment[]>;
+  createDeviationAttachment(attachment: InsertDeviationAttachment): Promise<DeviationAttachment>;
+  deleteDeviationAttachment(id: number, tenantId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1276,6 +1282,37 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // === DEVIATION ATTACHMENTS ===
+  async getDeviationAttachments(deviationId: number, tenantId: number): Promise<DeviationAttachment[]> {
+    return await db
+      .select()
+      .from(deviationAttachments)
+      .innerJoin(deviations, eq(deviationAttachments.deviationId, deviations.id))
+      .where(and(
+        eq(deviationAttachments.deviationId, deviationId),
+        eq(deviations.tenantId, tenantId)
+      ))
+      .then(results => results.map(result => result.deviation_attachments));
+  }
+
+  async createDeviationAttachment(attachment: InsertDeviationAttachment): Promise<DeviationAttachment> {
+    const [created] = await db.insert(deviationAttachments).values(attachment).returning();
+    return created;
+  }
+
+  async deleteDeviationAttachment(id: number, tenantId: number): Promise<void> {
+    await db
+      .delete(deviationAttachments)
+      .where(and(
+        eq(deviationAttachments.id, id),
+        sql`EXISTS (
+          SELECT 1 FROM ${deviations} 
+          WHERE ${deviations.id} = ${deviationAttachments.deviationId} 
+          AND ${deviations.tenantId} = ${tenantId}
+        )`
+      ));
   }
 }
 
