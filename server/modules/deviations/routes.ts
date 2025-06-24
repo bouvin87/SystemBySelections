@@ -213,9 +213,9 @@ export default function deviationRoutes(app: Express) {
               deviation,
               creator,
               typeForEmail,
+              notifyUsers,
               departmentForEmail,
               statusForEmail,
-              notifyUsers,
             );
           }
         } catch (emailError) {
@@ -711,9 +711,9 @@ export default function deviationRoutes(app: Express) {
               req.body.comment,
               commenter,
               typeForEmail,
+              notifyUsers,
               departmentForEmail,
               statusForEmail,
-              notifyUsers,
             );
           }
         } catch (emailError) {

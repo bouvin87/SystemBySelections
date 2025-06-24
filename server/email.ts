@@ -95,9 +95,9 @@ export class EmailNotificationService {
     deviation: any,
     creator: User,
     type: { name: string; color: string },
+    notifyUsers: User[],
     department?: { name: string; color: string },
     status?: { name: string; color: string },
-    notifyUsers: User[],
   ) {
     const emailHtml = await render(
       DeviationCreatedEmail({
@@ -202,9 +202,9 @@ export class EmailNotificationService {
     comment: string,
     commenter: User,
     type: { name: string; color: string },
+    notifyUsers: User[],
     department?: { name: string; color: string },
     status?: { name: string; color: string },
-    notifyUsers: User[],
   ) {
     const emailHtml = await render(
       DeviationCommentAddedEmail({
