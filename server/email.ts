@@ -205,7 +205,6 @@ export class EmailNotificationService {
           lastName: changedBy.lastName || undefined,
         },
         type,
-        department: department || { name: "Okänd avdelning", color: "#6b7280" },
         status,
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),
