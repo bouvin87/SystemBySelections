@@ -29,6 +29,14 @@ interface DeviationCreatedEmailProps {
     name: string;
     color: string;
   };
+  department?: {
+    name: string;
+    color: string;
+  };
+  status?: {
+    name: string;
+    color: string;
+  };
   baseUrl?: string;
 }
 
@@ -36,6 +44,8 @@ export const DeviationCreatedEmail = ({
   deviation,
   creator,
   type,
+  department,
+  status,
   baseUrl = "http://localhost:5000",
 }: DeviationCreatedEmailProps) => {
   const previewText = `Ny avvikelse: ${deviation.title}`;
@@ -74,13 +84,13 @@ export const DeviationCreatedEmail = ({
                   fontSize: "12px",
                   fontWeight: 600,
                   borderRadius: "4px",
-                  border: `1px solid #3b82f6`,
-                  color: "#3b82f6",
+                  border: `1px solid ${status?.color || '#3b82f6'}`,
+                  color: status?.color || "#3b82f6",
                   backgroundColor: "transparent",
                   marginRight: "1em",
                 }}
               >
-                Ny
+                {status?.name || "Ny"}
               </span>
               <span
                 style={{

@@ -199,6 +199,8 @@ export default function deviationRoutes(app: Express) {
               deviation,
               creator,
               type,
+              department,
+              status,
               notifyUsers,
             );
           }
