@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { DeviationStatus } from "@shared/schema";
 
 interface DeviationType {
   id: number;
@@ -89,6 +90,12 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
   // Fetch deviation priorities
   const { data: deviationPriorities = [] } = useQuery<DeviationPriority[]>({
     queryKey: ["/api/deviations/priorities"],
+    enabled: isOpen,
+  });
+
+  // Fetch deviation statuses
+  const { data: deviationStatuses = [] } = useQuery<DeviationStatus[]>({
+    queryKey: ["/api/deviations/statuses"],
     enabled: isOpen,
   });
 
@@ -270,6 +277,30 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                   {departments.filter((dept: any) => dept.isActive).map((department: any) => (
                     <SelectItem key={department.id} value={department.id.toString()}>
                       {department.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="statusId">Status</Label>
+              <Select name="statusId" defaultValue={deviation?.statusId?.toString() || ""}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {deviationStatuses
+                    ?.filter((status: DeviationStatus) => status.isActive)
+                    ?.sort((a: DeviationStatus, b: DeviationStatus) => a.order - b.order)
+                    ?.map((status: DeviationStatus) => (
+                    <SelectItem key={status.id} value={status.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: status.color || '#10b981' }}
+                        />
+                        {status.name}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

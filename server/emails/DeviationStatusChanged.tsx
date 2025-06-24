@@ -35,6 +35,14 @@ interface DeviationStatusChangedEmailProps {
   type: {
     name: string;
   };
+  department: {
+    name: string;
+    color: string;
+  };
+  status: {
+    name: string;
+    color: string;
+  };
   baseUrl: string;
 }
 
@@ -44,6 +52,8 @@ export const DeviationStatusChangedEmail = ({
   newStatus,
   changedBy,
   type,
+  department,
+  status,
   baseUrl,
 }: DeviationStatusChangedEmailProps) => {
   const previewText = `Status ändrad för avvikelse: ${deviation.title}`;

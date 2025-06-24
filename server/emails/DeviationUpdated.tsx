@@ -4,6 +4,9 @@ import {
   Container,
   Head,
   Html,
+  Hr,
+  Row,
+  Column,
   Preview,
   Section,
   Text,
@@ -67,10 +70,11 @@ export const DeviationUpdatedEmail = ({
             <Section style={styles.deviationCard}>
               <Text style={styles.deviationTitle}>{deviation.title}</Text>
 
-              <Text style={styles.metaText}>
-                <strong>Beskrivning:</strong>{" "}
-                {deviation.description || "Ingen beskrivning"}
-              </Text>
+              {deviation.description && (
+                <Text style={styles.metaText}>
+                  <strong>Beskrivning:</strong> {deviation.description}
+                </Text>
+              )}
               <span
                 style={{
                   display: "inline-block",
@@ -96,6 +100,7 @@ export const DeviationUpdatedEmail = ({
                   border: `1px solid ${type.color}`,
                   color: type.color,
                   backgroundColor: "transparent",
+                  marginRight: "1em",
                 }}
               >
                 {type.name}
@@ -110,21 +115,27 @@ export const DeviationUpdatedEmail = ({
                   border: `1px solid ${department.color}`,
                   color: department.color,
                   backgroundColor: "transparent",
+                  marginRight: "1em",
                 }}
               >
                 {department.name}
               </span>
-
-              <Text style={styles.metaText}>
-                <strong>Uppdaterad av:</strong> {changedByName}
-              </Text>
-
-              {deviation.dueDate && (
-                <Text style={styles.metaText}>
-                  <strong>Förfallodatum:</strong>{" "}
-                  {new Date(deviation.dueDate).toLocaleDateString("sv-SE")}
-                </Text>
-              )}
+              <Hr className="my-[16px] border-gray-300 border-t-2" />
+              <Row>
+                <Column>
+                  <Text style={styles.metaText}>
+                    <strong>Uppdaterad av:</strong> {changedByName}
+                  </Text>
+                </Column>
+                <Column>
+                  {deviation.dueDate && (
+                    <Text style={styles.metaText}>
+                      <strong>Förfallodatum:</strong>{" "}
+                      {new Date(deviation.dueDate).toLocaleDateString("sv-SE")}
+                    </Text>
+                  )}
+                </Column>
+              </Row>
             </Section>
 
             <Section style={styles.buttonContainer}>

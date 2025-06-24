@@ -73,6 +73,11 @@ export const DeviationCommentAddedEmail = ({
                 <strong>Rubrik:</strong>
                 {deviation.title}
               </Text>
+              {deviation.description && (
+                <Text style={styles.metaText}>
+                  <strong>Beskrivning:</strong> {deviation.description}
+                </Text>
+              )}
               <span
                 style={{
                   display: "inline-block",

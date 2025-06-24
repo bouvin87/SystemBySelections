@@ -205,6 +205,7 @@ export class EmailNotificationService {
           lastName: changedBy.lastName || undefined,
         },
         type,
+        department,
         status,
         baseUrl: process.env.FRONTEND_URL || "http://localhost:5000",
       }),

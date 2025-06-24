@@ -87,7 +87,7 @@ export const DeviationCreatedEmail = ({
                   fontSize: "12px",
                   fontWeight: 600,
                   borderRadius: "4px",
-                  border: `1px solid ${status?.color || '#3b82f6'}`,
+                  border: `1px solid ${status?.color || "#3b82f6"}`,
                   color: status?.color || "#3b82f6",
                   backgroundColor: "transparent",
                   marginRight: "1em",
@@ -105,6 +105,7 @@ export const DeviationCreatedEmail = ({
                   border: `1px solid ${type.color}`,
                   color: type.color,
                   backgroundColor: "transparent",
+                  marginRight: "1em",
                 }}
               >
                 {type.name}
@@ -119,6 +120,7 @@ export const DeviationCreatedEmail = ({
                   border: `1px solid ${department?.color}`,
                   color: department?.color,
                   backgroundColor: "transparent",
+                  marginRight: "1em",
                 }}
               >
                 {department?.name}
@@ -137,9 +139,6 @@ export const DeviationCreatedEmail = ({
                   </Text>
                 </Column>
               </Row>
-              
-
-              
             </Section>
 
             <Section style={styles.buttonContainer}>
