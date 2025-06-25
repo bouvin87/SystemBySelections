@@ -1123,6 +1123,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Deviation Attachments API
+  app.get('/api/deviations/:id/attachments', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const deviationId = parseInt(req.params.id);
+      const attachments = await storage.getDeviationAttachments(deviationId, req.tenantId);
+      res.json(attachments);
+    } catch (error) {
+      console.error('Error fetching deviation attachments:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/deviations/:id/attachments', authenticateToken, requireModule('deviations'), uploadMultiple, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId || !req.user) {
+        return res.status(403).json({ message: 'Authentication required' });
+      }
+      
+      const deviationId = parseInt(req.params.id);
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'No files uploaded' });
+      }
+
+      const attachments = [];
+      for (const file of files) {
+        const attachment = await storage.createDeviationAttachment({
+          deviationId,
+          userId: req.user.userId,
+          fileName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          filePath: file.path
+        });
+        attachments.push(attachment);
+      }
+
+      res.status(201).json(attachments);
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      res.status(500).json({ message: 'File upload failed' });
+    }
+  });
+
+  app.delete('/api/deviations/attachments/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const attachmentId = parseInt(req.params.id);
+      await storage.deleteDeviationAttachment(attachmentId, req.tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting deviation attachment:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Serve uploaded files
+  app.get('/api/files/:filename', (req: Request, res: Response) => {
+    const filename = req.params.filename;
+    const filePath = path.join(process.cwd(), 'uploads', 'deviations', filename);
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+    
+    res.sendFile(filePath);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

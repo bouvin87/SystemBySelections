@@ -1,0 +1,48 @@
+
+3|SystemBySelections  | Login error: ErrorEvent {
+3|SystemBySelections  |   [Symbol(kTarget)]: WebSocket {
+3|SystemBySelections  |     _events: [Object: null prototype] {
+3|SystemBySelections  |       error: [Function],
+3|SystemBySelections  |       message: [Function],
+3|SystemBySelections  |       close: [Function],
+3|SystemBySelections  |       open: [Function]
+3|SystemBySelections  |     },
+3|SystemBySelections  |     _eventsCount: 4,
+3|SystemBySelections  |     _maxListeners: undefined,
+3|SystemBySelections  |     _binaryType: 'arraybuffer',
+3|SystemBySelections  |     _closeCode: 1006,
+3|SystemBySelections  |     _closeFrameReceived: false,
+3|SystemBySelections  |     _closeFrameSent: false,
+3|SystemBySelections  |     _closeMessage: <Buffer >,
+3|SystemBySelections  |     _closeTimer: null,
+3|SystemBySelections  |     _errorEmitted: true,
+3|SystemBySelections  |     _extensions: {},
+3|SystemBySelections  |     _paused: false,
+3|SystemBySelections  |     _protocol: '',
+3|SystemBySelections  |     _readyState: 3,
+3|SystemBySelections  |     _receiver: null,
+3|SystemBySelections  |     _sender: null,
+3|SystemBySelections  |     _socket: null,
+3|SystemBySelections  |     _bufferedAmount: 0,
+3|SystemBySelections  |     _isServer: false,
+3|SystemBySelections  |     _redirects: 0,
+3|SystemBySelections  |     _autoPong: true,
+3|SystemBySelections  |     _url: 'wss://app.systembyselections.se/v2',
+3|SystemBySelections  |     _req: null,
+3|SystemBySelections  |     [Symbol(shapeMode)]: false,
+3|SystemBySelections  |     [Symbol(kCapture)]: false
+3|SystemBySelections  |   },
+3|SystemBySelections  |   [Symbol(kType)]: 'error',
+3|SystemBySelections  |   [Symbol(kError)]: Error: Client network socket disconnected before secure TLS connection was established
+3|SystemBySelections  |       at TLSSocket.onConnectEnd (node:_tls_wrap:1730:19)
+3|SystemBySelections  |       at TLSSocket.emit (node:events:536:35)
+3|SystemBySelections  |       at endReadableNT (node:internal/streams/readable:1698:12)
+3|SystemBySelections  |       at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+3|SystemBySelections  |     code: 'ECONNRESET',
+3|SystemBySelections  |     path: undefined,
+3|SystemBySelections  |     host: 'app.systembyselections.se',
+3|SystemBySelections  |     port: 443,
+3|SystemBySelections  |     localAddress: undefined
+3|SystemBySelections  |   },
+3|SystemBySelections  |   [Symbol(kMessage)]: 'Client network socket disconnected before secure TLS connection was established'
+3|SystemBySelections  | }

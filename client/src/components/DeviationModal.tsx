@@ -151,15 +151,16 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       const response = await apiRequest("POST", "/api/deviations", data);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/deviations/stats"] });
-      onClose();
-      toast({
-        title: "Avvikelse skapad",
-        description: "Avvikelsen har skapats framgångsrikt.",
-      });
-      onSuccess?.();
+    onSuccess: async (newDeviation) => {
+      setCreatedDeviationId(newDeviation.id);
+      
+      // Upload files if any are selected
+      if (selectedFiles.length > 0) {
+        await uploadFiles(newDeviation.id);
+      } else {
+        // Complete the process if no files to upload
+        completeCreation();
+      }
     },
     onError: (error) => {
       toast({
