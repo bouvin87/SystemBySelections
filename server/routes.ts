@@ -1185,13 +1185,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files
+  // Serve uploaded files (no authentication required for file access)
   app.get('/api/files/:filename', (req: Request, res: Response) => {
     const filename = req.params.filename;
     const filePath = path.join(process.cwd(), 'uploads', 'deviations', filename);
     
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: 'File not found' });
+    }
+    
+    // Set appropriate headers for file serving
+    const ext = path.extname(filename).toLowerCase();
+    if (ext === '.pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+    } else if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) {
+      res.setHeader('Content-Type', `image/${ext.slice(1)}`);
     }
     
     res.sendFile(filePath);

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FileUpload } from "./FileUpload";
+import { FilePreviewModal } from "./FilePreviewModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface DeviationAttachment {
@@ -43,6 +44,7 @@ interface AttachmentListProps {
 
 export function AttachmentList({ deviationId, canUpload = false }: AttachmentListProps) {
   const [showUpload, setShowUpload] = useState(false);
+  const [previewFile, setPreviewFile] = useState<DeviationAttachment | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -115,6 +117,15 @@ export function AttachmentList({ deviationId, canUpload = false }: AttachmentLis
     const filename = attachment.filePath.split('/').pop() || attachment.fileName;
     const url = `/api/files/${filename}`;
     window.open(url, '_blank');
+  };
+
+  const handlePreview = (attachment: DeviationAttachment) => {
+    setPreviewFile(attachment);
+  };
+
+  const getFileUrl = (attachment: DeviationAttachment) => {
+    const filename = attachment.filePath.split('/').pop() || attachment.fileName;
+    return `/api/files/${filename}`;
   };
 
   const handleUploadComplete = () => {
@@ -218,12 +229,12 @@ export function AttachmentList({ deviationId, canUpload = false }: AttachmentLis
                     <Download className="w-4 h-4" />
                   </Button>
                   
-                  {attachment.mimeType.startsWith('image/') && (
+                  {(attachment.mimeType.startsWith('image/') || attachment.mimeType === 'application/pdf') && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDownload(attachment)}
-                      title="Visa bild"
+                      onClick={() => handlePreview(attachment)}
+                      title={attachment.mimeType.startsWith('image/') ? "Visa bild" : "Visa PDF"}
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -246,6 +257,17 @@ export function AttachmentList({ deviationId, canUpload = false }: AttachmentLis
           </div>
         )}
       </CardContent>
+      
+      {/* File Preview Modal */}
+      {previewFile && (
+        <FilePreviewModal
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          fileName={previewFile.fileName}
+          mimeType={previewFile.mimeType}
+          fileUrl={getFileUrl(previewFile)}
+        />
+      )}
     </Card>
   );
 }
