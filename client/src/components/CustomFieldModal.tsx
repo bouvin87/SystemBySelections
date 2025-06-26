@@ -66,7 +66,11 @@ export function CustomFieldModal({
 
   const fetchLinkedTypes = async (fieldId: number) => {
     try {
-      const response = await fetch(`/api/custom-fields/${fieldId}/deviation-types`);
+      const response = await fetch(`/api/custom-fields/${fieldId}/deviation-types`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
       if (response.ok) {
         const types = await response.json();
         setLinkedTypes(types.map((t: DeviationType) => t.id));
@@ -121,7 +125,11 @@ export function CustomFieldModal({
       const fieldId = (savedField as any)?.id || field?.id;
       if (fieldId) {
         // Get current mappings
-        const currentMappingsResponse = await fetch(`/api/custom-fields/${fieldId}/deviation-types`);
+        const currentMappingsResponse = await fetch(`/api/custom-fields/${fieldId}/deviation-types`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        });
         const currentMappings = currentMappingsResponse.ok ? await currentMappingsResponse.json() : [];
         const currentTypeIds = currentMappings.map((t: DeviationType) => t.id);
 
