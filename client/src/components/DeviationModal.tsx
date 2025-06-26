@@ -12,6 +12,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { DeviationStatus } from "@shared/schema";
 import { FileUploadSimple } from "./FileUploadSimple";
 import { AttachmentList } from "./AttachmentList";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DeviationType {
   id: number;
@@ -67,6 +68,7 @@ interface Deviation {
   workTaskId?: number;
   locationId?: number;
   departmentId?: number;
+  isHidden?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -120,6 +122,12 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
   // Fetch departments
   const { data: departments = [] } = useQuery<any[]>({
     queryKey: ["/api/departments"],
+    enabled: isOpen,
+  });
+
+  // Fetch current user to check permissions
+  const { data: user } = useQuery({
+    queryKey: ["/api/auth/me"],
     enabled: isOpen,
   });
 
@@ -255,6 +263,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       departmentId: formData.get("departmentId") && formData.get("departmentId") !== "0" ? parseInt(formData.get("departmentId") as string) : undefined,
       assignedToUserId: formData.get("assignedToUserId") && formData.get("assignedToUserId") !== "0" ? parseInt(formData.get("assignedToUserId") as string) : undefined,
       dueDate: formData.get("dueDate") && formData.get("dueDate") !== "" ? formData.get("dueDate") as string : undefined,
+      isHidden: formData.get("isHidden") === "on",
     };
 
     if (mode === 'edit') {

@@ -923,8 +923,42 @@ export class DatabaseStorage implements IStorage {
     search?: string;
     limit?: number;
     offset?: number;
+    userId?: number; // Current user ID for hidden filtering
+    userRole?: string; // Current user role for hidden filtering
+    userDepartmentId?: number; // Current user department for manager access
   }): Promise<Deviation[]> {
     const conditions = [eq(deviations.tenantId, tenantId)];
+    
+    // Handle hidden deviations based on user role
+    if (filters?.userId && filters?.userRole) {
+      const isAdmin = filters.userRole === 'admin' || filters.userRole === 'superadmin';
+      
+      if (!isAdmin) {
+        // Regular users and underadmins can only see:
+        // 1. Non-hidden deviations, OR
+        // 2. Hidden deviations they created, OR  
+        // 3. Hidden deviations assigned to them, OR
+        // 4. Hidden deviations in their department (if they're department manager)
+        const hiddenConditions = [
+          eq(deviations.isHidden, false), // Non-hidden
+          and(eq(deviations.isHidden, true), eq(deviations.createdByUserId, filters.userId)), // Created by user
+          and(eq(deviations.isHidden, true), eq(deviations.assignedToUserId, filters.userId)), // Assigned to user
+        ];
+        
+        // Add department manager condition if user has department
+        if (filters.userDepartmentId) {
+          hiddenConditions.push(
+            and(eq(deviations.isHidden, true), eq(deviations.departmentId, filters.userDepartmentId))
+          );
+        }
+        
+        conditions.push(or(...hiddenConditions));
+      }
+      // Admins and superadmins can see all deviations (no additional filtering)
+    } else {
+      // If no user context provided, only show non-hidden deviations
+      conditions.push(eq(deviations.isHidden, false));
+    }
     
     if (filters) {
       if (filters.status) {
@@ -970,11 +1004,27 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
 
-  async getDeviation(id: number, tenantId: number): Promise<Deviation | undefined> {
+  async getDeviation(id: number, tenantId: number, userId?: number, userRole?: string, userDepartmentId?: number): Promise<Deviation | undefined> {
     const result = await db.select().from(deviations)
       .where(and(eq(deviations.id, id), eq(deviations.tenantId, tenantId)))
       .limit(1);
-    return result[0];
+    
+    const deviation = result[0];
+    if (!deviation) return undefined;
+    
+    // Check if user can access this hidden deviation
+    if (deviation.isHidden && userId && userRole) {
+      const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+      const isCreator = deviation.createdByUserId === userId;
+      const isAssigned = deviation.assignedToUserId === userId;
+      const isDepartmentManager = userDepartmentId && deviation.departmentId === userDepartmentId;
+      
+      if (!isAdmin && !isCreator && !isAssigned && !isDepartmentManager) {
+        return undefined; // User cannot access this hidden deviation
+      }
+    }
+    
+    return deviation;
   }
 
   async createDeviation(deviation: InsertDeviation): Promise<Deviation> {

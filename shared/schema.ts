@@ -301,6 +301,7 @@ export const deviations = pgTable("deviations", {
   workTaskId: integer("work_task_id").references(() => workTasks.id),
   locationId: integer("location_id").references(() => workStations.id),
   departmentId: integer("department_id").references(() => departments.id),
+  isHidden: boolean("is_hidden").notNull().default(false), // Hidden from normal users
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
