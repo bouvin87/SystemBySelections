@@ -339,6 +339,40 @@ export const deviationAttachments = pgTable("deviation_attachments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Custom Fields - Admin-defined extra fields for deviations
+export const customFields = pgTable("custom_fields", {
+  id: serial("id").primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
+  name: text("name").notNull(), // Field name/label
+  fieldType: text("field_type").notNull(), // 'text', 'number', 'checkbox', 'date', 'select'
+  options: json("options").$type<string[]>(), // For select type: ["Val1", "Val2", "Val3"]
+  isRequired: boolean("is_required").notNull().default(false),
+  order: integer("order").notNull().default(0), // Display order
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Custom Field Type Mappings - Link custom fields to deviation types
+export const customFieldTypeMappings = pgTable("custom_field_type_mappings", {
+  id: serial("id").primaryKey(),
+  customFieldId: integer("custom_field_id").notNull().references(() => customFields.id, { onDelete: "cascade" }),
+  deviationTypeId: integer("deviation_type_id").notNull().references(() => deviationTypes.id, { onDelete: "cascade" }),
+}, (table) => ({
+  uniqueMapping: unique().on(table.customFieldId, table.deviationTypeId),
+}));
+
+// Custom Field Values - Store actual values for each deviation
+export const customFieldValues = pgTable("custom_field_values", {
+  id: serial("id").primaryKey(),
+  deviationId: integer("deviation_id").notNull().references(() => deviations.id, { onDelete: "cascade" }),
+  customFieldId: integer("custom_field_id").notNull().references(() => customFields.id, { onDelete: "cascade" }),
+  value: text("value"), // Store all values as text, convert based on field type
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  uniqueValue: unique().on(table.deviationId, table.customFieldId),
+}));
+
 // Relations for Deviations
 export const deviationTypesRelations = relations(deviationTypes, ({ one, many }) => ({
   tenant: one(tenants, {
@@ -386,6 +420,7 @@ export const deviationsRelations = relations(deviations, ({ one, many }) => ({
   comments: many(deviationComments),
   logs: many(deviationLogs),
   attachments: many(deviationAttachments),
+  customFieldValues: many(customFieldValues),
 }));
 
 export const deviationCommentsRelations = relations(deviationComments, ({ one }) => ({
@@ -396,6 +431,38 @@ export const deviationCommentsRelations = relations(deviationComments, ({ one })
   user: one(users, {
     fields: [deviationComments.userId],
     references: [users.id],
+  }),
+}));
+
+// Custom Fields Relations
+export const customFieldsRelations = relations(customFields, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [customFields.tenantId],
+    references: [tenants.id],
+  }),
+  typeMappings: many(customFieldTypeMappings),
+  values: many(customFieldValues),
+}));
+
+export const customFieldTypeMappingsRelations = relations(customFieldTypeMappings, ({ one }) => ({
+  customField: one(customFields, {
+    fields: [customFieldTypeMappings.customFieldId],
+    references: [customFields.id],
+  }),
+  deviationType: one(deviationTypes, {
+    fields: [customFieldTypeMappings.deviationTypeId],
+    references: [deviationTypes.id],
+  }),
+}));
+
+export const customFieldValuesRelations = relations(customFieldValues, ({ one }) => ({
+  deviation: one(deviations, {
+    fields: [customFieldValues.deviationId],
+    references: [deviations.id],
+  }),
+  customField: one(customFields, {
+    fields: [customFieldValues.customFieldId],
+    references: [customFields.id],
   }),
 }));
 
