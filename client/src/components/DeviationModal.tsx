@@ -586,7 +586,7 @@ export default function DeviationModal({
             </div>
 
             {/* Work Task - only show if enabled in settings */}
-            {deviationSettings?.showWorkTaskField && (
+            {deviationSettings?.useWorkTasks && (
               <div>
                 <Label htmlFor="workTaskId">Arbetsuppgift</Label>
                 <Select
@@ -616,7 +616,7 @@ export default function DeviationModal({
             )}
 
             {/* Location/Work Station - only show if enabled in settings */}
-            {deviationSettings?.showLocationField && (
+            {deviationSettings?.useWorkStations && (
               <div>
                 <Label htmlFor="locationId">Plats/Station</Label>
                 <Select
@@ -645,39 +645,41 @@ export default function DeviationModal({
               </div>
             )}
 
-            {/* Priority */}
-            <div>
-              <Label htmlFor="priorityId">Prioritet</Label>
-              <Select
-                name="priorityId"
-                defaultValue={deviation?.priorityId?.toString() || "0"}
-                disabled={prioritiesLoading}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      prioritiesLoading ? "Laddar..." : "Välj prioritet"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Ingen prioritet</SelectItem>
-                  {deviationPriorities
-                    .filter((priority) => priority.isActive)
-                    .map((priority) => (
-                      <SelectItem key={priority.id} value={priority.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: priority.color }}
-                          />
-                          {priority.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Priority - only show if enabled in settings */}
+            {deviationSettings?.usePriorities && (
+              <div>
+                <Label htmlFor="priorityId">Prioritet</Label>
+                <Select
+                  name="priorityId"
+                  defaultValue={deviation?.priorityId?.toString() || "0"}
+                  disabled={prioritiesLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        prioritiesLoading ? "Laddar..." : "Välj prioritet"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Ingen prioritet</SelectItem>
+                    {deviationPriorities
+                      .filter((priority) => priority.isActive)
+                      .map((priority) => (
+                        <SelectItem key={priority.id} value={priority.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: priority.color }}
+                            />
+                            {priority.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Status - only for edit mode */}
             {mode === "edit" && (
