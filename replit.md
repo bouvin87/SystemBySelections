@@ -122,6 +122,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 26, 2025**: Implemented complete system announcement feature
+  - Added system_announcements table with tenant isolation
+  - Created SystemAnnouncementModal component for CRUD operations
+  - Integrated announcements management in SuperAdmin interface
+  - Added toast notifications for active announcements on user login
+  - SuperAdmin can create, edit, toggle (activate/deactivate), and delete announcements
+  - Only one active announcement can exist at a time per tenant
+  - Fixed JSX structure errors and duplicate variable declarations
+
 - **June 25, 2025**: Added "dölj" (hide) functionality for deviations
   - Added isHidden boolean field to deviations table
   - Implemented role-based visibility: hidden deviations only visible to admin/superadmin, creator, assignee, and department manager
