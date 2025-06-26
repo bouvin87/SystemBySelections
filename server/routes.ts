@@ -1188,10 +1188,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // === SYSTEM ANNOUNCEMENTS ===
   app.get('/api/system/announcements', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.tenantId) {
+      // For superadmin without tenantId, use tenantId from query or default to first tenant
+      let tenantId = req.tenantId;
+      if (!tenantId && req.user?.role === 'superadmin') {
+        if (req.query.tenantId) {
+          tenantId = parseInt(req.query.tenantId as string);
+        } else {
+          // Get first available tenant for superadmin
+          const tenants = await storage.getTenants();
+          tenantId = tenants[0]?.id;
+        }
+      }
+      
+      if (!tenantId) {
         return res.status(403).json({ message: 'Tenant ID required' });
       }
-      const announcements = await storage.getSystemAnnouncements(req.tenantId);
+      
+      const announcements = await storage.getSystemAnnouncements(tenantId);
       res.json(announcements);
     } catch (error) {
       console.error('Error fetching system announcements:', error);
@@ -1201,13 +1214,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/system/announcements', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.tenantId || !req.user) {
+      if (!req.user) {
         return res.status(403).json({ message: 'Authentication required' });
       }
       
       // Only superadmin can create system announcements
       if (req.user.role !== 'superadmin') {
         return res.status(403).json({ message: 'Requires superadmin role' });
+      }
+
+      // Get tenantId from request body, query, or user token
+      let tenantId = req.tenantId || parseInt(req.body.tenantId) || parseInt(req.query.tenantId as string);
+      
+      if (!tenantId) {
+        // Get first available tenant for superadmin
+        const tenants = await storage.getTenants();
+        tenantId = tenants[0]?.id;
+      }
+      
+      if (!tenantId) {
+        return res.status(400).json({ message: 'Tenant ID required' });
       }
 
       const { message, isActive } = req.body;
@@ -1218,19 +1244,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If creating an active announcement, deactivate all other active announcements for this tenant
       if (isActive) {
-        const existingAnnouncements = await storage.getSystemAnnouncements(req.tenantId);
+        const existingAnnouncements = await storage.getSystemAnnouncements(tenantId);
         for (const announcement of existingAnnouncements) {
           if (announcement.isActive) {
-            await storage.updateSystemAnnouncement(announcement.id, { isActive: false }, req.tenantId);
+            await storage.updateSystemAnnouncement(announcement.id, { isActive: false }, tenantId);
           }
         }
       }
 
       const newAnnouncement = await storage.createSystemAnnouncement({
-        tenantId: req.tenantId,
+        tenantId,
         message,
         isActive: isActive || false,
-        createdBy: req.user.userId
+        createdBy: req.user.userId,
+        updatedBy: req.user.userId
       });
 
       res.status(201).json(newAnnouncement);
