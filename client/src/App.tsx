@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { SystemAnnouncementToast } from "@/components/SystemAnnouncementToast";
 import Home from "@/pages/home";
 import Checklists from "@/pages/checklists";
 import Admin from "@/pages/admin";
@@ -16,9 +17,42 @@ import Deviations from "@/pages/deviations";
 import DeviationDetail from "@/pages/deviation-detail";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import { useState, useEffect } from "react";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [systemAnnouncement, setSystemAnnouncement] = useState<{ message: string } | null>(null);
+
+  // Check for system announcements when user becomes authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const checkSystemAnnouncement = async () => {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
+
+          const response = await fetch('/api/system/announcements/active', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const announcement = await response.json();
+            if (announcement && announcement.message) {
+              setSystemAnnouncement(announcement);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching system announcement:', error);
+        }
+      };
+
+      // Delay to ensure the user is fully logged in
+      const timer = setTimeout(checkSystemAnnouncement, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user]);
 
   if (isLoading) {
     return (
@@ -47,20 +81,30 @@ function Router() {
   }
 
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/checklists" component={Checklists} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/checklist-editor/:id" component={ChecklistEditor} />
-      <Route path="/checklist/:id/start" component={ChecklistStart} />
-      <Route path="/checklist/:id/dashboard">
-        {(params) => <ChecklistDashboard checklistId={params.id} />}
-      </Route>
-      <Route path="/faq" component={FAQ} />
-      <Route path="/deviations/:id" component={DeviationDetail} />
-      <Route path="/deviations" component={Deviations} />
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      {/* System announcement toast */}
+      {systemAnnouncement && (
+        <SystemAnnouncementToast
+          message={systemAnnouncement.message}
+          onClose={() => setSystemAnnouncement(null)}
+        />
+      )}
+      
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/checklists" component={Checklists} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/checklist-editor/:id" component={ChecklistEditor} />
+        <Route path="/checklist/:id/start" component={ChecklistStart} />
+        <Route path="/checklist/:id/dashboard">
+          {(params) => <ChecklistDashboard checklistId={params.id} />}
+        </Route>
+        <Route path="/faq" component={FAQ} />
+        <Route path="/deviations/:id" component={DeviationDetail} />
+        <Route path="/deviations" component={Deviations} />
+        <Route component={NotFound} />
+      </Switch>
+    </>
   );
 }
 
