@@ -132,12 +132,12 @@ export default function DeviationModal({
   
   // Form state for controlled components
   const [formValues, setFormValues] = useState({
-    workTaskId: "none",
-    locationId: "none", 
-    priorityId: "none",
-    statusId: "none",
-    assignedToUserId: "none",
-    departmentId: "none"
+    workTaskId: "0",
+    locationId: "0", 
+    priorityId: "0",
+    statusId: "",
+    assignedToUserId: "0",
+    departmentId: "0"
   });
 
   // Fetch deviation types
@@ -284,12 +284,12 @@ export default function DeviationModal({
       setCustomFieldValues({});
       // Reset form values for new deviation
       setFormValues({
-        workTaskId: "",
-        locationId: "",
-        priorityId: "",
-        statusId: "",
-        assignedToUserId: "",
-        departmentId: ""
+        workTaskId: "none",
+        locationId: "none",
+        priorityId: "none",
+        statusId: "none",
+        assignedToUserId: "none",
+        departmentId: "none"
       });
     }
   }, [deviation, isOpen]);
@@ -461,22 +461,20 @@ export default function DeviationModal({
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priorityId: formValues.priorityId && formValues.priorityId !== ""
+      priorityId: formValues.priorityId && formValues.priorityId !== "none"
         ? parseInt(formValues.priorityId)
         : undefined,
-      statusId: formValues.statusId && formValues.statusId !== ""
+      statusId: formValues.statusId && formValues.statusId !== "none"
         ? parseInt(formValues.statusId)
         : undefined,
-      workTaskId: formValues.workTaskId && formValues.workTaskId !== ""
+      workTaskId: formValues.workTaskId && formValues.workTaskId !== "none"
         ? parseInt(formValues.workTaskId)
         : undefined,
-      locationId: formValues.locationId && formValues.locationId !== ""
+      locationId: formValues.locationId && formValues.locationId !== "none"
         ? parseInt(formValues.locationId)
         : undefined,
-      departmentId: formValues.departmentId && formValues.departmentId !== ""
-        ? parseInt(formValues.departmentId)
-        : undefined,
-      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== ""
+      departmentId: parseInt(formValues.departmentId),
+      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== "none"
         ? parseInt(formValues.assignedToUserId)
         : undefined,
       dueDate:
@@ -728,6 +726,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Ingen status</SelectItem>
                     {deviationStatuses
                       .filter((status) => status.isActive)
                       .map((status) => (
