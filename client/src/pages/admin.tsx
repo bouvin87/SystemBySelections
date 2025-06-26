@@ -48,6 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
+import { CustomFieldsList } from "@/components/CustomFieldsList";
 import IconPicker from "@/components/IconPicker";
 import { renderIcon } from "@/lib/icon-utils";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -2079,13 +2080,14 @@ export default function Admin() {
                 <TabsContent value="deviations">
                   <div className="space-y-6">
                     <Tabs defaultValue="settings" className="w-full">
-                      <TabsList className="grid w-full grid-cols-4">
+                      <TabsList className="grid w-full grid-cols-5">
                         <TabsTrigger value="settings">
                           Grundinställningar
                         </TabsTrigger>
                         <TabsTrigger value="types">Avvikelsetyper</TabsTrigger>
                         <TabsTrigger value="priorities">Prioriteter</TabsTrigger>
                         <TabsTrigger value="statuses">Statusar</TabsTrigger>
+                        <TabsTrigger value="custom-fields">Extrafält</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="settings" className="space-y-6">
@@ -2286,6 +2288,10 @@ export default function Admin() {
 
                       <TabsContent value="statuses" className="space-y-6">
                         <DeviationStatusesManagement />
+                      </TabsContent>
+
+                      <TabsContent value="custom-fields" className="space-y-6">
+                        <CustomFieldsList />
                       </TabsContent>
                     </Tabs>
                   </div>

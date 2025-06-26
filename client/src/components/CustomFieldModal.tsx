@@ -230,7 +230,7 @@ export function CustomFieldModal({
               <Checkbox
                 id="isRequired"
                 checked={isRequired}
-                onCheckedChange={setIsRequired}
+                onCheckedChange={(checked) => setIsRequired(checked === true)}
               />
               <Label htmlFor="isRequired">Obligatoriskt fält</Label>
             </div>
