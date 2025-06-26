@@ -122,6 +122,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 26, 2025**: Completed custom fields system implementation
+  - Created custom_fields, custom_field_deviation_type_mappings, and custom_field_values database tables
+  - Built comprehensive backend API with full CRUD operations for custom fields
+  - Implemented CustomFieldModal and CustomFieldsList components for admin interface
+  - Added "Extrafält" tab in deviations administration panel
+  - Support for text, number, checkbox, date, and select field types with configurable options
+  - Custom fields can be linked to specific deviation types with required field validation
+  - Fixed authentication issues in API calls to ensure proper data loading
+
 - **June 26, 2025**: Implemented complete global system announcement feature
   - Added system_announcements table as global (removed tenant isolation per user request)
   - Created SystemAnnouncementModal component for CRUD operations

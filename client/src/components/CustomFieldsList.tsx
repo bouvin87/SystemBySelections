@@ -22,7 +22,6 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
 
   const { data: customFields = [], isLoading: fieldsLoading } = useQuery({
     queryKey: ['/api/custom-fields'],
-    queryFn: () => fetch('/api/custom-fields').then(res => res.json()),
   });
 
   const { data: deviationTypes = [], isLoading: typesLoading } = useQuery({
