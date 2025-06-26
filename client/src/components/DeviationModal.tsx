@@ -511,9 +511,10 @@ export default function DeviationModal({
                 <Select
                   name="assignedToUserId"
                   defaultValue={deviation?.assignedToUserId?.toString() || ""}
+                  disabled={usersLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj användare" />
+                    <SelectValue placeholder={usersLoading ? "Laddar..." : "Välj användare"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Ingen vald</SelectItem>
@@ -535,9 +536,10 @@ export default function DeviationModal({
                 <Select
                   name="locationId"
                   defaultValue={deviation?.locationId?.toString() || "0"}
+                  disabled={workStationsLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj plats" />
+                    <SelectValue placeholder={workStationsLoading ? "Laddar..." : "Välj plats"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Ingen vald</SelectItem>
