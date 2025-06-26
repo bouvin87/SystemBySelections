@@ -104,6 +104,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user: data.user,
         tenant: data.tenant,
       });
+
+      // Show system announcement after successful login
+      setTimeout(() => {
+        queryClient.fetchQuery({
+          queryKey: ['/api/system/announcement'],
+          staleTime: 0
+        }).then((announcement) => {
+          if (announcement && announcement.message) {
+            import('../hooks/use-toast').then(({ toast }) => {
+              toast({
+                title: "Systemmeddelande",
+                description: announcement.message,
+                duration: 8000,
+              });
+            });
+          }
+        }).catch((error) => {
+          console.error('Error fetching system announcement:', error);
+        });
+      }, 1000); // Wait 1 second after login
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;
