@@ -262,31 +262,34 @@ export default function DeviationModal({
   // Initialize form data when modal opens or deviation data changes
   useEffect(() => {
     if (deviation) {
+      console.log("Loading deviation data:", deviation);
       setSelectedTypeId(deviation.deviationTypeId);
       if (deviation.dueDate) {
         setSelectedDueDate(deviation.dueDate);
       }
       // Set form values from existing deviation
-      setFormValues({
-        workTaskId: deviation.workTaskId?.toString() || "0",
-        locationId: deviation.locationId?.toString() || "0",
-        priorityId: deviation.priorityId?.toString() || "0",
+      const newFormValues = {
+        workTaskId: deviation.workTaskId?.toString() || "",
+        locationId: deviation.locationId?.toString() || "",
+        priorityId: deviation.priorityId?.toString() || "",
         statusId: deviation.statusId?.toString() || "",
-        assignedToUserId: deviation.assignedToUserId?.toString() || "0",
-        departmentId: deviation.departmentId?.toString() || "0"
-      });
+        assignedToUserId: deviation.assignedToUserId?.toString() || "",
+        departmentId: deviation.departmentId?.toString() || ""
+      };
+      console.log("Setting form values:", newFormValues);
+      setFormValues(newFormValues);
     } else {
       setSelectedTypeId(null);
       setSelectedDueDate("");
       setCustomFieldValues({});
       // Reset form values for new deviation
       setFormValues({
-        workTaskId: "0",
-        locationId: "0",
-        priorityId: "0",
+        workTaskId: "",
+        locationId: "",
+        priorityId: "",
         statusId: "",
-        assignedToUserId: "0",
-        departmentId: "0"
+        assignedToUserId: "",
+        departmentId: ""
       });
     }
   }, [deviation, isOpen]);
@@ -458,22 +461,22 @@ export default function DeviationModal({
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priorityId: formValues.priorityId && formValues.priorityId !== "0"
+      priorityId: formValues.priorityId && formValues.priorityId !== ""
         ? parseInt(formValues.priorityId)
         : undefined,
       statusId: formValues.statusId && formValues.statusId !== ""
         ? parseInt(formValues.statusId)
         : undefined,
-      workTaskId: formValues.workTaskId && formValues.workTaskId !== "0"
+      workTaskId: formValues.workTaskId && formValues.workTaskId !== ""
         ? parseInt(formValues.workTaskId)
         : undefined,
-      locationId: formValues.locationId && formValues.locationId !== "0"
+      locationId: formValues.locationId && formValues.locationId !== ""
         ? parseInt(formValues.locationId)
         : undefined,
-      departmentId: formValues.departmentId && formValues.departmentId !== "0"
+      departmentId: formValues.departmentId && formValues.departmentId !== ""
         ? parseInt(formValues.departmentId)
         : undefined,
-      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== "0"
+      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== ""
         ? parseInt(formValues.assignedToUserId)
         : undefined,
       dueDate:
@@ -612,6 +615,7 @@ export default function DeviationModal({
             {deviationSettings?.useWorkTasks && (
               <div>
                 <Label htmlFor="workTaskId">Arbetsuppgift</Label>
+
                 <Select
                   name="workTaskId"
                   value={formValues.workTaskId}
