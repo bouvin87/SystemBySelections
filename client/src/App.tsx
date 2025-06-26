@@ -25,14 +25,21 @@ function Router() {
 
   // Listen for system announcement events
   useEffect(() => {
-    const handleShowAnnouncement = (event: CustomEvent) => {
+    console.log('🎧 Setting up system announcement listener...');
+    
+    const handleShowAnnouncement = (event: any) => {
+      console.log('🔔 Received show-system-announcement event:', event.detail);
       const { announcement } = event.detail;
+      console.log('📝 Setting system announcement state:', announcement);
       setSystemAnnouncement(announcement);
     };
 
-    window.addEventListener('show-system-announcement', handleShowAnnouncement as EventListener);
+    window.addEventListener('show-system-announcement', handleShowAnnouncement);
+    console.log('✅ Event listener added');
+    
     return () => {
-      window.removeEventListener('show-system-announcement', handleShowAnnouncement as EventListener);
+      console.log('🧹 Cleaning up event listener');
+      window.removeEventListener('show-system-announcement', handleShowAnnouncement);
     };
   }, []);
 

@@ -107,6 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Show system announcement after successful login
       setTimeout(async () => {
+        console.log('🚀 Starting system announcement check...');
         try {
           const response = await fetch('/api/system/announcements/active', {
             headers: {
@@ -114,17 +115,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             },
           });
           
+          console.log('📡 System announcement API response:', response.status, response.ok);
+          
           if (response.ok) {
             const announcement = await response.json();
+            console.log('📢 System announcement data:', announcement);
+            
             if (announcement && announcement.message) {
+              console.log('🎯 Dispatching show-system-announcement event with:', announcement.message);
               // Dispatch event to show toast
               window.dispatchEvent(new CustomEvent('show-system-announcement', { 
                 detail: { announcement } 
               }));
+              console.log('✅ Event dispatched successfully');
+            } else {
+              console.log('❌ No announcement message found');
             }
+          } else {
+            console.log('❌ API response not ok');
           }
         } catch (error) {
-          console.error('Error fetching system announcement:', error);
+          console.error('💥 Error fetching system announcement:', error);
         }
       }, 1000); // Wait 1 second after login
     } catch (error) {
