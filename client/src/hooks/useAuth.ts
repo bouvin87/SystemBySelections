@@ -106,23 +106,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       // Show system announcement after successful login
-      setTimeout(() => {
-        queryClient.fetchQuery({
-          queryKey: ['/api/system/announcement'],
-          staleTime: 0
-        }).then((announcement) => {
-          if (announcement && announcement.message) {
-            import('../hooks/use-toast').then(({ toast }) => {
+      setTimeout(async () => {
+        try {
+          const response = await fetch('/api/system/announcements/active', {
+            headers: {
+              'Authorization': `Bearer ${data.token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const announcement = await response.json();
+            if (announcement && announcement.message) {
+              const { toast } = await import('../hooks/use-toast');
               toast({
                 title: "Systemmeddelande",
                 description: announcement.message,
                 duration: 8000,
               });
-            });
+            }
           }
-        }).catch((error) => {
+        } catch (error) {
           console.error('Error fetching system announcement:', error);
-        });
+        }
       }, 1000); // Wait 1 second after login
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));

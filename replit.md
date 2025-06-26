@@ -122,14 +122,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **June 26, 2025**: Implemented complete system announcement feature
-  - Added system_announcements table with tenant isolation
+- **June 26, 2025**: Implemented complete global system announcement feature
+  - Added system_announcements table as global (removed tenant isolation per user request)
   - Created SystemAnnouncementModal component for CRUD operations
   - Integrated announcements management in SuperAdmin interface
-  - Added toast notifications for active announcements on user login
-  - SuperAdmin can create, edit, toggle (activate/deactivate), and delete announcements
-  - Only one active announcement can exist at a time per tenant
+  - Added toast notifications for active announcements on user login (displayed to ALL users globally)
+  - SuperAdmin can create, edit, toggle (activate/deactivate), and delete global announcements
+  - Only one active announcement can exist at a time across entire system
   - Fixed JSX structure errors and duplicate variable declarations
+  - Updated backend API routes to handle global announcements without tenant restrictions
 
 - **June 25, 2025**: Added "dölj" (hide) functionality for deviations
   - Added isHidden boolean field to deviations table
