@@ -320,12 +320,6 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
     queryKey: ["/api/departments"],
   });
 
-  // Fetch custom field values for this deviation
-  const { data: customFieldValues = [] } = useQuery<any[]>({
-    queryKey: [`/api/deviations/${deviationId}/custom-field-values`],
-    enabled: !!deviationId,
-  });
-
   // Function to translate log messages
   const translateLogMessage = (key: string): string => {
     return t(`deviations.logs.${key}`, { defaultValue: key });
@@ -648,6 +642,12 @@ export default function DeviationDetailPage() {
   // Fetch work departments
   const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ["/api/departments"],
+  });
+
+  // Fetch custom field values for this deviation
+  const { data: customFieldValues = [] } = useQuery<any[]>({
+    queryKey: [`/api/deviations/${deviationId}/custom-field-values`],
+    enabled: !!deviationId,
   });
 
   if (isLoading) {
