@@ -269,12 +269,12 @@ export default function DeviationModal({
       }
       // Set form values from existing deviation
       const newFormValues = {
-        workTaskId: deviation.workTaskId?.toString() || "",
-        locationId: deviation.locationId?.toString() || "",
-        priorityId: deviation.priorityId?.toString() || "",
-        statusId: deviation.statusId?.toString() || "",
-        assignedToUserId: deviation.assignedToUserId?.toString() || "",
-        departmentId: deviation.departmentId?.toString() || ""
+        workTaskId: deviation.workTaskId?.toString() || "none",
+        locationId: deviation.locationId?.toString() || "none",
+        priorityId: deviation.priorityId?.toString() || "none",
+        statusId: deviation.statusId?.toString() || "none",
+        assignedToUserId: deviation.assignedToUserId?.toString() || "none",
+        departmentId: deviation.departmentId?.toString() || "none"
       };
       console.log("Setting form values:", newFormValues);
       setFormValues(newFormValues);
@@ -284,12 +284,12 @@ export default function DeviationModal({
       setCustomFieldValues({});
       // Reset form values for new deviation
       setFormValues({
-        workTaskId: "",
-        locationId: "",
-        priorityId: "",
-        statusId: "",
-        assignedToUserId: "",
-        departmentId: ""
+        workTaskId: "none",
+        locationId: "none",
+        priorityId: "none",
+        statusId: "none",
+        assignedToUserId: "none",
+        departmentId: "none"
       });
     }
   }, [deviation, isOpen]);
@@ -461,22 +461,22 @@ export default function DeviationModal({
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priorityId: formValues.priorityId && formValues.priorityId !== ""
+      priorityId: formValues.priorityId && formValues.priorityId !== "none"
         ? parseInt(formValues.priorityId)
         : undefined,
-      statusId: formValues.statusId && formValues.statusId !== ""
+      statusId: formValues.statusId && formValues.statusId !== "none"
         ? parseInt(formValues.statusId)
         : undefined,
-      workTaskId: formValues.workTaskId && formValues.workTaskId !== ""
+      workTaskId: formValues.workTaskId && formValues.workTaskId !== "none"
         ? parseInt(formValues.workTaskId)
         : undefined,
-      locationId: formValues.locationId && formValues.locationId !== ""
+      locationId: formValues.locationId && formValues.locationId !== "none"
         ? parseInt(formValues.locationId)
         : undefined,
-      departmentId: formValues.departmentId && formValues.departmentId !== ""
+      departmentId: formValues.departmentId && formValues.departmentId !== "none"
         ? parseInt(formValues.departmentId)
         : undefined,
-      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== ""
+      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== "none"
         ? parseInt(formValues.assignedToUserId)
         : undefined,
       dueDate:
@@ -630,7 +630,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ingen arbetsuppgift</SelectItem>
+                    <SelectItem value="none">Ingen arbetsuppgift</SelectItem>
                     {workTasks
                       .filter((task: any) => task.isActive)
                       .map((task: any) => (
@@ -661,7 +661,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen plats</SelectItem>
+                    <SelectItem value="none">Ingen plats</SelectItem>
                     {workStations
                       .filter((station: any) => station.isActive)
                       .map((station: any) => (
@@ -692,7 +692,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen prioritet</SelectItem>
+                    <SelectItem value="none">Ingen prioritet</SelectItem>
                     {deviationPriorities
                       .filter((priority) => priority.isActive)
                       .map((priority) => (
@@ -727,6 +727,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Ingen status</SelectItem>
                     {deviationStatuses
                       .filter((status) => status.isActive)
                       .map((status) => (
@@ -761,7 +762,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen tilldelning</SelectItem>
+                    <SelectItem value="none">Ingen tilldelning</SelectItem>
                     {users.map((user: any) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.firstName && user.lastName
