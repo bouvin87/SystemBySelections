@@ -171,7 +171,7 @@ export default function SuperAdmin() {
 
   const toggleAnnouncementMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) =>
-      apiRequest(`/api/system/announcements/${id}`, "PATCH", { isActive }),
+      apiRequest({ endpoint: `/api/system/announcements/${id}`, method: "PATCH", data: { isActive } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
       toast({
@@ -190,7 +190,7 @@ export default function SuperAdmin() {
 
   const deleteAnnouncementMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/system/announcements/${id}`, "DELETE"),
+      apiRequest({ endpoint: `/api/system/announcements/${id}`, method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
       toast({
