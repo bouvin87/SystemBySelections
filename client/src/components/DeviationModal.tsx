@@ -132,12 +132,12 @@ export default function DeviationModal({
   
   // Form state for controlled components
   const [formValues, setFormValues] = useState({
-    workTaskId: "0",
-    locationId: "0", 
-    priorityId: "0",
-    statusId: "",
-    assignedToUserId: "0",
-    departmentId: "0"
+    workTaskId: "none",
+    locationId: "none", 
+    priorityId: "none",
+    statusId: "none",
+    assignedToUserId: "none",
+    departmentId: "none"
   });
 
   // Fetch deviation types
@@ -269,12 +269,12 @@ export default function DeviationModal({
       }
       // Set form values from existing deviation
       const newFormValues = {
-        workTaskId: deviation.workTaskId?.toString() || "",
-        locationId: deviation.locationId?.toString() || "",
-        priorityId: deviation.priorityId?.toString() || "",
-        statusId: deviation.statusId?.toString() || "",
-        assignedToUserId: deviation.assignedToUserId?.toString() || "",
-        departmentId: deviation.departmentId?.toString() || ""
+        workTaskId: deviation.workTaskId?.toString() || "none",
+        locationId: deviation.locationId?.toString() || "none",
+        priorityId: deviation.priorityId?.toString() || "none",
+        statusId: deviation.statusId?.toString() || "none",
+        assignedToUserId: deviation.assignedToUserId?.toString() || "none",
+        departmentId: deviation.departmentId?.toString() || "none"
       };
       console.log("Setting form values:", newFormValues);
       setFormValues(newFormValues);
@@ -631,7 +631,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ingen arbetsuppgift</SelectItem>
+                    <SelectItem value="none">Ingen arbetsuppgift</SelectItem>
                     {workTasks
                       .filter((task: any) => task.isActive)
                       .map((task: any) => (
@@ -662,7 +662,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ingen plats</SelectItem>
+                    <SelectItem value="none">Ingen plats</SelectItem>
                     {workStations
                       .filter((station: any) => station.isActive)
                       .map((station: any) => (
@@ -693,7 +693,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ingen prioritet</SelectItem>
+                    <SelectItem value="none">Ingen prioritet</SelectItem>
                     {deviationPriorities
                       .filter((priority) => priority.isActive)
                       .map((priority) => (
@@ -762,7 +762,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Ingen tilldelning</SelectItem>
+                    <SelectItem value="none">Ingen tilldelning</SelectItem>
                     {users.map((user: any) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.firstName && user.lastName
