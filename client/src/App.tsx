@@ -23,36 +23,35 @@ function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [systemAnnouncement, setSystemAnnouncement] = useState<{ message: string } | null>(null);
 
-  // Check for system announcements when user becomes authenticated
+  // Listen for login events to show system announcements
   useEffect(() => {
-    if (isAuthenticated && user) {
-      const checkSystemAnnouncement = async () => {
-        try {
-          const token = localStorage.getItem('authToken');
-          if (!token) return;
+    const handleUserLogin = async (event: CustomEvent) => {
+      const { token } = event.detail;
+      if (!token) return;
 
-          const response = await fetch('/api/system/announcements/active', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
+      try {
+        const response = await fetch('/api/system/announcements/active', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-          if (response.ok) {
-            const announcement = await response.json();
-            if (announcement && announcement.message) {
-              setSystemAnnouncement(announcement);
-            }
+        if (response.ok) {
+          const announcement = await response.json();
+          if (announcement && announcement.message) {
+            setSystemAnnouncement(announcement);
           }
-        } catch (error) {
-          console.error('Error fetching system announcement:', error);
         }
-      };
+      } catch (error) {
+        console.error('Error fetching system announcement:', error);
+      }
+    };
 
-      // Delay to ensure the user is fully logged in
-      const timer = setTimeout(checkSystemAnnouncement, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, user]);
+    window.addEventListener('user-logged-in', handleUserLogin as EventListener);
+    return () => {
+      window.removeEventListener('user-logged-in', handleUserLogin as EventListener);
+    };
+  }, []);
 
   if (isLoading) {
     return (
