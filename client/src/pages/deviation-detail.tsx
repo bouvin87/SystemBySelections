@@ -650,12 +650,6 @@ export default function DeviationDetailPage() {
     queryKey: ["/api/departments"],
   });
 
-  // Fetch custom field values for this deviation
-  const { data: customFieldValues = [] } = useQuery<any[]>({
-    queryKey: [`/api/deviations/${deviationId}/custom-field-values`],
-    enabled: !!deviationId,
-  });
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
