@@ -646,10 +646,14 @@ export default function DeviationDetailPage() {
     queryKey: ["/api/work-stations"],
   });
   // Fetch work departments
-  const { data: departments = [], isLoading: departmentsLoading } = useQuery<
-    Department[]
-  >({
+  const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ["/api/departments"],
+  });
+
+  // Fetch custom field values for this deviation
+  const { data: customFieldValues = [] } = useQuery<any[]>({
+    queryKey: [`/api/deviations/${deviationId}/custom-field-values`],
+    enabled: !!deviationId,
   });
 
   if (isLoading) {
