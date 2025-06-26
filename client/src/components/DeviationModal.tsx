@@ -129,6 +129,16 @@ export default function DeviationModal({
   const [customFieldValues, setCustomFieldValues] = useState<
     Record<number, string>
   >({});
+  
+  // Form state for controlled components
+  const [formValues, setFormValues] = useState({
+    workTaskId: "0",
+    locationId: "0", 
+    priorityId: "0",
+    statusId: "",
+    assignedToUserId: "0",
+    departmentId: "0"
+  });
 
   // Fetch deviation types
   const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<
@@ -256,10 +266,28 @@ export default function DeviationModal({
       if (deviation.dueDate) {
         setSelectedDueDate(deviation.dueDate);
       }
+      // Set form values from existing deviation
+      setFormValues({
+        workTaskId: deviation.workTaskId?.toString() || "0",
+        locationId: deviation.locationId?.toString() || "0",
+        priorityId: deviation.priorityId?.toString() || "0",
+        statusId: deviation.statusId?.toString() || "",
+        assignedToUserId: deviation.assignedToUserId?.toString() || "0",
+        departmentId: deviation.departmentId?.toString() || "0"
+      });
     } else {
       setSelectedTypeId(null);
       setSelectedDueDate("");
       setCustomFieldValues({});
+      // Reset form values for new deviation
+      setFormValues({
+        workTaskId: "0",
+        locationId: "0",
+        priorityId: "0",
+        statusId: "",
+        assignedToUserId: "0",
+        departmentId: "0"
+      });
     }
   }, [deviation, isOpen]);
 
@@ -591,7 +619,8 @@ export default function DeviationModal({
                 <Label htmlFor="workTaskId">Arbetsuppgift</Label>
                 <Select
                   name="workTaskId"
-                  defaultValue={deviation?.workTaskId?.toString() || "0"}
+                  value={formValues.workTaskId}
+                  onValueChange={(value) => setFormValues(prev => ({ ...prev, workTaskId: value }))}
                   disabled={workTasksLoading}
                 >
                   <SelectTrigger className="w-full">
@@ -621,7 +650,8 @@ export default function DeviationModal({
                 <Label htmlFor="locationId">Plats/Station</Label>
                 <Select
                   name="locationId"
-                  defaultValue={deviation?.locationId?.toString() || "0"}
+                  value={formValues.locationId}
+                  onValueChange={(value) => setFormValues(prev => ({ ...prev, locationId: value }))}
                   disabled={workStationsLoading}
                 >
                   <SelectTrigger className="w-full">
@@ -651,7 +681,8 @@ export default function DeviationModal({
                 <Label htmlFor="priorityId">Prioritet</Label>
                 <Select
                   name="priorityId"
-                  defaultValue={deviation?.priorityId?.toString() || "0"}
+                  value={formValues.priorityId}
+                  onValueChange={(value) => setFormValues(prev => ({ ...prev, priorityId: value }))}
                   disabled={prioritiesLoading}
                 >
                   <SelectTrigger className="w-full">
