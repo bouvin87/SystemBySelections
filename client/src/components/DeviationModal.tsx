@@ -322,9 +322,24 @@ export default function DeviationModal({
     }
   };
 
+  // Check if form is submitting
+  const isSubmitting = createDeviationMutation.isPending || updateDeviationMutation.isPending;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl relative">
+        {/* Loading overlay */}
+        {isSubmitting && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground">
+                {mode === "edit" ? "Uppdaterar avvikelse..." : "Skapar avvikelse..."}
+              </p>
+            </div>
+          </div>
+        )}
+        
         <DialogHeader>
           <DialogTitle>
             {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
@@ -632,18 +647,17 @@ export default function DeviationModal({
               </Button>
               <Button
                 type="submit"
-                disabled={
-                  createDeviationMutation.isPending ||
-                  updateDeviationMutation.isPending
-                }
+                disabled={isDataLoading || isSubmitting}
               >
-                {createDeviationMutation.isPending || updateDeviationMutation.isPending
+                {isSubmitting
                   ? mode === "edit"
                     ? "Uppdaterar..."
                     : "Skapar..."
-                  : mode === "edit"
-                    ? "Uppdatera avvikelse"
-                    : "Skapa avvikelse"}
+                  : isDataLoading
+                    ? "Laddar..."
+                    : mode === "edit"
+                      ? "Uppdatera avvikelse"
+                      : "Skapa avvikelse"}
               </Button>
             </div>
           </div>
