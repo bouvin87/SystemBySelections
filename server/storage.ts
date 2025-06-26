@@ -1418,6 +1418,142 @@ export class DatabaseStorage implements IStorage {
       .delete(systemAnnouncements)
       .where(eq(systemAnnouncements.id, id));
   }
+
+  // === CUSTOM FIELDS ===
+  async getCustomFields(tenantId: number): Promise<CustomField[]> {
+    return await db.select()
+      .from(customFields)
+      .where(eq(customFields.tenantId, tenantId))
+      .orderBy(asc(customFields.order), asc(customFields.name));
+  }
+
+  async getCustomField(id: number, tenantId: number): Promise<CustomField | undefined> {
+    const [field] = await db.select()
+      .from(customFields)
+      .where(and(eq(customFields.id, id), eq(customFields.tenantId, tenantId)));
+    return field;
+  }
+
+  async createCustomField(field: InsertCustomField): Promise<CustomField> {
+    const [created] = await db.insert(customFields).values(field).returning();
+    return created;
+  }
+
+  async updateCustomField(id: number, field: Partial<InsertCustomField>, tenantId: number): Promise<CustomField> {
+    const [updated] = await db.update(customFields)
+      .set({ ...field, updatedAt: new Date() })
+      .where(and(eq(customFields.id, id), eq(customFields.tenantId, tenantId)))
+      .returning();
+    return updated;
+  }
+
+  async deleteCustomField(id: number, tenantId: number): Promise<void> {
+    await db.delete(customFields)
+      .where(and(eq(customFields.id, id), eq(customFields.tenantId, tenantId)));
+  }
+
+  // === CUSTOM FIELD TYPE MAPPINGS ===
+  async getCustomFieldsForDeviationType(deviationTypeId: number, tenantId: number): Promise<CustomField[]> {
+    return await db.select({
+      id: customFields.id,
+      tenantId: customFields.tenantId,
+      name: customFields.name,
+      fieldType: customFields.fieldType,
+      options: customFields.options,
+      isRequired: customFields.isRequired,
+      order: customFields.order,
+      createdAt: customFields.createdAt,
+      updatedAt: customFields.updatedAt,
+    })
+      .from(customFields)
+      .innerJoin(customFieldTypeMappings, eq(customFields.id, customFieldTypeMappings.customFieldId))
+      .where(and(
+        eq(customFieldTypeMappings.deviationTypeId, deviationTypeId),
+        eq(customFields.tenantId, tenantId)
+      ))
+      .orderBy(asc(customFields.order), asc(customFields.name));
+  }
+
+  async createCustomFieldTypeMapping(mapping: InsertCustomFieldTypeMapping): Promise<CustomFieldTypeMapping> {
+    const [created] = await db.insert(customFieldTypeMappings).values(mapping).returning();
+    return created;
+  }
+
+  async deleteCustomFieldTypeMapping(customFieldId: number, deviationTypeId: number): Promise<void> {
+    await db.delete(customFieldTypeMappings)
+      .where(and(
+        eq(customFieldTypeMappings.customFieldId, customFieldId),
+        eq(customFieldTypeMappings.deviationTypeId, deviationTypeId)
+      ));
+  }
+
+  async getDeviationTypesForCustomField(customFieldId: number, tenantId: number): Promise<DeviationType[]> {
+    return await db.select({
+      id: deviationTypes.id,
+      tenantId: deviationTypes.tenantId,
+      name: deviationTypes.name,
+      color: deviationTypes.color,
+      order: deviationTypes.order,
+      isActive: deviationTypes.isActive,
+      description: deviationTypes.description,
+      responsibleUserId: deviationTypes.responsibleUserId,
+      createdAt: deviationTypes.createdAt,
+      updatedAt: deviationTypes.updatedAt,
+    })
+      .from(deviationTypes)
+      .innerJoin(customFieldTypeMappings, eq(deviationTypes.id, customFieldTypeMappings.deviationTypeId))
+      .where(and(
+        eq(customFieldTypeMappings.customFieldId, customFieldId),
+        eq(deviationTypes.tenantId, tenantId)
+      ))
+      .orderBy(asc(deviationTypes.name));
+  }
+
+  // === CUSTOM FIELD VALUES ===
+  async getCustomFieldValues(deviationId: number, tenantId: number): Promise<(CustomFieldValue & { field: CustomField })[]> {
+    // First verify deviation exists and belongs to tenant
+    const deviation = await this.getDeviation(deviationId, tenantId);
+    if (!deviation) {
+      throw new Error('Deviation not found');
+    }
+
+    return await db.select({
+      id: customFieldValues.id,
+      deviationId: customFieldValues.deviationId,
+      customFieldId: customFieldValues.customFieldId,
+      value: customFieldValues.value,
+      createdAt: customFieldValues.createdAt,
+      updatedAt: customFieldValues.updatedAt,
+      field: customFields,
+    })
+      .from(customFieldValues)
+      .innerJoin(customFields, eq(customFieldValues.customFieldId, customFields.id))
+      .where(eq(customFieldValues.deviationId, deviationId))
+      .orderBy(asc(customFields.order), asc(customFields.name));
+  }
+
+  async setCustomFieldValue(value: InsertCustomFieldValue): Promise<CustomFieldValue> {
+    // Use INSERT ... ON CONFLICT to handle upsert
+    const [result] = await db.insert(customFieldValues)
+      .values(value)
+      .onConflictDoUpdate({
+        target: [customFieldValues.deviationId, customFieldValues.customFieldId],
+        set: {
+          value: value.value,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  async deleteCustomFieldValue(deviationId: number, customFieldId: number): Promise<void> {
+    await db.delete(customFieldValues)
+      .where(and(
+        eq(customFieldValues.deviationId, deviationId),
+        eq(customFieldValues.customFieldId, customFieldId)
+      ));
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -16,7 +16,8 @@ import { emailService } from "./email";
 import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
-  insertUserSchema, insertChecklistResponseSchema, insertDeviationTypeSchema
+  insertUserSchema, insertChecklistResponseSchema, insertDeviationTypeSchema,
+  insertCustomFieldSchema, insertCustomFieldTypeMappingSchema
 } from "@shared/schema";
 import { uploadMultiple } from "./middleware/upload";
 import path from "path";
@@ -489,6 +490,223 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete user error:', error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // === CUSTOM FIELDS API ===
+  // Get all custom fields for a tenant
+  app.get('/api/custom-fields', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const fields = await storage.getCustomFields(req.tenantId);
+      res.json(fields);
+    } catch (error) {
+      console.error('Error fetching custom fields:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Create a new custom field
+  app.post('/api/custom-fields', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      
+      // Only admin users can create custom fields
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const validatedData = insertCustomFieldSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId,
+      });
+
+      const field = await storage.createCustomField(validatedData);
+      res.status(201).json(field);
+    } catch (error) {
+      console.error('Error creating custom field:', error);
+      res.status(400).json({ message: 'Invalid custom field data' });
+    }
+  });
+
+  // Update a custom field
+  app.patch('/api/custom-fields/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      
+      // Only admin users can update custom fields
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      const validatedData = insertCustomFieldSchema.partial().parse(req.body);
+      
+      const field = await storage.updateCustomField(id, validatedData, req.tenantId);
+      res.json(field);
+    } catch (error) {
+      console.error('Error updating custom field:', error);
+      res.status(400).json({ message: 'Invalid custom field data' });
+    }
+  });
+
+  // Delete a custom field
+  app.delete('/api/custom-fields/:id', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      
+      // Only admin users can delete custom fields
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteCustomField(id, req.tenantId);
+      res.status(200).json({ message: 'Custom field deleted' });
+    } catch (error) {
+      console.error('Error deleting custom field:', error);
+      res.status(500).json({ message: 'Failed to delete custom field' });
+    }
+  });
+
+  // Get custom fields for a specific deviation type
+  app.get('/api/deviation-types/:id/custom-fields', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      const deviationTypeId = parseInt(req.params.id);
+      const fields = await storage.getCustomFieldsForDeviationType(deviationTypeId, req.tenantId);
+      res.json(fields);
+    } catch (error) {
+      console.error('Error fetching custom fields for deviation type:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Link a custom field to a deviation type
+  app.post('/api/custom-fields/:fieldId/deviation-types/:typeId', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      
+      // Only admin users can manage field mappings
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const customFieldId = parseInt(req.params.fieldId);
+      const deviationTypeId = parseInt(req.params.typeId);
+
+      // Verify both field and type belong to the tenant
+      const field = await storage.getCustomField(customFieldId, req.tenantId);
+      if (!field) {
+        return res.status(404).json({ message: 'Custom field not found' });
+      }
+
+      const mapping = await storage.createCustomFieldTypeMapping({
+        customFieldId,
+        deviationTypeId
+      });
+      
+      res.status(201).json(mapping);
+    } catch (error) {
+      console.error('Error creating custom field mapping:', error);
+      res.status(400).json({ message: 'Failed to create mapping' });
+    }
+  });
+
+  // Remove link between custom field and deviation type
+  app.delete('/api/custom-fields/:fieldId/deviation-types/:typeId', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      
+      // Only admin users can manage field mappings
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const customFieldId = parseInt(req.params.fieldId);
+      const deviationTypeId = parseInt(req.params.typeId);
+
+      await storage.deleteCustomFieldTypeMapping(customFieldId, deviationTypeId);
+      res.status(200).json({ message: 'Mapping removed' });
+    } catch (error) {
+      console.error('Error removing custom field mapping:', error);
+      res.status(500).json({ message: 'Failed to remove mapping' });
+    }
+  });
+
+  // Get deviation types linked to a custom field
+  app.get('/api/custom-fields/:id/deviation-types', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      const customFieldId = parseInt(req.params.id);
+      const types = await storage.getDeviationTypesForCustomField(customFieldId, req.tenantId);
+      res.json(types);
+    } catch (error) {
+      console.error('Error fetching deviation types for custom field:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get custom field values for a deviation
+  app.get('/api/deviations/:id/custom-field-values', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      const deviationId = parseInt(req.params.id);
+      const values = await storage.getCustomFieldValues(deviationId, req.tenantId);
+      res.json(values);
+    } catch (error) {
+      console.error('Error fetching custom field values:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Set custom field value for a deviation
+  app.post('/api/deviations/:id/custom-field-values', authenticateToken, requireModule('deviations'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      const deviationId = parseInt(req.params.id);
+      const { customFieldId, value } = req.body;
+
+      // Verify deviation exists and belongs to tenant
+      const deviation = await storage.getDeviation(deviationId, req.tenantId);
+      if (!deviation) {
+        return res.status(404).json({ message: 'Deviation not found' });
+      }
+
+      const fieldValue = await storage.setCustomFieldValue({
+        deviationId,
+        customFieldId,
+        value
+      });
+
+      res.json(fieldValue);
+    } catch (error) {
+      console.error('Error setting custom field value:', error);
+      res.status(400).json({ message: 'Failed to set custom field value' });
     }
   });
 
