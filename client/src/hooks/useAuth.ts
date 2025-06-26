@@ -106,8 +106,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       // Show system announcement after successful login
+      console.log('About to check for system announcements...');
       setTimeout(async () => {
-        console.log('🚀 Starting system announcement check...');
+        console.log('Checking for system announcements with token:', data.token ? 'Token exists' : 'No token');
         try {
           const response = await fetch('/api/system/announcements/active', {
             headers: {
@@ -115,27 +116,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             },
           });
           
-          console.log('📡 System announcement API response:', response.status, response.ok);
+          console.log('System announcement API response status:', response.status);
           
           if (response.ok) {
             const announcement = await response.json();
-            console.log('📢 System announcement data:', announcement);
+            console.log('System announcement data:', announcement);
             
             if (announcement && announcement.message) {
-              console.log('🎯 Dispatching show-system-announcement event with:', announcement.message);
-              // Dispatch event to show toast
-              window.dispatchEvent(new CustomEvent('show-system-announcement', { 
-                detail: { announcement } 
-              }));
-              console.log('✅ Event dispatched successfully');
+              console.log('Creating toast notification for:', announcement.message);
+              
+              // Create a simple toast notification
+              const toastElement = document.createElement('div');
+              toastElement.innerHTML = `
+                <div style="
+                  position: fixed;
+                  top: 20px;
+                  right: 20px;
+                  z-index: 9999;
+                  background: #1e40af;
+                  color: white;
+                  padding: 16px;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                  max-width: 400px;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                ">
+                  <div style="font-weight: 600; margin-bottom: 4px;">Systemmeddelande</div>
+                  <div>${announcement.message}</div>
+                  <button onclick="this.parentElement.parentElement.remove()" style="
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    background: none;
+                    border: none;
+                    color: white;
+                    cursor: pointer;
+                    font-size: 18px;
+                  ">&times;</button>
+                </div>
+              `;
+              document.body.appendChild(toastElement);
+              console.log('Toast notification added to DOM');
+              
+              // Auto-remove after 8 seconds
+              setTimeout(() => {
+                if (toastElement.parentElement) {
+                  toastElement.remove();
+                  console.log('Toast notification auto-removed');
+                }
+              }, 8000);
             } else {
-              console.log('❌ No announcement message found');
+              console.log('No announcement message found');
             }
           } else {
-            console.log('❌ API response not ok');
+            console.log('API response not ok:', await response.text());
           }
         } catch (error) {
-          console.error('💥 Error fetching system announcement:', error);
+          console.error('Error fetching system announcement:', error);
         }
       }, 1000); // Wait 1 second after login
     } catch (error) {

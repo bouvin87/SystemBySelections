@@ -23,25 +23,36 @@ function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [systemAnnouncement, setSystemAnnouncement] = useState<{ message: string } | null>(null);
 
-  // Listen for system announcement events
+  // Check for system announcements when user becomes authenticated
   useEffect(() => {
-    console.log('🎧 Setting up system announcement listener...');
-    
-    const handleShowAnnouncement = (event: any) => {
-      console.log('🔔 Received show-system-announcement event:', event.detail);
-      const { announcement } = event.detail;
-      console.log('📝 Setting system announcement state:', announcement);
-      setSystemAnnouncement(announcement);
-    };
+    if (isAuthenticated && user) {
+      const checkSystemAnnouncement = async () => {
+        try {
+          const token = localStorage.getItem('authToken');
+          if (!token) return;
 
-    window.addEventListener('show-system-announcement', handleShowAnnouncement);
-    console.log('✅ Event listener added');
-    
-    return () => {
-      console.log('🧹 Cleaning up event listener');
-      window.removeEventListener('show-system-announcement', handleShowAnnouncement);
-    };
-  }, []);
+          const response = await fetch('/api/system/announcements/active', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const announcement = await response.json();
+            if (announcement && announcement.message) {
+              setSystemAnnouncement(announcement);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching system announcement:', error);
+        }
+      };
+
+      // Delay to ensure the user is fully logged in
+      const timer = setTimeout(checkSystemAnnouncement, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user]);
 
   if (isLoading) {
     return (
