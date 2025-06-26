@@ -39,7 +39,7 @@ interface CustomField {
   id: number;
   tenantId: number;
   name: string;
-  fieldType: 'text' | 'number' | 'checkbox' | 'date' | 'select';
+  fieldType: "text" | "number" | "checkbox" | "date" | "select";
   options?: string[];
   isRequired: boolean;
   order: number;
@@ -126,40 +126,53 @@ export default function DeviationModal({
     null,
   );
   const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
-  const [customFieldValues, setCustomFieldValues] = useState<Record<number, string>>({});
+  const [customFieldValues, setCustomFieldValues] = useState<
+    Record<number, string>
+  >({});
 
   // Fetch deviation types
-  const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<DeviationType[]>({
+  const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<
+    DeviationType[]
+  >({
     queryKey: ["/api/deviations/types"],
     enabled: isOpen,
   });
 
   // Fetch deviation priorities
-  const { data: deviationPriorities = [], isLoading: prioritiesLoading } = useQuery<DeviationPriority[]>({
-    queryKey: ["/api/deviations/priorities"],
-    enabled: isOpen,
-  });
+  const { data: deviationPriorities = [], isLoading: prioritiesLoading } =
+    useQuery<DeviationPriority[]>({
+      queryKey: ["/api/deviations/priorities"],
+      enabled: isOpen,
+    });
 
   // Fetch deviation statuses
-  const { data: deviationStatuses = [], isLoading: statusesLoading } = useQuery<DeviationStatus[]>({
+  const { data: deviationStatuses = [], isLoading: statusesLoading } = useQuery<
+    DeviationStatus[]
+  >({
     queryKey: ["/api/deviations/statuses"],
     enabled: isOpen,
   });
 
   // Fetch work tasks
-  const { data: workTasks = [], isLoading: workTasksLoading } = useQuery<WorkTask[]>({
+  const { data: workTasks = [], isLoading: workTasksLoading } = useQuery<
+    WorkTask[]
+  >({
     queryKey: ["/api/work-tasks"],
     enabled: isOpen,
   });
 
   // Fetch work stations
-  const { data: workStations = [], isLoading: workStationsLoading } = useQuery<WorkStation[]>({
+  const { data: workStations = [], isLoading: workStationsLoading } = useQuery<
+    WorkStation[]
+  >({
     queryKey: ["/api/work-stations"],
     enabled: isOpen,
   });
 
   // Fetch departments
-  const { data: departments = [], isLoading: departmentsLoading } = useQuery<any[]>({
+  const { data: departments = [], isLoading: departmentsLoading } = useQuery<
+    any[]
+  >({
     queryKey: ["/api/departments"],
     enabled: isOpen,
   });
@@ -171,7 +184,9 @@ export default function DeviationModal({
   });
 
   // Fetch users
-  const { data: users = [], isLoading: usersLoading } = useQuery<DeviationUser[]>({
+  const { data: users = [], isLoading: usersLoading } = useQuery<
+    DeviationUser[]
+  >({
     queryKey: ["/api/users"],
     enabled: isOpen,
     queryFn: async () => {
@@ -193,29 +208,46 @@ export default function DeviationModal({
   });
 
   // Fetch custom fields for selected deviation type
-  const { data: customFields = [], isLoading: customFieldsLoading } = useQuery<CustomField[]>({
+  const { data: customFields = [], isLoading: customFieldsLoading } = useQuery<
+    CustomField[]
+  >({
     queryKey: ["/api/deviation-types", selectedTypeId, "custom-fields"],
     queryFn: async () => {
       if (!selectedTypeId) return [];
-      const response = await apiRequest("GET", `/api/deviation-types/${selectedTypeId}/custom-fields`);
+      const response = await apiRequest(
+        "GET",
+        `/api/deviation-types/${selectedTypeId}/custom-fields`,
+      );
       return response.json();
     },
     enabled: !!selectedTypeId && isOpen,
   });
 
   // Fetch existing custom field values when editing
-  const { data: existingCustomFieldValues = [] } = useQuery<CustomFieldValue[]>({
-    queryKey: ["/api/deviations", deviation?.id, "custom-field-values"],
-    queryFn: async () => {
-      if (!deviation?.id) return [];
-      const response = await apiRequest("GET", `/api/deviations/${deviation.id}/custom-field-values`);
-      return response.json();
+  const { data: existingCustomFieldValues = [] } = useQuery<CustomFieldValue[]>(
+    {
+      queryKey: ["/api/deviations", deviation?.id, "custom-field-values"],
+      queryFn: async () => {
+        if (!deviation?.id) return [];
+        const response = await apiRequest(
+          "GET",
+          `/api/deviations/${deviation.id}/custom-field-values`,
+        );
+        return response.json();
+      },
+      enabled: !!deviation?.id && mode === "edit" && isOpen,
     },
-    enabled: !!deviation?.id && mode === "edit" && isOpen,
-  });
+  );
 
   // Check if all critical data is loaded
-  const isDataLoading = typesLoading || departmentsLoading || statusesLoading || prioritiesLoading || workTasksLoading || workStationsLoading || usersLoading;
+  const isDataLoading =
+    typesLoading ||
+    departmentsLoading ||
+    statusesLoading ||
+    prioritiesLoading ||
+    workTasksLoading ||
+    workStationsLoading ||
+    usersLoading;
 
   // Initialize form data when modal opens or deviation data changes
   useEffect(() => {
@@ -235,7 +267,7 @@ export default function DeviationModal({
   useEffect(() => {
     if (existingCustomFieldValues.length > 0) {
       const values: Record<number, string> = {};
-      existingCustomFieldValues.forEach(value => {
+      existingCustomFieldValues.forEach((value) => {
         values[value.customFieldId] = value.value;
       });
       setCustomFieldValues(values);
@@ -244,20 +276,32 @@ export default function DeviationModal({
 
   // Save custom field values mutation
   const saveCustomFieldValuesMutation = useMutation({
-    mutationFn: async ({ deviationId, fieldValues }: { deviationId: number, fieldValues: Record<number, string> }) => {
-      const promises = Object.entries(fieldValues).map(([fieldId, value]) => {
-        if (value.trim()) {
-          return apiRequest("POST", `/api/deviations/${deviationId}/custom-field-values`, {
-            customFieldId: parseInt(fieldId),
-            value: value.trim()
-          });
-        }
-      }).filter(Boolean);
-      
+    mutationFn: async ({
+      deviationId,
+      fieldValues,
+    }: {
+      deviationId: number;
+      fieldValues: Record<number, string>;
+    }) => {
+      const promises = Object.entries(fieldValues)
+        .map(([fieldId, value]) => {
+          if (value.trim()) {
+            return apiRequest(
+              "POST",
+              `/api/deviations/${deviationId}/custom-field-values`,
+              {
+                customFieldId: parseInt(fieldId),
+                value: value.trim(),
+              },
+            );
+          }
+        })
+        .filter(Boolean);
+
       await Promise.all(promises);
     },
     onError: (error) => {
-      console.error('Error saving custom field values:', error);
+      console.error("Error saving custom field values:", error);
     },
   });
 
@@ -271,11 +315,13 @@ export default function DeviationModal({
       setCreatedDeviationId(newDeviation.id);
 
       // Save custom field values if any
-      const hasCustomFieldValues = Object.keys(customFieldValues).some(key => customFieldValues[parseInt(key)]?.trim());
+      const hasCustomFieldValues = Object.keys(customFieldValues).some((key) =>
+        customFieldValues[parseInt(key)]?.trim(),
+      );
       if (hasCustomFieldValues) {
-        await saveCustomFieldValuesMutation.mutateAsync({ 
-          deviationId: newDeviation.id, 
-          fieldValues: customFieldValues 
+        await saveCustomFieldValuesMutation.mutateAsync({
+          deviationId: newDeviation.id,
+          fieldValues: customFieldValues,
         });
       }
 
@@ -422,17 +468,20 @@ export default function DeviationModal({
   };
 
   // Check if form is submitting
-  const isSubmitting = createDeviationMutation.isPending || updateDeviationMutation.isPending;
+  const isSubmitting =
+    createDeviationMutation.isPending || updateDeviationMutation.isPending;
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full max-w-3xl max-h-[100vh] overflow-y-auto px-4 sm:px-6 py-6 rounded-lg">
+      <DialogContent className="w-full max-w-3xl max-h-[90vh] overflow-y-auto px-4 sm:px-6 py-6 rounded-lg">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <p className="text-sm text-muted-foreground">
-                {mode === "edit" ? "Uppdaterar avvikelse..." : "Skapar avvikelse..."}
+                {mode === "edit"
+                  ? "Uppdaterar avvikelse..."
+                  : "Skapar avvikelse..."}
               </p>
             </div>
           </div>
@@ -486,13 +535,18 @@ export default function DeviationModal({
                 onValueChange={(value) => setSelectedTypeId(parseInt(value))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={typesLoading ? "Laddar..." : "Välj typ"} />
+                  <SelectValue
+                    placeholder={typesLoading ? "Laddar..." : "Välj typ"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {deviationTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: type.color }}
+                        />
                         {type.name}
                       </div>
                     </SelectItem>
@@ -510,13 +564,20 @@ export default function DeviationModal({
                 disabled={departmentsLoading}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={departmentsLoading ? "Laddar..." : "Välj avdelning"} />
+                  <SelectValue
+                    placeholder={
+                      departmentsLoading ? "Laddar..." : "Välj avdelning"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {departments
                     .filter((dept: any) => dept.isActive)
                     .map((department: any) => (
-                      <SelectItem key={department.id} value={department.id.toString()}>
+                      <SelectItem
+                        key={department.id}
+                        value={department.id.toString()}
+                      >
                         {department.name}
                       </SelectItem>
                     ))}
@@ -527,69 +588,109 @@ export default function DeviationModal({
             {customFields.length > 0 && (
               <div className="col-span-1 sm:col-span-2">
                 <details className="border rounded-md p-4">
-                  <summary className="cursor-pointer font-medium text-sm">Extrafält{customFields.some(f => f.isRequired) && <span className="text-red-500 ml-1">*</span>}</summary>
+                  <summary className="cursor-pointer font-medium text-sm">
+                    Extrafält
+                    {customFields.some((f) => f.isRequired) && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </summary>
                   <div className="space-y-4 mt-4">
                     {customFields
                       .sort((a, b) => a.order - b.order)
                       .map((field) => (
                         <div key={field.id} className="space-y-1 sm:space-y-2">
-                          <Label htmlFor={`custom_field_${field.id}`}>{field.name}{field.isRequired && <span className="text-red-500 ml-1">*</span>}</Label>
+                          <Label htmlFor={`custom_field_${field.id}`}>
+                            {field.name}
+                            {field.isRequired && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </Label>
 
-                          {field.fieldType === 'text' && (
+                          {field.fieldType === "text" && (
                             <Input
                               id={`custom_field_${field.id}`}
-                              value={customFieldValues[field.id] || ''}
-                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              value={customFieldValues[field.id] || ""}
+                              onChange={(e) =>
+                                setCustomFieldValues((prev) => ({
+                                  ...prev,
+                                  [field.id]: e.target.value,
+                                }))
+                              }
                               required={field.isRequired}
                               placeholder={`Ange ${field.name.toLowerCase()}`}
                               className="w-full"
                             />
                           )}
 
-                          {field.fieldType === 'number' && (
+                          {field.fieldType === "number" && (
                             <Input
                               id={`custom_field_${field.id}`}
                               type="number"
-                              value={customFieldValues[field.id] || ''}
-                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              value={customFieldValues[field.id] || ""}
+                              onChange={(e) =>
+                                setCustomFieldValues((prev) => ({
+                                  ...prev,
+                                  [field.id]: e.target.value,
+                                }))
+                              }
                               required={field.isRequired}
                               placeholder={`Ange ${field.name.toLowerCase()}`}
                               className="w-full"
                             />
                           )}
 
-                          {field.fieldType === 'checkbox' && (
+                          {field.fieldType === "checkbox" && (
                             <div className="flex items-center space-x-2">
                               <Checkbox
                                 id={`custom_field_${field.id}`}
-                                checked={customFieldValues[field.id] === 'true'}
-                                onCheckedChange={(checked) => setCustomFieldValues(prev => ({ ...prev, [field.id]: checked ? 'true' : 'false' }))}
+                                checked={customFieldValues[field.id] === "true"}
+                                onCheckedChange={(checked) =>
+                                  setCustomFieldValues((prev) => ({
+                                    ...prev,
+                                    [field.id]: checked ? "true" : "false",
+                                  }))
+                                }
                               />
-                              <Label htmlFor={`custom_field_${field.id}`} className="text-sm font-normal">
+                              <Label
+                                htmlFor={`custom_field_${field.id}`}
+                                className="text-sm font-normal"
+                              >
                                 {field.name}
                               </Label>
                             </div>
                           )}
 
-                          {field.fieldType === 'date' && (
+                          {field.fieldType === "date" && (
                             <Input
                               id={`custom_field_${field.id}`}
                               type="date"
-                              value={customFieldValues[field.id] || ''}
-                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              value={customFieldValues[field.id] || ""}
+                              onChange={(e) =>
+                                setCustomFieldValues((prev) => ({
+                                  ...prev,
+                                  [field.id]: e.target.value,
+                                }))
+                              }
                               required={field.isRequired}
                               className="w-full"
                             />
                           )}
 
-                          {field.fieldType === 'select' && field.options && (
+                          {field.fieldType === "select" && field.options && (
                             <Select
-                              value={customFieldValues[field.id] || ''}
-                              onValueChange={(value) => setCustomFieldValues(prev => ({ ...prev, [field.id]: value }))}
+                              value={customFieldValues[field.id] || ""}
+                              onValueChange={(value) =>
+                                setCustomFieldValues((prev) => ({
+                                  ...prev,
+                                  [field.id]: value,
+                                }))
+                              }
                               required={field.isRequired}
                             >
                               <SelectTrigger className="w-full">
-                                <SelectValue placeholder={`Välj ${field.name.toLowerCase()}`} />
+                                <SelectValue
+                                  placeholder={`Välj ${field.name.toLowerCase()}`}
+                                />
                               </SelectTrigger>
                               <SelectContent>
                                 {field.options.map((option, index) => (
@@ -630,7 +731,8 @@ export default function DeviationModal({
               <div>
                 <Label htmlFor="isHidden">Dölj avvikelse</Label>
                 <p className="text-xs text-muted-foreground">
-                  Endast synlig för admin, avdelningsansvarig och tilldelad person
+                  Endast synlig för admin, avdelningsansvarig och tilldelad
+                  person
                 </p>
               </div>
             </div>
@@ -656,6 +758,4 @@ export default function DeviationModal({
       </DialogContent>
     </Dialog>
   );
-
-
 }
