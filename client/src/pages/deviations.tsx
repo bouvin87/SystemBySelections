@@ -120,6 +120,35 @@ export default function DeviationsPage() {
     queryKey: ["/api/departments"],
   });
 
+  // Fetch custom field values for all deviations
+  const { data: customFieldValuesMap = {} } = useQuery<Record<number, any[]>>({
+    queryKey: ["/api/deviations/custom-field-values"],
+    queryFn: async () => {
+      const values: Record<number, any[]> = {};
+      
+      // Fetch custom field values for each deviation
+      const promises = deviations.map(async (deviation) => {
+        try {
+          const response = await fetch(`/api/deviations/${deviation.id}/custom-field-values`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            values[deviation.id] = data;
+          }
+        } catch (error) {
+          console.error(`Error fetching custom fields for deviation ${deviation.id}:`, error);
+        }
+      });
+      
+      await Promise.all(promises);
+      return values;
+    },
+    enabled: deviations.length > 0,
+  });
+
   // Filter deviations based on current filters
   const filteredDeviations = deviations.filter((deviation) => {
     const matchesSearch = deviation.title
@@ -837,6 +866,22 @@ export default function DeviationsPage() {
                               <p className="text-sm text-gray-600">
                                 {deviation.description}
                               </p>
+                            )}
+
+                            {/* Custom Fields */}
+                            {customFieldValuesMap[deviation.id] && customFieldValuesMap[deviation.id].length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {customFieldValuesMap[deviation.id].map((fieldValue: any) => (
+                                  <div key={fieldValue.id} className="text-xs text-gray-500">
+                                    <span className="font-medium">{fieldValue.field.name}:</span>{" "}
+                                    <span>
+                                      {fieldValue.field.fieldType === 'checkbox' 
+                                        ? (fieldValue.value === 'true' ? 'Ja' : 'Nej')
+                                        : fieldValue.value}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
 

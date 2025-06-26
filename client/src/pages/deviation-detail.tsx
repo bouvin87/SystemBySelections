@@ -320,6 +320,12 @@ function DeviationTimeline({ deviationId }: { deviationId: number }) {
     queryKey: ["/api/departments"],
   });
 
+  // Fetch custom field values for this deviation
+  const { data: customFieldValues = [] } = useQuery<any[]>({
+    queryKey: [`/api/deviations/${deviationId}/custom-field-values`],
+    enabled: !!deviationId,
+  });
+
   // Function to translate log messages
   const translateLogMessage = (key: string): string => {
     return t(`deviations.logs.${key}`, { defaultValue: key });
@@ -899,6 +905,28 @@ export default function DeviationDetailPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Custom Fields */}
+                {customFieldValues.length > 0 && (
+                  <div className="mt-4 border-t pt-4">
+                    <Label className="text-sm text-gray-500">Extrafält</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      {customFieldValues.map((fieldValue: any) => (
+                        <div key={fieldValue.id}>
+                          <Label className="text-sm font-medium">
+                            {fieldValue.field.name}
+                            {fieldValue.field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                          </Label>
+                          <p className="text-gray-700 dark:text-gray-300 mt-1">
+                            {fieldValue.field.fieldType === 'checkbox' 
+                              ? (fieldValue.value === 'true' ? 'Ja' : 'Nej')
+                              : fieldValue.value || 'Inget värde'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
