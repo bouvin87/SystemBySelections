@@ -140,6 +140,15 @@ export default function DeviationModal({
     departmentId: "none"
   });
 
+  // Handle work task change - reset location when work task changes
+  const handleWorkTaskChange = (value: string) => {
+    setFormValues(prev => ({ 
+      ...prev, 
+      workTaskId: value,
+      locationId: "none" // Reset location when work task changes
+    }));
+  };
+
   // Fetch deviation types
   const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<
     DeviationType[]
@@ -248,6 +257,17 @@ export default function DeviationModal({
       enabled: !!deviation?.id && mode === "edit" && isOpen,
     },
   );
+
+  // Filter work stations based on selected work task
+  const filteredWorkStations = workStations.filter((station: any) => {
+    if (formValues.workTaskId === "none" || formValues.workTaskId === "") {
+      return false; // Don't show any stations if no work task is selected
+    }
+    return station.workTaskId === parseInt(formValues.workTaskId);
+  });
+
+  // Check if selected work task has any stations
+  const selectedWorkTaskHasStations = filteredWorkStations.length > 0;
 
   // Check if all critical data is loaded
   const isDataLoading =
@@ -620,7 +640,7 @@ export default function DeviationModal({
                 <Select
                   name="workTaskId"
                   value={formValues.workTaskId}
-                  onValueChange={(value) => setFormValues(prev => ({ ...prev, workTaskId: value }))}
+                  onValueChange={handleWorkTaskChange}
                   disabled={workTasksLoading}
                 >
                   <SelectTrigger className="w-full">
@@ -642,8 +662,8 @@ export default function DeviationModal({
               </div>
             )}
 
-            {/* Location/Work Station - only show if enabled in settings */}
-            {deviationSettings?.useWorkStations && (
+            {/* Location/Work Station - only show if enabled in settings and work task is selected with stations */}
+            {deviationSettings?.useWorkStations && formValues.workTaskId !== "none" && formValues.workTaskId !== "" && selectedWorkTaskHasStations && (
               <div>
                 <Label htmlFor="locationId">Plats/Station</Label>
                 <Select
@@ -661,7 +681,7 @@ export default function DeviationModal({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Ingen plats</SelectItem>
-                    {workStations.map((station: any) => (
+                    {filteredWorkStations.map((station: any) => (
                         <SelectItem key={station.id} value={station.id.toString()}>
                           {station.name}
                         </SelectItem>
