@@ -661,17 +661,15 @@ export default function DeviationModal({
                           )}
 
                           {field.fieldType === "date" && (
-                            <Input
-                              id={`custom_field_${field.id}`}
-                              type="date"
+                            <DatePicker
                               value={customFieldValues[field.id] || ""}
-                              onChange={(e) =>
+                              onChange={(value) =>
                                 setCustomFieldValues((prev) => ({
                                   ...prev,
-                                  [field.id]: e.target.value,
+                                  [field.id]: value,
                                 }))
                               }
-                              required={field.isRequired}
+                              placeholder="Välj datum"
                               className="w-full"
                             />
                           )}

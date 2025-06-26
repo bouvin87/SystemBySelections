@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, TrendingUp, Filter, X } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Plus, TrendingUp, Filter, X, Calendar } from "lucide-react";
 import DeviationModal from "@/components/DeviationModal";
 import {
   PieChart,
@@ -555,29 +556,31 @@ export default function DeviationsPage() {
                 )}
               </div>
 
-              <div>
-                <Label>Startdatum</Label>
-                <Input
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      startDate: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div>
-                <Label>Slutdatum</Label>
-                <Input
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, endDate: e.target.value }))
-                  }
-                />
+              {/* Date Range */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Datumintervall
+                </Label>
+                <div className="space-y-2">
+                  <DatePicker
+                    value={filters.startDate}
+                    onChange={(value) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        startDate: value,
+                      }))
+                    }
+                    placeholder="Från datum"
+                  />
+                  <DatePicker
+                    value={filters.endDate}
+                    onChange={(value) =>
+                      setFilters((prev) => ({ ...prev, endDate: value }))
+                    }
+                    placeholder="Till datum"
+                  />
+                </div>
               </div>
             </div>
 
