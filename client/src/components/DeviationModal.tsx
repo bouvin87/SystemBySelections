@@ -426,8 +426,7 @@ export default function DeviationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="max-w-2xl">
-        {/* Loading overlay */}
+      <DialogContent className="w-full max-w-3xl max-h-[100vh] overflow-y-auto px-4 sm:px-6 py-6 rounded-lg">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
@@ -438,40 +437,45 @@ export default function DeviationModal({
             </div>
           </div>
         )}
-        
+
         <DialogHeader>
           <DialogTitle>
             {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
           </DialogTitle>
         </DialogHeader>
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit(new FormData(e.currentTarget));
           }}
-          className="space-y-4"
+          className="space-y-6"
         >
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <div className="space-y-4">
+            <div className="w-full">
               <Label htmlFor="title">Titel *</Label>
               <Input
                 id="title"
                 name="title"
                 required
                 defaultValue={deviation?.title || ""}
+                className="w-full"
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="w-full">
               <Label htmlFor="description">Beskrivning</Label>
               <Textarea
                 id="description"
                 name="description"
                 rows={3}
                 defaultValue={deviation?.description || ""}
+                className="w-full"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <div>
               <Label htmlFor="deviationTypeId">Avvikelsetyp *</Label>
               <Select
@@ -481,17 +485,14 @@ export default function DeviationModal({
                 disabled={typesLoading}
                 onValueChange={(value) => setSelectedTypeId(parseInt(value))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={typesLoading ? "Laddar..." : "Välj typ"} />
                 </SelectTrigger>
                 <SelectContent>
                   {deviationTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: type.color }}
-                        />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />
                         {type.name}
                       </div>
                     </SelectItem>
@@ -508,17 +509,14 @@ export default function DeviationModal({
                 defaultValue={deviation?.departmentId?.toString()}
                 disabled={departmentsLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={departmentsLoading ? "Laddar..." : "Välj avdelning"} />
                 </SelectTrigger>
                 <SelectContent>
                   {departments
                     .filter((dept: any) => dept.isActive)
                     .map((department: any) => (
-                      <SelectItem
-                        key={department.id}
-                        value={department.id.toString()}
-                      >
+                      <SelectItem key={department.id} value={department.id.toString()}>
                         {department.name}
                       </SelectItem>
                     ))}
@@ -526,288 +524,92 @@ export default function DeviationModal({
               </Select>
             </div>
 
-            {/* Custom Fields Section */}
             {customFields.length > 0 && (
-              <div className="col-span-2">
-                <div className="space-y-4 pt-4 border-t">
-                  <h4 className="font-medium text-sm text-gray-700">Extrafält</h4>
-                  {customFields
-                    .sort((a, b) => a.order - b.order)
-                    .map((field) => (
-                      <div key={field.id}>
-                        <Label htmlFor={`custom_field_${field.id}`}>
-                          {field.name}
-                          {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-                        </Label>
-                        
-                        {field.fieldType === 'text' && (
-                          <Input
-                            id={`custom_field_${field.id}`}
-                            value={customFieldValues[field.id] || ''}
-                            onChange={(e) => setCustomFieldValues(prev => ({
-                              ...prev,
-                              [field.id]: e.target.value
-                            }))}
-                            required={field.isRequired}
-                            placeholder={`Ange ${field.name.toLowerCase()}`}
-                          />
-                        )}
-                        
-                        {field.fieldType === 'number' && (
-                          <Input
-                            id={`custom_field_${field.id}`}
-                            type="number"
-                            value={customFieldValues[field.id] || ''}
-                            onChange={(e) => setCustomFieldValues(prev => ({
-                              ...prev,
-                              [field.id]: e.target.value
-                            }))}
-                            required={field.isRequired}
-                            placeholder={`Ange ${field.name.toLowerCase()}`}
-                          />
-                        )}
-                        
-                        {field.fieldType === 'checkbox' && (
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`custom_field_${field.id}`}
-                              checked={customFieldValues[field.id] === 'true'}
-                              onCheckedChange={(checked) => setCustomFieldValues(prev => ({
-                                ...prev,
-                                [field.id]: checked ? 'true' : 'false'
-                              }))}
-                            />
-                            <Label htmlFor={`custom_field_${field.id}`} className="text-sm font-normal">
-                              {field.name}
-                            </Label>
-                          </div>
-                        )}
-                        
-                        {field.fieldType === 'date' && (
-                          <Input
-                            id={`custom_field_${field.id}`}
-                            type="date"
-                            value={customFieldValues[field.id] || ''}
-                            onChange={(e) => setCustomFieldValues(prev => ({
-                              ...prev,
-                              [field.id]: e.target.value
-                            }))}
-                            required={field.isRequired}
-                          />
-                        )}
-                        
-                        {field.fieldType === 'select' && field.options && (
-                          <Select
-                            value={customFieldValues[field.id] || ''}
-                            onValueChange={(value) => setCustomFieldValues(prev => ({
-                              ...prev,
-                              [field.id]: value
-                            }))}
-                            required={field.isRequired}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder={`Välj ${field.name.toLowerCase()}`} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {field.options.map((option, index) => (
-                                <SelectItem key={index} value={option}>
-                                  {option}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {mode === "edit" && (
-              <div>
-                <Label htmlFor="statusId">Status</Label>
-                <Select
-                  name="statusId"
-                  defaultValue={deviation?.statusId?.toString() || ""}
-                  disabled={statusesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={statusesLoading ? "Laddar..." : "Välj status"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {deviationStatuses
-                      ?.filter((status: DeviationStatus) => status.isActive)
-                      ?.sort(
-                        (a: DeviationStatus, b: DeviationStatus) =>
-                          a.order - b.order,
-                      )
-                      ?.map((status: DeviationStatus) => (
-                        <SelectItem
-                          key={status.id}
-                          value={status.id.toString()}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{
-                                backgroundColor: status.color || "#10b981",
-                              }}
-                            />
-                            {status.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {(deviationSettings?.usePriorities ?? true) && (
-              <div>
-                <Label htmlFor="priorityId">Prioritet</Label>
-                <Select
-                  name="priorityId"
-                  defaultValue={deviation?.priorityId?.toString() || ""}
-                  disabled={prioritiesLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={prioritiesLoading ? "Laddar..." : "Välj prioritet"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {deviationPriorities
-                      .filter((priority) => priority.isActive)
+              <div className="col-span-1 sm:col-span-2">
+                <details className="border rounded-md p-4">
+                  <summary className="cursor-pointer font-medium text-sm">Extrafält{customFields.some(f => f.isRequired) && <span className="text-red-500 ml-1">*</span>}</summary>
+                  <div className="space-y-4 mt-4">
+                    {customFields
                       .sort((a, b) => a.order - b.order)
-                      .map((priority) => (
-                        <SelectItem
-                          key={priority.id}
-                          value={priority.id.toString()}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: priority.color }}
+                      .map((field) => (
+                        <div key={field.id} className="space-y-1 sm:space-y-2">
+                          <Label htmlFor={`custom_field_${field.id}`}>{field.name}{field.isRequired && <span className="text-red-500 ml-1">*</span>}</Label>
+
+                          {field.fieldType === 'text' && (
+                            <Input
+                              id={`custom_field_${field.id}`}
+                              value={customFieldValues[field.id] || ''}
+                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              required={field.isRequired}
+                              placeholder={`Ange ${field.name.toLowerCase()}`}
+                              className="w-full"
                             />
-                            {priority.name}
-                          </div>
-                        </SelectItem>
+                          )}
+
+                          {field.fieldType === 'number' && (
+                            <Input
+                              id={`custom_field_${field.id}`}
+                              type="number"
+                              value={customFieldValues[field.id] || ''}
+                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              required={field.isRequired}
+                              placeholder={`Ange ${field.name.toLowerCase()}`}
+                              className="w-full"
+                            />
+                          )}
+
+                          {field.fieldType === 'checkbox' && (
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`custom_field_${field.id}`}
+                                checked={customFieldValues[field.id] === 'true'}
+                                onCheckedChange={(checked) => setCustomFieldValues(prev => ({ ...prev, [field.id]: checked ? 'true' : 'false' }))}
+                              />
+                              <Label htmlFor={`custom_field_${field.id}`} className="text-sm font-normal">
+                                {field.name}
+                              </Label>
+                            </div>
+                          )}
+
+                          {field.fieldType === 'date' && (
+                            <Input
+                              id={`custom_field_${field.id}`}
+                              type="date"
+                              value={customFieldValues[field.id] || ''}
+                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                              required={field.isRequired}
+                              className="w-full"
+                            />
+                          )}
+
+                          {field.fieldType === 'select' && field.options && (
+                            <Select
+                              value={customFieldValues[field.id] || ''}
+                              onValueChange={(value) => setCustomFieldValues(prev => ({ ...prev, [field.id]: value }))}
+                              required={field.isRequired}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={`Välj ${field.name.toLowerCase()}`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {field.options.map((option, index) => (
+                                  <SelectItem key={index} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
                       ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                </details>
               </div>
             )}
-
-            {(deviationSettings?.useWorkTasks ?? true) && (
-              <div>
-                <Label htmlFor="workTaskId">Arbetsmoment</Label>
-                <Select
-                  name="workTaskId"
-                  defaultValue={deviation?.workTaskId?.toString() || "0"}
-                  disabled={workTasksLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={workTasksLoading ? "Laddar..." : "Välj arbetsmoment"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Ingen vald</SelectItem>
-                    {workTasks.map((task) => (
-                      <SelectItem key={task.id} value={task.id.toString()}>
-                        {task.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {mode === "edit" && (
-              <div>
-                <Label htmlFor="assignedToUserId">Tilldela till</Label>
-                <Select
-                  name="assignedToUserId"
-                  defaultValue={deviation?.assignedToUserId?.toString() || ""}
-                  disabled={usersLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={usersLoading ? "Laddar..." : "Välj användare"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Ingen vald</SelectItem>
-                    {users
-                      .filter((user) => user.isActive)
-                      .map((user) => (
-                        <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.firstName} {user.lastName} ({user.email})
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {(deviationSettings?.useWorkStations ?? true) && (
-              <div>
-                <Label htmlFor="locationId">Plats</Label>
-                <Select
-                  name="locationId"
-                  defaultValue={deviation?.locationId?.toString() || "0"}
-                  disabled={workStationsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={workStationsLoading ? "Laddar..." : "Välj plats"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Ingen vald</SelectItem>
-                    {workStations.map((station) => (
-                      <SelectItem
-                        key={station.id}
-                        value={station.id.toString()}
-                      >
-                        {station.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {mode === "edit" && (
-              <div>
-                <Label htmlFor="dueDate">Deadline</Label>
-                <DatePicker
-                  value={
-                    selectedDueDate !== ""
-                      ? selectedDueDate
-                      : deviation?.dueDate
-                        ? new Date(deviation.dueDate)
-                            .toISOString()
-                            .split("T")[0]
-                        : ""
-                  }
-                  onChange={(value) => {
-                    setSelectedDueDate(value);
-                  }}
-                  placeholder="Välj deadline"
-                />
-                <input
-                  type="hidden"
-                  name="dueDate"
-                  value={
-                    selectedDueDate !== ""
-                      ? selectedDueDate
-                      : deviation?.dueDate
-                        ? new Date(deviation.dueDate)
-                            .toISOString()
-                            .split("T")[0]
-                        : ""
-                  }
-                />
-              </div>
-            )}
-
-            {/* Hidden checkbox - Only for users with permission */}
           </div>
-          {/* File Upload Section - Only for Create Mode */}
+
           {mode === "create" && (
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4">
               <h3 className="text-lg font-semibold">Bilagor</h3>
               <FileUploadSimple
                 selectedFiles={selectedFiles}
@@ -818,35 +620,26 @@ export default function DeviationModal({
             </div>
           )}
 
-          <div className="flex justify-between items-start pt-4 gap-4">
-            {/* Vänster sektion med checkbox och beskrivning */}
-            <div className="flex gap-2 max-w-md">
-              <div className="pt-3">
-                <Checkbox
-                  id="isHidden"
-                  name="isHidden"
-                  defaultChecked={deviation?.isHidden || false}
-                />
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4">
+            <div className="flex gap-3">
+              <Checkbox
+                id="isHidden"
+                name="isHidden"
+                defaultChecked={deviation?.isHidden || false}
+              />
               <div>
-                <Label htmlFor="isHidden" className="text-sm font-medium">
-                  Dölj avvikelse
-                </Label>
+                <Label htmlFor="isHidden">Dölj avvikelse</Label>
                 <p className="text-xs text-muted-foreground">
                   Endast synlig för admin, avdelningsansvarig och tilldelad person
                 </p>
               </div>
             </div>
 
-            {/* Höger sektion med knappar */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button type="button" variant="outline" onClick={onClose}>
                 Avbryt
               </Button>
-              <Button
-                type="submit"
-                disabled={isDataLoading || isSubmitting}
-              >
+              <Button type="submit" disabled={isDataLoading || isSubmitting}>
                 {isSubmitting
                   ? mode === "edit"
                     ? "Uppdaterar..."
@@ -859,10 +652,10 @@ export default function DeviationModal({
               </Button>
             </div>
           </div>
-
-
         </form>
       </DialogContent>
     </Dialog>
   );
+
+
 }
