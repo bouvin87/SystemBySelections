@@ -105,10 +105,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         tenant: data.tenant,
       });
 
-      // Trigger system announcement check
-      window.dispatchEvent(new CustomEvent('user-logged-in', { 
-        detail: { token: data.token } 
-      }));
+      // Show system announcement after successful login
+      setTimeout(async () => {
+        try {
+          const response = await fetch('/api/system/announcements/active', {
+            headers: {
+              'Authorization': `Bearer ${data.token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const announcement = await response.json();
+            if (announcement && announcement.message) {
+              // Dispatch event to show toast
+              window.dispatchEvent(new CustomEvent('show-system-announcement', { 
+                detail: { announcement } 
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching system announcement:', error);
+        }
+      }, 1000); // Wait 1 second after login
     } catch (error) {
       setAuthState(prev => ({ ...prev, isLoading: false }));
       throw error;

@@ -23,33 +23,16 @@ function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [systemAnnouncement, setSystemAnnouncement] = useState<{ message: string } | null>(null);
 
-  // Listen for login events to show system announcements
+  // Listen for system announcement events
   useEffect(() => {
-    const handleUserLogin = async (event: CustomEvent) => {
-      const { token } = event.detail;
-      if (!token) return;
-
-      try {
-        const response = await fetch('/api/system/announcements/active', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const announcement = await response.json();
-          if (announcement && announcement.message) {
-            setSystemAnnouncement(announcement);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching system announcement:', error);
-      }
+    const handleShowAnnouncement = (event: CustomEvent) => {
+      const { announcement } = event.detail;
+      setSystemAnnouncement(announcement);
     };
 
-    window.addEventListener('user-logged-in', handleUserLogin as EventListener);
+    window.addEventListener('show-system-announcement', handleShowAnnouncement as EventListener);
     return () => {
-      window.removeEventListener('user-logged-in', handleUserLogin as EventListener);
+      window.removeEventListener('show-system-announcement', handleShowAnnouncement as EventListener);
     };
   }, []);
 
