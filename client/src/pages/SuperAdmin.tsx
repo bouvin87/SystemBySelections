@@ -94,7 +94,6 @@ interface SystemAnnouncement {
 export default function SuperAdmin() {
   const { toast } = useToast();
   const { user, logout } = useAuth();
-  const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [newTenant, setNewTenant] = useState({

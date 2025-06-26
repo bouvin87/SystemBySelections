@@ -1366,6 +1366,7 @@ export class DatabaseStorage implements IStorage {
         )`
       ));
   }
+
   // === SYSTEM ANNOUNCEMENTS ===
   async getActiveSystemAnnouncement(tenantId: number): Promise<SystemAnnouncement | null> {
     const [announcement] = await db
