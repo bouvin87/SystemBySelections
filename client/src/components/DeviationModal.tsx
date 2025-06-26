@@ -630,7 +630,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen arbetsuppgift</SelectItem>
+                    <SelectItem value="">Ingen arbetsuppgift</SelectItem>
                     {workTasks
                       .filter((task: any) => task.isActive)
                       .map((task: any) => (
