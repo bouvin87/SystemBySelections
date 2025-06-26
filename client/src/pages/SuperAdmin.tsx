@@ -43,9 +43,13 @@ import {
   Shield,
   Filter,
   LogOut,
+  Bell,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
-import type { Tenant } from "@shared/schema";
+import { SystemAnnouncementModal } from "@/components/SystemAnnouncementModal";
+import type { Tenant, SystemAnnouncement } from "@shared/schema";
 
 const AVAILABLE_MODULES = [
   {
@@ -101,6 +105,10 @@ export default function SuperAdmin() {
     name: "",
     modules: [] as string[],
   });
+  
+  // System announcement state
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<SystemAnnouncement | null>(null);
   
   // System announcement state
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
@@ -169,6 +177,50 @@ export default function SuperAdmin() {
       (!userFilters.role ||
         user.role.toLowerCase().includes(userFilters.role.toLowerCase()))
     );
+  });
+
+  // Fetch system announcements
+  const { data: systemAnnouncements = [] } = useQuery({
+    queryKey: ["/api/system/announcements"],
+    retry: false,
+  });
+
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: (id: number) =>
+      apiRequest(`/api/system/announcements/${id}`, "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
+      toast({
+        title: "Meddelande raderat",
+        description: "Systemmeddelandet har raderats framgångsrikt.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte radera meddelandet.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleAnnouncementMutation = useMutation({
+    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) =>
+      apiRequest(`/api/system/announcements/${id}`, "PATCH", { isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
+      toast({
+        title: "Meddelande uppdaterat",
+        description: "Meddelandestatus har ändrats framgångsrikt.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte uppdatera meddelandet.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Create tenant mutation
@@ -506,6 +558,10 @@ export default function SuperAdmin() {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Användarhantering
+            </TabsTrigger>
+            <TabsTrigger value="announcements" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Meddelanden
             </TabsTrigger>
           </TabsList>
 
@@ -1246,6 +1302,96 @@ export default function SuperAdmin() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Announcements Tab Content */}
+        <TabsContent value="announcements" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-blue-600" />
+                  <CardTitle>Systemmeddelanden</CardTitle>
+                </div>
+                <Button 
+                  onClick={() => setIsAnnouncementModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nytt meddelande
+                </Button>
+              </div>
+              <CardDescription>
+                Hantera systemmeddelanden som visas för alla användare vid inloggning
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {systemAnnouncements.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Inga systemmeddelanden skapade än</p>
+                  </div>
+                ) : (
+                  systemAnnouncements.map((announcement: SystemAnnouncement) => (
+                    <div key={announcement.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={announcement.isActive ? "default" : "secondary"}>
+                            {announcement.isActive ? "Aktivt" : "Inaktivt"}
+                          </Badge>
+                          <span className="text-sm text-gray-500">
+                            Skapad: {new Date(announcement.createdAt).toLocaleDateString('sv-SE')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={announcement.isActive}
+                            onCheckedChange={(checked) => 
+                              toggleAnnouncementMutation.mutate({ 
+                                id: announcement.id, 
+                                isActive: checked 
+                              })
+                            }
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingAnnouncement(announcement);
+                              setIsAnnouncementModalOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-gray-700">{announcement.message}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        </Tabs>
+
+        {/* System Announcement Modal */}
+        <SystemAnnouncementModal
+          isOpen={isAnnouncementModalOpen}
+          onClose={() => {
+            setIsAnnouncementModalOpen(false);
+            setEditingAnnouncement(null);
+          }}
+          announcement={editingAnnouncement}
+        />
       </main>
     </div>
   );
