@@ -581,18 +581,19 @@ export default function DeviationModal({
             )}
 
             {/* Hidden checkbox - Only for users with permission */}
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isHidden"
-                name="isHidden"
-                defaultChecked={deviation?.isHidden || false}
-              />
-              <Label htmlFor="isHidden" className="text-sm font-medium">
-                Dölj avvikelse (endast synlig för admin, avdelningsansvarig och
-                tilldelad person)
-              </Label>
-            </div>
+            {(user?.role === 'admin' || user?.role === 'superadmin') && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isHidden"
+                  name="isHidden"
+                  defaultChecked={deviation?.isHidden || false}
+                />
+                <Label htmlFor="isHidden" className="text-sm font-medium">
+                  Dölj avvikelse (endast synlig för admin, superadmin, skapare, avdelningsansvarig och
+                  tilldelad person)
+                </Label>
+              </div>
+            )}
           </div>
           {/* File Upload Section - Only for Create Mode */}
           {mode === "create" && (

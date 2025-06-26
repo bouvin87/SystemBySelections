@@ -70,7 +70,12 @@ export default function deviationRoutes(app: Express) {
             : undefined,
         };
 
-        const deviations = await storage.getDeviations(tenantId, filters);
+        const deviations = await storage.getDeviations(tenantId, {
+          ...filters,
+          userId: req.user?.userId,
+          userRole: req.user?.role,
+          userDepartmentId: req.user?.departmentId,
+        });
         res.json(deviations);
       } catch (error) {
         console.error("Error fetching deviations:", error);
