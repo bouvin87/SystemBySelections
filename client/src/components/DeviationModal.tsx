@@ -632,9 +632,7 @@ export default function DeviationModal({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Ingen arbetsuppgift</SelectItem>
-                    {workTasks
-                      .filter((task: any) => task.isActive)
-                      .map((task: any) => (
+                    {workTasks.map((task: any) => (
                         <SelectItem key={task.id} value={task.id.toString()}>
                           {task.name}
                         </SelectItem>
@@ -663,9 +661,7 @@ export default function DeviationModal({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Ingen plats</SelectItem>
-                    {workStations
-                      .filter((station: any) => station.isActive)
-                      .map((station: any) => (
+                    {workStations.map((station: any) => (
                         <SelectItem key={station.id} value={station.id.toString()}>
                           {station.name}
                         </SelectItem>
