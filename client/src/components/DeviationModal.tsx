@@ -586,7 +586,8 @@ export default function DeviationModal({
               <Select
                 name="departmentId"
                 required
-                defaultValue={deviation?.departmentId?.toString()}
+                value={formValues.departmentId}
+                onValueChange={(value) => setFormValues(prev => ({ ...prev, departmentId: value }))}
                 disabled={departmentsLoading}
               >
                 <SelectTrigger className="w-full">
@@ -597,6 +598,7 @@ export default function DeviationModal({
                   />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Ingen avdelning</SelectItem>
                   {departments
                     .filter((dept: any) => dept.isActive)
                     .map((department: any) => (
