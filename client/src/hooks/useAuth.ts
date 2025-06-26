@@ -106,7 +106,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       // Show system announcement after successful login
+      console.log('About to check for system announcements...');
       setTimeout(async () => {
+        console.log('Checking for system announcements with token:', data.token ? 'Token exists' : 'No token');
         try {
           const response = await fetch('/api/system/announcements/active', {
             headers: {
@@ -114,9 +116,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             },
           });
           
+          console.log('System announcement API response status:', response.status);
+          
           if (response.ok) {
             const announcement = await response.json();
+            console.log('System announcement data:', announcement);
+            
             if (announcement && announcement.message) {
+              console.log('Creating toast notification for:', announcement.message);
+              
               // Create a simple toast notification
               const toastElement = document.createElement('div');
               toastElement.innerHTML = `
@@ -148,14 +156,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 </div>
               `;
               document.body.appendChild(toastElement);
+              console.log('Toast notification added to DOM');
               
               // Auto-remove after 8 seconds
               setTimeout(() => {
                 if (toastElement.parentElement) {
                   toastElement.remove();
+                  console.log('Toast notification auto-removed');
                 }
               }, 8000);
+            } else {
+              console.log('No announcement message found');
             }
+          } else {
+            console.log('API response not ok:', await response.text());
           }
         } catch (error) {
           console.error('Error fetching system announcement:', error);
