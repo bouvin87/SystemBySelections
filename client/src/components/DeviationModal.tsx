@@ -473,9 +473,7 @@ export default function DeviationModal({
       locationId: formValues.locationId && formValues.locationId !== "none"
         ? parseInt(formValues.locationId)
         : undefined,
-      departmentId: formValues.departmentId && formValues.departmentId !== "none"
-        ? parseInt(formValues.departmentId)
-        : undefined,
+      departmentId: parseInt(formValues.departmentId),
       assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== "none"
         ? parseInt(formValues.assignedToUserId)
         : undefined,
@@ -598,7 +596,6 @@ export default function DeviationModal({
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Ingen avdelning</SelectItem>
                   {departments
                     .filter((dept: any) => dept.isActive)
                     .map((department: any) => (
