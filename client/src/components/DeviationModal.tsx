@@ -326,11 +326,11 @@ export default function DeviationModal({
   const isSubmitting = createDeviationMutation.isPending || updateDeviationMutation.isPending;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl relative">
+    <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
+      <DialogContent className="max-w-2xl relative overflow-hidden">
         {/* Loading overlay */}
         {isSubmitting && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
             <div className="flex flex-col items-center gap-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <p className="text-sm text-muted-foreground">
