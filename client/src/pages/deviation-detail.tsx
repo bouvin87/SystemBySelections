@@ -741,10 +741,11 @@ export default function DeviationDetailPage() {
           </div>
         </div>
 
-        {/* Layout med kolumner och rader */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-          <div className="space-y-6 lg:col-span-3">
-            {/* Basic Information */}
+        {/* Responsive Grid Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6 items-start">
+          {/* LEFT SIDE – Main Content */}
+          <div className="space-y-6">
+            {/* Basic Info */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -755,178 +756,132 @@ export default function DeviationDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Titel</Label>
-                  <p className="text-gray-700 dark:text-gray-300 mt-1">
-                    {deviation.title}
-                  </p>
+                  <p className="text-gray-700 dark:text-gray-300 mt-1">{deviation.title}</p>
                 </div>
                 {deviation.description && (
                   <div>
                     <Label>Beskrivning</Label>
-                    <p className="text-gray-700 dark:text-gray-300 mt-1">
-                      {deviation.description}
-                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mt-1">{deviation.description}</p>
                   </div>
                 )}
 
-                {/* Snygg, horisontell metadata-grupp */}
+                {/* Metadata Badges */}
                 <div>
                   <Label className="text-sm text-gray-500">Egenskaper</Label>
                   <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-800 dark:text-gray-200">
                     {deviationType && (
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: deviationType.color }}
-                        />
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: deviationType.color }} />
                         <span>{deviationType.name}</span>
                       </div>
                     )}
-
                     {status && (
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: status.color }}
-                        />
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: status.color }} />
                         <span>{status.name}</span>
                       </div>
                     )}
-
                     {priority && (
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: priority.color }}
-                        />
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: priority.color }} />
                         <span>{priority.name}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Relaterad info */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Related Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Avdelning</Label>
                     <p className="text-gray-700 dark:text-gray-300 mt-1">
                       {assignedDepartment?.name || "Ingen avdelning vald"}
                     </p>
                   </div>
-
                   {assignedUser && (
                     <div>
                       <Label>Tilldelad till</Label>
                       <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() ||
-                          assignedUser.email}
+                        {`${assignedUser.firstName} ${assignedUser.lastName}`.trim() || assignedUser.email}
                       </p>
                     </div>
                   )}
-
                   {workTask && (
                     <div>
                       <Label>Arbetsuppgift</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {workTask.name}
-                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">{workTask.name}</p>
                     </div>
                   )}
-
                   {workStation && (
                     <div>
                       <Label>Plats</Label>
-                      <p className="text-gray-700 dark:text-gray-300 mt-1">
-                        {workStation.name}
-                      </p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">{workStation.name}</p>
                     </div>
                   )}
                 </div>
 
-                {/* Tidslinje */}
-                <div className="col-span-2 mt-4 border-t pt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                {/* Timeline Info */}
+                <div className="mt-4 border-t pt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span>
-                      <strong>Skapad:</strong>{" "}
-                      {format(
-                        new Date(deviation.createdAt),
-                        "d MMM yyyy HH:mm",
-                        { locale: sv },
-                      )}
+                      <strong>Skapad:</strong> {format(new Date(deviation.createdAt), "d MMM yyyy HH:mm", { locale: sv })}
                       {createdByUser && (
                         <span className="ml-2 text-xs italic">
-                          av{" "}
-                          {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() ||
-                            createdByUser.email}
+                          av {`${createdByUser.firstName} ${createdByUser.lastName}`.trim() || createdByUser.email}
                         </span>
                       )}
                     </span>
                   </div>
-
                   <div className="flex items-center gap-2">
                     <History className="h-4 w-4 text-gray-400" />
                     <span>
-                      <strong>Senast uppdaterad:</strong>{" "}
-                      {format(
-                        new Date(deviation.updatedAt),
-                        "d MMM yyyy HH:mm",
-                        { locale: sv },
-                      )}
+                      <strong>Senast uppdaterad:</strong> {format(new Date(deviation.updatedAt), "d MMM yyyy HH:mm", { locale: sv })}
                     </span>
                   </div>
-
                   {deviation.dueDate && (
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span>
-                        <strong>Deadline:</strong>{" "}
-                        {format(
-                          new Date(deviation.dueDate),
-                          "d MMM yyyy HH:mm",
-                          { locale: sv },
-                        )}
+                        <strong>Deadline:</strong> {format(new Date(deviation.dueDate), "d MMM yyyy HH:mm", { locale: sv })}
                       </span>
                     </div>
                   )}
-
                   {deviation.completedAt && (
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-gray-400" />
                       <span>
-                        <strong>Slutförd:</strong>{" "}
-                        {format(
-                          new Date(deviation.completedAt),
-                          "d MMM yyyy HH:mm",
-                          { locale: sv },
-                        )}
+                        <strong>Slutförd:</strong> {format(new Date(deviation.completedAt), "d MMM yyyy HH:mm", { locale: sv })}
                       </span>
                     </div>
                   )}
                 </div>
-
-                {/* Custom Fields */}
-                {customFieldValues.length > 0 && (
-                  <div className="mt-4 border-t pt-4">
-                    <Label className="text-sm text-gray-500">Extrafält</Label>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                      {customFieldValues.map((fieldValue: any) => (
-                        <div key={fieldValue.id}>
-                          <Label className="text-sm font-medium">
-                            {fieldValue.field.name}
-                            {fieldValue.field.isRequired && <span className="text-red-500 ml-1">*</span>}
-                          </Label>
-                          <p className="text-gray-700 dark:text-gray-300 mt-1">
-                            {fieldValue.field.fieldType === 'checkbox' 
-                              ? (fieldValue.value === 'true' ? 'Ja' : 'Nej')
-                              : fieldValue.value || 'Inget värde'}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
+
+            {/* Custom Fields */}
+            {customFieldValues.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm text-gray-600">Extrafält</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {customFieldValues.map((fieldValue: any) => (
+                    <div key={fieldValue.id}>
+                      <Label className="text-sm font-medium">
+                        {fieldValue.field.name}
+                        {fieldValue.field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                      </Label>
+                      <p className="text-gray-700 dark:text-gray-300 mt-1">
+                        {fieldValue.field.fieldType === 'checkbox' 
+                          ? (fieldValue.value === 'true' ? 'Ja' : 'Nej')
+                          : fieldValue.value || 'Inget värde'}
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Attachments */}
             <AttachmentList deviationId={deviation.id} canUpload={canEdit()} />
@@ -945,9 +900,9 @@ export default function DeviationDetailPage() {
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-2">
-            <Card className="h-[calc(100vh-12rem)] flex flex-col sticky top-6">
+          {/* RIGHT SIDE – Timeline */}
+          <div className="sticky top-6 h-fit">
+            <Card className="max-h-[calc(100vh-6rem)] flex flex-col">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <History className="w-5 h-5" />
@@ -960,15 +915,16 @@ export default function DeviationDetailPage() {
             </Card>
           </div>
         </div>
-      </div>
 
-      {/* Edit Modal */}
-      <DeviationModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        deviation={deviation}
-        mode="edit"
-      />
+        {/* Edit Modal */}
+        <DeviationModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          deviation={deviation}
+          mode="edit"
+        />
+      </div>
     </div>
   );
+
 }

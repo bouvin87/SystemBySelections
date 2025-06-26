@@ -473,7 +473,7 @@ export default function DeviationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full max-w-3xl max-h-[90vh] overflow-y-auto px-4 sm:px-6 py-6 rounded-lg">
+      <DialogContent className="w-full h-screen max-w-none rounded-none sm:max-w-3xl sm:h-auto sm:rounded-lg">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">

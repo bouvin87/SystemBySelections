@@ -173,16 +173,7 @@ export function AttachmentList({ deviationId, canUpload = false }: AttachmentLis
           <div className="text-center py-8 text-gray-500">
             <Paperclip className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p>Inga bilagor ännu</p>
-            {canUpload && (
-              <Button 
-                variant="outline" 
-                onClick={() => setShowUpload(true)}
-                className="mt-4"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Lägg till första bilagan
-              </Button>
-            )}
+            
           </div>
         ) : (
           <div className="space-y-3">
