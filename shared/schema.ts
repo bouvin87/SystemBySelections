@@ -483,7 +483,6 @@ export type InsertDeviationStatus = z.infer<typeof insertDeviationStatusSchema>;
 // === SYSTEM ANNOUNCEMENTS ===
 export const systemAnnouncements = pgTable('system_announcements', {
   id: serial('id').primaryKey(),
-  tenantId: integer('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
   message: text('message').notNull(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

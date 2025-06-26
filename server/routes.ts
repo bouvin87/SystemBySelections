@@ -1188,23 +1188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // === SYSTEM ANNOUNCEMENTS ===
   app.get('/api/system/announcements', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      // For superadmin without tenantId, use tenantId from query or default to first tenant
-      let tenantId = req.tenantId;
-      if (!tenantId && req.user?.role === 'superadmin') {
-        if (req.query.tenantId) {
-          tenantId = parseInt(req.query.tenantId as string);
-        } else {
-          // Get first available tenant for superadmin
-          const tenants = await storage.getTenants();
-          tenantId = tenants[0]?.id;
-        }
-      }
-      
-      if (!tenantId) {
-        return res.status(403).json({ message: 'Tenant ID required' });
-      }
-      
-      const announcements = await storage.getSystemAnnouncements(tenantId);
+      const announcements = await storage.getSystemAnnouncements();
       res.json(announcements);
     } catch (error) {
       console.error('Error fetching system announcements:', error);
@@ -1223,37 +1207,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Requires superadmin role' });
       }
 
-      // Get tenantId from request body, query, or user token
-      let tenantId = req.tenantId || parseInt(req.body.tenantId) || parseInt(req.query.tenantId as string);
-      
-      if (!tenantId) {
-        // Get first available tenant for superadmin
-        const tenants = await storage.getTenants();
-        tenantId = tenants[0]?.id;
-      }
-      
-      if (!tenantId) {
-        return res.status(400).json({ message: 'Tenant ID required' });
-      }
-
       const { message, isActive } = req.body;
       
       if (!message || typeof message !== 'string') {
         return res.status(400).json({ message: 'Message is required' });
       }
 
-      // If creating an active announcement, deactivate all other active announcements for this tenant
+      // If creating an active announcement, deactivate all other active announcements
       if (isActive) {
-        const existingAnnouncements = await storage.getSystemAnnouncements(tenantId);
+        const existingAnnouncements = await storage.getSystemAnnouncements();
         for (const announcement of existingAnnouncements) {
           if (announcement.isActive) {
-            await storage.updateSystemAnnouncement(announcement.id, { isActive: false }, tenantId);
+            await storage.updateSystemAnnouncement(announcement.id, { isActive: false });
           }
         }
       }
 
       const newAnnouncement = await storage.createSystemAnnouncement({
-        tenantId,
         message,
         isActive: isActive || false,
         createdBy: req.user.userId,
@@ -1269,7 +1239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/system/announcements/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.tenantId || !req.user) {
+      if (!req.user) {
         return res.status(403).json({ message: 'Authentication required' });
       }
       
@@ -1281,20 +1251,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const { message, isActive } = req.body;
       
-      // If activating this announcement, deactivate all other active announcements for this tenant
+      // If activating this announcement, deactivate all other active announcements
       if (isActive) {
-        const existingAnnouncements = await storage.getSystemAnnouncements(req.tenantId);
+        const existingAnnouncements = await storage.getSystemAnnouncements();
         for (const announcement of existingAnnouncements) {
           if (announcement.isActive && announcement.id !== id) {
-            await storage.updateSystemAnnouncement(announcement.id, { isActive: false }, req.tenantId);
+            await storage.updateSystemAnnouncement(announcement.id, { isActive: false });
           }
         }
       }
 
       const updatedAnnouncement = await storage.updateSystemAnnouncement(id, {
         ...(message && { message }),
-        ...(typeof isActive === 'boolean' && { isActive })
-      }, req.tenantId);
+        ...(typeof isActive === 'boolean' && { isActive }),
+        updatedBy: req.user.userId
+      });
 
       res.json(updatedAnnouncement);
     } catch (error) {
@@ -1305,7 +1276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/system/announcements/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.tenantId || !req.user) {
+      if (!req.user) {
         return res.status(403).json({ message: 'Authentication required' });
       }
       
@@ -1315,7 +1286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const id = parseInt(req.params.id);
-      await storage.deleteSystemAnnouncement(id, req.tenantId);
+      await storage.deleteSystemAnnouncement(id);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting system announcement:', error);
@@ -1326,10 +1297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get active system announcement for user login notification
   app.get('/api/system/announcements/active', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
-      if (!req.tenantId) {
-        return res.status(403).json({ message: 'Tenant ID required' });
-      }
-      const announcement = await storage.getActiveSystemAnnouncement(req.tenantId);
+      const announcement = await storage.getActiveSystemAnnouncement();
       res.json(announcement);
     } catch (error) {
       console.error('Error fetching active system announcement:', error);

@@ -1368,25 +1368,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // === SYSTEM ANNOUNCEMENTS ===
-  async getActiveSystemAnnouncement(tenantId: number): Promise<SystemAnnouncement | null> {
+  async getActiveSystemAnnouncement(): Promise<SystemAnnouncement | null> {
     const [announcement] = await db
       .select()
       .from(systemAnnouncements)
-      .where(and(
-        eq(systemAnnouncements.tenantId, tenantId),
-        eq(systemAnnouncements.isActive, true)
-      ))
+      .where(eq(systemAnnouncements.isActive, true))
       .orderBy(desc(systemAnnouncements.createdAt))
       .limit(1);
 
     return announcement || null;
   }
 
-  async getSystemAnnouncements(tenantId: number): Promise<SystemAnnouncement[]> {
+  async getSystemAnnouncements(): Promise<SystemAnnouncement[]> {
     const announcements = await db
       .select()
       .from(systemAnnouncements)
-      .where(eq(systemAnnouncements.tenantId, tenantId))
       .orderBy(desc(systemAnnouncements.createdAt));
 
     return announcements;
@@ -1401,29 +1397,23 @@ export class DatabaseStorage implements IStorage {
     return newAnnouncement;
   }
 
-  async updateSystemAnnouncement(id: number, announcement: Partial<InsertSystemAnnouncement>, tenantId: number): Promise<SystemAnnouncement> {
+  async updateSystemAnnouncement(id: number, announcement: Partial<InsertSystemAnnouncement>): Promise<SystemAnnouncement> {
     const [updatedAnnouncement] = await db
       .update(systemAnnouncements)
       .set({
         ...announcement,
         updatedAt: new Date()
       })
-      .where(and(
-        eq(systemAnnouncements.id, id),
-        eq(systemAnnouncements.tenantId, tenantId)
-      ))
+      .where(eq(systemAnnouncements.id, id))
       .returning();
 
     return updatedAnnouncement;
   }
 
-  async deleteSystemAnnouncement(id: number, tenantId: number): Promise<void> {
+  async deleteSystemAnnouncement(id: number): Promise<void> {
     await db
       .delete(systemAnnouncements)
-      .where(and(
-        eq(systemAnnouncements.id, id),
-        eq(systemAnnouncements.tenantId, tenantId)
-      ));
+      .where(eq(systemAnnouncements.id, id));
   }
 }
 
