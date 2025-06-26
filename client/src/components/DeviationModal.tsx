@@ -466,6 +466,20 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               <input type="hidden" name="dueDate" value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")} />
             </div>
       )}
+
+          {/* Hidden checkbox - Only for users with permission */}
+          {(user?.role === 'admin' || user?.role === 'superadmin') && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isHidden"
+                name="isHidden"
+                defaultChecked={deviation?.isHidden || false}
+              />
+              <Label htmlFor="isHidden" className="text-sm font-medium">
+                Dölj avvikelse (endast synlig för admin, superadmin, avdelningsansvarig och tilldelad person)
+              </Label>
+            </div>
+          )}
             </div>
           {/* File Upload Section - Only for Create Mode */}
           {mode === 'create' && (

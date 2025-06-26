@@ -122,6 +122,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 25, 2025**: Added "dölj" (hide) functionality for deviations
+  - Added isHidden boolean field to deviations table
+  - Implemented role-based visibility: hidden deviations only visible to admin/superadmin, creator, assignee, and department manager
+  - Added checkbox in DeviationModal for admin/superadmin users to hide deviations
+  - Updated backend filtering logic to enforce hidden deviation access rules
+  - Modified storage methods to include user context for permission checking
+
 - **June 24, 2025**: Added file attachment functionality for deviations
   - Created deviation_attachments table for storing file metadata
   - Implemented file upload with multer supporting images (JPEG, PNG, GIF, WebP) and PDFs

@@ -114,7 +114,13 @@ export default function deviationRoutes(app: Express) {
           return res.status(400).json({ message: "Invalid deviation ID" });
         }
 
-        const deviation = await storage.getDeviation(deviationId, tenantId);
+        const deviation = await storage.getDeviation(
+          deviationId, 
+          tenantId, 
+          req.user?.userId, 
+          req.user?.role, 
+          req.user?.departmentId
+        );
 
         if (!deviation) {
           return res.status(404).json({ message: "Deviation not found" });
