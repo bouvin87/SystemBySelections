@@ -118,9 +118,10 @@ export function CustomFieldModal({
       }
 
       // Update linked deviation types
-      if (savedField?.id) {
+      const fieldId = (savedField as any)?.id || field?.id;
+      if (fieldId) {
         // Get current mappings
-        const currentMappingsResponse = await fetch(`/api/custom-fields/${savedField.id}/deviation-types`);
+        const currentMappingsResponse = await fetch(`/api/custom-fields/${fieldId}/deviation-types`);
         const currentMappings = currentMappingsResponse.ok ? await currentMappingsResponse.json() : [];
         const currentTypeIds = currentMappings.map((t: DeviationType) => t.id);
 
@@ -128,7 +129,7 @@ export function CustomFieldModal({
         for (const typeId of currentTypeIds) {
           if (!linkedTypes.includes(typeId)) {
             await apiRequest({
-              endpoint: `/api/custom-fields/${savedField.id}/deviation-types/${typeId}`,
+              endpoint: `/api/custom-fields/${fieldId}/deviation-types/${typeId}`,
               method: 'DELETE',
             });
           }
@@ -138,7 +139,7 @@ export function CustomFieldModal({
         for (const typeId of linkedTypes) {
           if (!currentTypeIds.includes(typeId)) {
             await apiRequest({
-              endpoint: `/api/custom-fields/${savedField.id}/deviation-types/${typeId}`,
+              endpoint: `/api/custom-fields/${fieldId}/deviation-types/${typeId}`,
               method: 'POST',
             });
           }

@@ -117,56 +117,56 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
             </div>
           ) : (
             <div className="grid gap-4">
-              {customFields
+              {(Array.isArray(customFields) ? customFields : [])
                 .sort((a: CustomField, b: CustomField) => a.order - b.order)
                 .map((field: CustomField) => (
-                <div
-                  key={field.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-medium">{field.name}</h3>
-                      <Badge variant="secondary">
-                        {getFieldTypeLabel(field.fieldType)}
-                      </Badge>
-                      {field.isRequired && (
-                        <Badge variant="destructive" className="text-xs">
-                          Obligatorisk
+                  <div
+                    key={field.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-medium">{field.name}</h3>
+                        <Badge variant="secondary">
+                          {getFieldTypeLabel(field.fieldType)}
                         </Badge>
-                      )}
-                    </div>
-                    
-                    {field.options && field.options.length > 0 && (
-                      <div className="text-sm text-gray-600 mb-2">
-                        Alternativ: {field.options.join(', ')}
+                        {field.isRequired && (
+                          <Badge variant="destructive" className="text-xs">
+                            Obligatorisk
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                    
-                    <div className="text-sm text-gray-500">
-                      Ordning: {field.order}
+                      
+                      {field.options && field.options.length > 0 && (
+                        <div className="text-sm text-gray-600 mb-2">
+                          Alternativ: {field.options.join(', ')}
+                        </div>
+                      )}
+                      
+                      <div className="text-sm text-gray-500">
+                        Ordning: {field.order}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(field)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(field)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(field)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(field)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
         </CardContent>
