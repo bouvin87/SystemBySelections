@@ -458,29 +458,24 @@ export default function DeviationModal({
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priorityId: formData.get("priorityId")
-        ? parseInt(formData.get("priorityId") as string)
+      priorityId: formValues.priorityId && formValues.priorityId !== "0"
+        ? parseInt(formValues.priorityId)
         : undefined,
-      statusId: formData.get("statusId")
-        ? parseInt(formData.get("statusId") as string)
+      statusId: formValues.statusId && formValues.statusId !== ""
+        ? parseInt(formValues.statusId)
         : undefined,
-      workTaskId:
-        formData.get("workTaskId") && formData.get("workTaskId") !== "0"
-          ? parseInt(formData.get("workTaskId") as string)
-          : undefined,
-      locationId:
-        formData.get("locationId") && formData.get("locationId") !== "0"
-          ? parseInt(formData.get("locationId") as string)
-          : undefined,
-      departmentId:
-        formData.get("departmentId") && formData.get("departmentId") !== "0"
-          ? parseInt(formData.get("departmentId") as string)
-          : undefined,
-      assignedToUserId:
-        formData.get("assignedToUserId") &&
-        formData.get("assignedToUserId") !== "0"
-          ? parseInt(formData.get("assignedToUserId") as string)
-          : undefined,
+      workTaskId: formValues.workTaskId && formValues.workTaskId !== "0"
+        ? parseInt(formValues.workTaskId)
+        : undefined,
+      locationId: formValues.locationId && formValues.locationId !== "0"
+        ? parseInt(formValues.locationId)
+        : undefined,
+      departmentId: formValues.departmentId && formValues.departmentId !== "0"
+        ? parseInt(formValues.departmentId)
+        : undefined,
+      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== "0"
+        ? parseInt(formValues.assignedToUserId)
+        : undefined,
       dueDate:
         formData.get("dueDate") && formData.get("dueDate") !== ""
           ? (formData.get("dueDate") as string)
@@ -718,7 +713,8 @@ export default function DeviationModal({
                 <Label htmlFor="statusId">Status</Label>
                 <Select
                   name="statusId"
-                  defaultValue={deviation?.statusId?.toString()}
+                  value={formValues.statusId}
+                  onValueChange={(value) => setFormValues(prev => ({ ...prev, statusId: value }))}
                   disabled={statusesLoading}
                 >
                   <SelectTrigger className="w-full">
@@ -751,7 +747,8 @@ export default function DeviationModal({
                 <Label htmlFor="assignedToUserId">Tilldelad till</Label>
                 <Select
                   name="assignedToUserId"
-                  defaultValue={deviation?.assignedToUserId?.toString() || "0"}
+                  value={formValues.assignedToUserId}
+                  onValueChange={(value) => setFormValues(prev => ({ ...prev, assignedToUserId: value }))}
                   disabled={usersLoading}
                 >
                   <SelectTrigger className="w-full">
