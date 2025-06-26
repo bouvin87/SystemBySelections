@@ -105,37 +105,37 @@ export default function DeviationModal({
   );
 
   // Fetch deviation types
-  const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
+  const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<DeviationType[]>({
     queryKey: ["/api/deviations/types"],
     enabled: isOpen,
   });
 
   // Fetch deviation priorities
-  const { data: deviationPriorities = [] } = useQuery<DeviationPriority[]>({
+  const { data: deviationPriorities = [], isLoading: prioritiesLoading } = useQuery<DeviationPriority[]>({
     queryKey: ["/api/deviations/priorities"],
     enabled: isOpen,
   });
 
   // Fetch deviation statuses
-  const { data: deviationStatuses = [] } = useQuery<DeviationStatus[]>({
+  const { data: deviationStatuses = [], isLoading: statusesLoading } = useQuery<DeviationStatus[]>({
     queryKey: ["/api/deviations/statuses"],
     enabled: isOpen,
   });
 
   // Fetch work tasks
-  const { data: workTasks = [] } = useQuery<WorkTask[]>({
+  const { data: workTasks = [], isLoading: workTasksLoading } = useQuery<WorkTask[]>({
     queryKey: ["/api/work-tasks"],
     enabled: isOpen,
   });
 
   // Fetch work stations
-  const { data: workStations = [] } = useQuery<WorkStation[]>({
+  const { data: workStations = [], isLoading: workStationsLoading } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
     enabled: isOpen,
   });
 
   // Fetch departments
-  const { data: departments = [] } = useQuery<any[]>({
+  const { data: departments = [], isLoading: departmentsLoading } = useQuery<any[]>({
     queryKey: ["/api/departments"],
     enabled: isOpen,
   });
@@ -147,7 +147,7 @@ export default function DeviationModal({
   });
 
   // Fetch users
-  const { data: users = [] } = useQuery<DeviationUser[]>({
+  const { data: users = [], isLoading: usersLoading } = useQuery<DeviationUser[]>({
     queryKey: ["/api/users"],
     enabled: isOpen,
     queryFn: async () => {
@@ -167,6 +167,9 @@ export default function DeviationModal({
     queryKey: ["/api/deviations/settings"],
     enabled: isOpen,
   });
+
+  // Check if all critical data is loaded
+  const isDataLoading = typesLoading || departmentsLoading || statusesLoading || prioritiesLoading || workTasksLoading || workStationsLoading || usersLoading;
 
   // Create deviation mutation
   const createDeviationMutation = useMutation({
@@ -361,9 +364,10 @@ export default function DeviationModal({
                 name="deviationTypeId"
                 required
                 defaultValue={deviation?.deviationTypeId?.toString()}
+                disabled={typesLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Välj typ" />
+                  <SelectValue placeholder={typesLoading ? "Laddar..." : "Välj typ"} />
                 </SelectTrigger>
                 <SelectContent>
                   {deviationTypes.map((type) => (
@@ -387,9 +391,10 @@ export default function DeviationModal({
                 name="departmentId"
                 required
                 defaultValue={deviation?.departmentId?.toString()}
+                disabled={departmentsLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Välj avdelning" />
+                  <SelectValue placeholder={departmentsLoading ? "Laddar..." : "Välj avdelning"} />
                 </SelectTrigger>
                 <SelectContent>
                   {departments
@@ -411,9 +416,10 @@ export default function DeviationModal({
                 <Select
                   name="statusId"
                   defaultValue={deviation?.statusId?.toString() || ""}
+                  disabled={statusesLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj status" />
+                    <SelectValue placeholder={statusesLoading ? "Laddar..." : "Välj status"} />
                   </SelectTrigger>
                   <SelectContent>
                     {deviationStatuses
@@ -448,9 +454,10 @@ export default function DeviationModal({
                 <Select
                   name="priorityId"
                   defaultValue={deviation?.priorityId?.toString() || ""}
+                  disabled={prioritiesLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj prioritet" />
+                    <SelectValue placeholder={prioritiesLoading ? "Laddar..." : "Välj prioritet"} />
                   </SelectTrigger>
                   <SelectContent>
                     {deviationPriorities
@@ -481,9 +488,10 @@ export default function DeviationModal({
                 <Select
                   name="workTaskId"
                   defaultValue={deviation?.workTaskId?.toString() || "0"}
+                  disabled={workTasksLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj arbetsmoment" />
+                    <SelectValue placeholder={workTasksLoading ? "Laddar..." : "Välj arbetsmoment"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Ingen vald</SelectItem>
@@ -581,19 +589,6 @@ export default function DeviationModal({
             )}
 
             {/* Hidden checkbox - Only for users with permission */}
-            {(user?.role === 'admin' || user?.role === 'superadmin') && (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isHidden"
-                  name="isHidden"
-                  defaultChecked={deviation?.isHidden || false}
-                />
-                <Label htmlFor="isHidden" className="text-sm font-medium">
-                  Dölj avvikelse (endast synlig för admin, superadmin, skapare, avdelningsansvarig och
-                  tilldelad person)
-                </Label>
-              </div>
-            )}
           </div>
           {/* File Upload Section - Only for Create Mode */}
           {mode === "create" && (
@@ -608,27 +603,50 @@ export default function DeviationModal({
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Avbryt
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                createDeviationMutation.isPending ||
-                updateDeviationMutation.isPending
-              }
-            >
-              {createDeviationMutation.isPending ||
-              updateDeviationMutation.isPending
-                ? mode === "edit"
-                  ? "Uppdaterar..."
-                  : "Skapar..."
-                : mode === "edit"
-                  ? "Uppdatera avvikelse"
-                  : "Skapa avvikelse"}
-            </Button>
+          <div className="flex justify-between items-start pt-4 gap-4">
+            {/* Vänster sektion med checkbox och beskrivning */}
+            <div className="flex gap-2 max-w-md">
+              <div className="pt-3">
+                <Checkbox
+                  id="isHidden"
+                  name="isHidden"
+                  defaultChecked={deviation?.isHidden || false}
+                />
+              </div>
+              <div>
+                <Label htmlFor="isHidden" className="text-sm font-medium">
+                  Dölj avvikelse
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Endast synlig för admin, avdelningsansvarig och tilldelad person
+                </p>
+              </div>
+            </div>
+
+            {/* Höger sektion med knappar */}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Avbryt
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  createDeviationMutation.isPending ||
+                  updateDeviationMutation.isPending
+                }
+              >
+                {createDeviationMutation.isPending || updateDeviationMutation.isPending
+                  ? mode === "edit"
+                    ? "Uppdaterar..."
+                    : "Skapar..."
+                  : mode === "edit"
+                    ? "Uppdatera avvikelse"
+                    : "Skapa avvikelse"}
+              </Button>
+            </div>
           </div>
+
+
         </form>
       </DialogContent>
     </Dialog>
