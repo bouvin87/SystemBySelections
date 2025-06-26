@@ -1,30 +1,22 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { SystemAnnouncement } from "@shared/schema";
 
-interface SystemAnnouncement {
-  id: number;
-  tenantId: number;
-  message: string;
-  isActive: boolean;
-  createdAt: string;
-  createdBy: number;
-  updatedAt: string;
-  updatedBy: number;
-}
-
-interface SystemAnnouncementModalProps {
+export interface SystemAnnouncementModalProps {
   isOpen: boolean;
   onClose: () => void;
   announcement?: SystemAnnouncement;
@@ -40,157 +32,140 @@ export function SystemAnnouncementModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [message, setMessage] = useState(announcement?.message || "");
-  const [isActive, setIsActive] = useState(announcement?.isActive ?? true);
+  const [formData, setFormData] = useState({
+    message: "",
+    isActive: true,
+  });
 
-  const createAnnouncementMutation = useMutation({
+  useEffect(() => {
+    if (announcement && mode === "edit") {
+      setFormData({
+        message: announcement.message,
+        isActive: announcement.isActive,
+      });
+    } else {
+      setFormData({
+        message: "",
+        isActive: true,
+      });
+    }
+  }, [announcement, mode, isOpen]);
+
+  const createMutation = useMutation({
     mutationFn: (data: { message: string; isActive: boolean }) =>
       apiRequest("/api/system/announcements", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/system/announcement"] });
       toast({
-        title: "Systemmeddelande skapat",
-        description: "Meddelandet har skapats framgångsrikt.",
+        title: "Meddelande skapat",
+        description: "Systemmeddelandet har skapats framgångsrikt.",
       });
       onClose();
-      resetForm();
     },
     onError: (error: any) => {
       toast({
         title: "Fel",
-        description: error.message || "Kunde inte skapa systemmeddelande.",
+        description: error.message || "Kunde inte skapa meddelandet.",
         variant: "destructive",
       });
     },
   });
 
-  const updateAnnouncementMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: (data: { message: string; isActive: boolean }) =>
-      apiRequest(`/api/system/announcements/${announcement!.id}`, "PATCH", data),
+      apiRequest(`/api/system/announcements/${announcement?.id}`, "PATCH", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/system/announcement"] });
       toast({
-        title: "Systemmeddelande uppdaterat",
-        description: "Meddelandet har uppdaterats framgångsrikt.",
+        title: "Meddelande uppdaterat",
+        description: "Systemmeddelandet har uppdaterats framgångsrikt.",
       });
       onClose();
-      resetForm();
     },
     onError: (error: any) => {
       toast({
         title: "Fel",
-        description: error.message || "Kunde inte uppdatera systemmeddelande.",
+        description: error.message || "Kunde inte uppdatera meddelandet.",
         variant: "destructive",
       });
     },
   });
 
-  const resetForm = () => {
-    setMessage("");
-    setIsActive(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!message.trim()) {
+  const handleSubmit = () => {
+    if (!formData.message.trim()) {
       toast({
         title: "Fel",
-        description: "Meddelande är obligatoriskt.",
+        description: "Meddelandet får inte vara tomt.",
         variant: "destructive",
       });
       return;
     }
 
-    const data = {
-      message: message.trim(),
-      isActive,
-    };
-
-    if (mode === "edit") {
-      updateAnnouncementMutation.mutate(data);
+    if (mode === "create") {
+      createMutation.mutate(formData);
     } else {
-      createAnnouncementMutation.mutate(data);
+      updateMutation.mutate(formData);
     }
   };
 
-  const isSubmitting = createAnnouncementMutation.isPending || updateAnnouncementMutation.isPending;
+  const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="max-w-2xl">
-        {/* Loading overlay */}
-        {isSubmitting && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
-            <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="text-sm text-muted-foreground">
-                {mode === "edit" ? "Uppdaterar meddelande..." : "Skapar meddelande..."}
-              </p>
-            </div>
-          </div>
-        )}
-        
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit" ? "Redigera systemmeddelande" : "Skapa nytt systemmeddelande"}
+            {mode === "create" ? "Skapa systemmeddelande" : "Redigera systemmeddelande"}
           </DialogTitle>
+          <DialogDescription>
+            {mode === "create" 
+              ? "Skapa ett nytt systemmeddelande som visas för alla användare."
+              : "Redigera systemmeddelandet."
+            }
+          </DialogDescription>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
             <Label htmlFor="message">Meddelande</Label>
             <Textarea
               id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="⚙️ Planerat systemunderhåll 11 juli kl. 21:00–23:30. Under tiden kan störningar förekomma."
+              placeholder="Skriv ditt systemmeddelande här..."
+              value={formData.message}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
               rows={4}
-              disabled={isSubmitting}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Detta meddelande visas som en toast för alla användare när de loggar in.
-            </p>
           </div>
-
+          
           <div className="flex items-center space-x-2">
-            <Switch
+            <input
+              type="checkbox"
               id="isActive"
-              checked={isActive}
-              onCheckedChange={setIsActive}
-              disabled={isSubmitting}
+              checked={formData.isActive}
+              onChange={(e) =>
+                setFormData({ ...formData, isActive: e.target.checked })
+              }
             />
             <Label htmlFor="isActive">Aktivt meddelande</Label>
-            <p className="text-xs text-muted-foreground">
-              Endast ett meddelande kan vara aktivt åt gången.
-            </p>
           </div>
-
-          <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Avbryt
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !message.trim()}
-            >
-              {isSubmitting
-                ? mode === "edit"
-                  ? "Uppdaterar..."
-                  : "Skapar..."
-                : mode === "edit"
-                  ? "Uppdatera meddelande"
-                  : "Skapa meddelande"}
-            </Button>
-          </div>
-        </form>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            Avbryt
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading
+              ? mode === "create"
+                ? "Skapar..."
+                : "Uppdaterar..."
+              : mode === "create"
+              ? "Skapa meddelande"
+              : "Uppdatera meddelande"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

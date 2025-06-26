@@ -1051,7 +1051,6 @@ export default function SuperAdmin() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
 
         {/* Edit Tenant Dialog */}
         <Dialog
