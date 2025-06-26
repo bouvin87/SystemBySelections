@@ -117,12 +117,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (response.ok) {
             const announcement = await response.json();
             if (announcement && announcement.message) {
-              const { toast } = await import('../hooks/use-toast');
-              toast({
-                title: "Systemmeddelande",
-                description: announcement.message,
-                duration: 8000,
-              });
+              // Create a simple toast notification
+              const toastElement = document.createElement('div');
+              toastElement.innerHTML = `
+                <div style="
+                  position: fixed;
+                  top: 20px;
+                  right: 20px;
+                  z-index: 9999;
+                  background: #1e40af;
+                  color: white;
+                  padding: 16px;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                  max-width: 400px;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                ">
+                  <div style="font-weight: 600; margin-bottom: 4px;">Systemmeddelande</div>
+                  <div>${announcement.message}</div>
+                  <button onclick="this.parentElement.parentElement.remove()" style="
+                    position: absolute;
+                    top: 8px;
+                    right: 8px;
+                    background: none;
+                    border: none;
+                    color: white;
+                    cursor: pointer;
+                    font-size: 18px;
+                  ">&times;</button>
+                </div>
+              `;
+              document.body.appendChild(toastElement);
+              
+              // Auto-remove after 8 seconds
+              setTimeout(() => {
+                if (toastElement.parentElement) {
+                  toastElement.remove();
+                }
+              }, 8000);
             }
           }
         } catch (error) {
