@@ -1496,7 +1496,6 @@ export class DatabaseStorage implements IStorage {
       order: deviationTypes.order,
       isActive: deviationTypes.isActive,
       description: deviationTypes.description,
-      responsibleUserId: deviationTypes.responsibleUserId,
       createdAt: deviationTypes.createdAt,
       updatedAt: deviationTypes.updatedAt,
     })
