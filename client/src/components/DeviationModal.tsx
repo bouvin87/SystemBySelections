@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,28 @@ interface DeviationType {
   color: string;
   createdAt: string;
   updatedAt: string;
+}
+
+interface CustomField {
+  id: number;
+  tenantId: number;
+  name: string;
+  fieldType: 'text' | 'number' | 'checkbox' | 'date' | 'select';
+  options?: string[];
+  isRequired: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CustomFieldValue {
+  id: number;
+  deviationId: number;
+  customFieldId: number;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+  field: CustomField;
 }
 
 interface WorkTask {
@@ -103,6 +125,8 @@ export default function DeviationModal({
   const [createdDeviationId, setCreatedDeviationId] = useState<number | null>(
     null,
   );
+  const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
+  const [customFieldValues, setCustomFieldValues] = useState<Record<number, string>>({});
 
   // Fetch deviation types
   const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<DeviationType[]>({
@@ -168,8 +192,55 @@ export default function DeviationModal({
     enabled: isOpen,
   });
 
+  // Fetch custom fields for selected deviation type
+  const { data: customFields = [], isLoading: customFieldsLoading } = useQuery<CustomField[]>({
+    queryKey: ["/api/deviation-types", selectedTypeId, "custom-fields"],
+    queryFn: async () => {
+      if (!selectedTypeId) return [];
+      const response = await apiRequest("GET", `/api/deviation-types/${selectedTypeId}/custom-fields`);
+      return response.json();
+    },
+    enabled: !!selectedTypeId && isOpen,
+  });
+
+  // Fetch existing custom field values when editing
+  const { data: existingCustomFieldValues = [] } = useQuery<CustomFieldValue[]>({
+    queryKey: ["/api/deviations", deviation?.id, "custom-field-values"],
+    queryFn: async () => {
+      if (!deviation?.id) return [];
+      const response = await apiRequest("GET", `/api/deviations/${deviation.id}/custom-field-values`);
+      return response.json();
+    },
+    enabled: !!deviation?.id && mode === "edit" && isOpen,
+  });
+
   // Check if all critical data is loaded
   const isDataLoading = typesLoading || departmentsLoading || statusesLoading || prioritiesLoading || workTasksLoading || workStationsLoading || usersLoading;
+
+  // Initialize form data when modal opens or deviation data changes
+  useEffect(() => {
+    if (deviation) {
+      setSelectedTypeId(deviation.deviationTypeId);
+      if (deviation.dueDate) {
+        setSelectedDueDate(deviation.dueDate);
+      }
+    } else {
+      setSelectedTypeId(null);
+      setSelectedDueDate("");
+      setCustomFieldValues({});
+    }
+  }, [deviation, isOpen]);
+
+  // Initialize custom field values when existing values are loaded
+  useEffect(() => {
+    if (existingCustomFieldValues.length > 0) {
+      const values: Record<number, string> = {};
+      existingCustomFieldValues.forEach(value => {
+        values[value.customFieldId] = value.value;
+      });
+      setCustomFieldValues(values);
+    }
+  }, [existingCustomFieldValues]);
 
   // Create deviation mutation
   const createDeviationMutation = useMutation({
