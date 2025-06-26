@@ -1185,6 +1185,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === SYSTEM ANNOUNCEMENTS ===
+  app.get('/api/system/announcements', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const announcements = await storage.getSystemAnnouncements(req.tenantId);
+      res.json(announcements);
+    } catch (error) {
+      console.error('Error fetching system announcements:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/system/announcements', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId || !req.user) {
+        return res.status(403).json({ message: 'Authentication required' });
+      }
+      
+      // Only superadmin can create system announcements
+      if (req.user.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Requires superadmin role' });
+      }
+
+      const { message, isActive } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: 'Message is required' });
+      }
+
+      // If creating an active announcement, deactivate all other active announcements for this tenant
+      if (isActive) {
+        const existingAnnouncements = await storage.getSystemAnnouncements(req.tenantId);
+        for (const announcement of existingAnnouncements) {
+          if (announcement.isActive) {
+            await storage.updateSystemAnnouncement(announcement.id, { isActive: false }, req.tenantId);
+          }
+        }
+      }
+
+      const newAnnouncement = await storage.createSystemAnnouncement({
+        tenantId: req.tenantId,
+        message,
+        isActive: isActive || false,
+        createdBy: req.user.userId
+      });
+
+      res.status(201).json(newAnnouncement);
+    } catch (error) {
+      console.error('Error creating system announcement:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.patch('/api/system/announcements/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId || !req.user) {
+        return res.status(403).json({ message: 'Authentication required' });
+      }
+      
+      // Only superadmin can update system announcements
+      if (req.user.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Requires superadmin role' });
+      }
+
+      const id = parseInt(req.params.id);
+      const { message, isActive } = req.body;
+      
+      // If activating this announcement, deactivate all other active announcements for this tenant
+      if (isActive) {
+        const existingAnnouncements = await storage.getSystemAnnouncements(req.tenantId);
+        for (const announcement of existingAnnouncements) {
+          if (announcement.isActive && announcement.id !== id) {
+            await storage.updateSystemAnnouncement(announcement.id, { isActive: false }, req.tenantId);
+          }
+        }
+      }
+
+      const updatedAnnouncement = await storage.updateSystemAnnouncement(id, {
+        ...(message && { message }),
+        ...(typeof isActive === 'boolean' && { isActive })
+      }, req.tenantId);
+
+      res.json(updatedAnnouncement);
+    } catch (error) {
+      console.error('Error updating system announcement:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.delete('/api/system/announcements/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId || !req.user) {
+        return res.status(403).json({ message: 'Authentication required' });
+      }
+      
+      // Only superadmin can delete system announcements
+      if (req.user.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Requires superadmin role' });
+      }
+
+      const id = parseInt(req.params.id);
+      await storage.deleteSystemAnnouncement(id, req.tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting system announcement:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get active system announcement for user login notification
+  app.get('/api/system/announcements/active', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const announcement = await storage.getActiveSystemAnnouncement(req.tenantId);
+      res.json(announcement);
+    } catch (error) {
+      console.error('Error fetching active system announcement:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // Serve uploaded files (no authentication required for file access)
   app.get('/api/files/:filename', (req: Request, res: Response) => {
     const filename = req.params.filename;
