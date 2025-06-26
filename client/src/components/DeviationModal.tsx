@@ -586,7 +586,8 @@ export default function DeviationModal({
               <Select
                 name="departmentId"
                 required
-                defaultValue={deviation?.departmentId?.toString()}
+                value={formValues.departmentId}
+                onValueChange={(value) => setFormValues(prev => ({ ...prev, departmentId: value }))}
                 disabled={departmentsLoading}
               >
                 <SelectTrigger className="w-full">
@@ -661,7 +662,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen plats</SelectItem>
+                    <SelectItem value="">Ingen plats</SelectItem>
                     {workStations
                       .filter((station: any) => station.isActive)
                       .map((station: any) => (
@@ -692,7 +693,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen prioritet</SelectItem>
+                    <SelectItem value="">Ingen prioritet</SelectItem>
                     {deviationPriorities
                       .filter((priority) => priority.isActive)
                       .map((priority) => (
@@ -761,7 +762,7 @@ export default function DeviationModal({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Ingen tilldelning</SelectItem>
+                    <SelectItem value="">Ingen tilldelning</SelectItem>
                     {users.map((user: any) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
                         {user.firstName && user.lastName
