@@ -480,8 +480,17 @@ export const insertDeviationStatusSchema = createInsertSchema(deviationStatuses)
 export type InsertDeviationPriority = z.infer<typeof insertDeviationPrioritySchema>;
 export type InsertDeviationStatus = z.infer<typeof insertDeviationStatusSchema>;
 
-export type InsertDeviationAttachment = typeof deviationAttachments.$inferInsert;
-export type DeviationAttachment = typeof deviationAttachments.$inferSelect;
+// === SYSTEM ANNOUNCEMENTS ===
+export const systemAnnouncements = pgTable('system_announcements', {
+  id: serial('id').primaryKey(),
+  tenantId: integer('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: integer('created_by').notNull().references(() => users.id),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedBy: integer('updated_by').notNull().references(() => users.id),
+});
 
 export type InsertSystemAnnouncement = typeof systemAnnouncements.$inferInsert;
 export type SystemAnnouncement = typeof systemAnnouncements.$inferSelect;

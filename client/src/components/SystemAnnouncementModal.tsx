@@ -45,10 +45,7 @@ export function SystemAnnouncementModal({
 
   const createAnnouncementMutation = useMutation({
     mutationFn: (data: { message: string; isActive: boolean }) =>
-      apiRequest("/api/system/announcements", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("/api/system/announcements", "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcement"] });
@@ -70,10 +67,7 @@ export function SystemAnnouncementModal({
 
   const updateAnnouncementMutation = useMutation({
     mutationFn: (data: { message: string; isActive: boolean }) =>
-      apiRequest(`/api/system/announcements/${announcement!.id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      }),
+      apiRequest(`/api/system/announcements/${announcement!.id}`, "PATCH", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcements"] });
       queryClient.invalidateQueries({ queryKey: ["/api/system/announcement"] });
