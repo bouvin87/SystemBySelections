@@ -480,7 +480,11 @@ export const insertDeviationStatusSchema = createInsertSchema(deviationStatuses)
 export type InsertDeviationPriority = z.infer<typeof insertDeviationPrioritySchema>;
 export type InsertDeviationStatus = z.infer<typeof insertDeviationStatusSchema>;
 
+export type InsertDeviationAttachment = typeof deviationAttachments.$inferInsert;
+export type DeviationAttachment = typeof deviationAttachments.$inferSelect;
 
+export type InsertSystemAnnouncement = typeof systemAnnouncements.$inferInsert;
+export type SystemAnnouncement = typeof systemAnnouncements.$inferSelect;
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;

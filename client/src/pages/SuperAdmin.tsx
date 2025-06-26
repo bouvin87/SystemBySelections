@@ -80,15 +80,31 @@ const AVAILABLE_ROLES = [
   { id: "viewer", name: "Läsare", description: "Endast läsrättigheter" },
 ];
 
+interface SystemAnnouncement {
+  id: number;
+  tenantId: number;
+  message: string;
+  isActive: boolean;
+  createdAt: string;
+  createdBy: number;
+  updatedAt: string;
+  updatedBy: number;
+}
+
 export default function SuperAdmin() {
   const { toast } = useToast();
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [newTenant, setNewTenant] = useState({
     name: "",
     modules: [] as string[],
   });
+  
+  // System announcement state
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<SystemAnnouncement | null>(null);
 
   // User management state
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);

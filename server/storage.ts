@@ -2,6 +2,7 @@ import {
   tenants, users, workTasks, workStations, shifts, departments, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
+  systemAnnouncements,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -17,7 +18,8 @@ import {
   type DeviationComment, type InsertDeviationComment,
   type DeviationLog, type InsertDeviationLog,
   type DeviationSetting, type InsertDeviationSetting,
-  type DeviationAttachment, type InsertDeviationAttachment
+  type DeviationAttachment, type InsertDeviationAttachment,
+  type SystemAnnouncement, type InsertSystemAnnouncement
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -1362,6 +1364,66 @@ export class DatabaseStorage implements IStorage {
           WHERE ${deviations.id} = ${deviationAttachments.deviationId} 
           AND ${deviations.tenantId} = ${tenantId}
         )`
+      ));
+  }
+}
+
+  // === SYSTEM ANNOUNCEMENTS ===
+  async getActiveSystemAnnouncement(tenantId: number): Promise<SystemAnnouncement | null> {
+    const [announcement] = await db
+      .select()
+      .from(systemAnnouncements)
+      .where(and(
+        eq(systemAnnouncements.tenantId, tenantId),
+        eq(systemAnnouncements.isActive, true)
+      ))
+      .orderBy(desc(systemAnnouncements.createdAt))
+      .limit(1);
+
+    return announcement || null;
+  }
+
+  async getSystemAnnouncements(tenantId: number): Promise<SystemAnnouncement[]> {
+    const announcements = await db
+      .select()
+      .from(systemAnnouncements)
+      .where(eq(systemAnnouncements.tenantId, tenantId))
+      .orderBy(desc(systemAnnouncements.createdAt));
+
+    return announcements;
+  }
+
+  async createSystemAnnouncement(announcement: InsertSystemAnnouncement): Promise<SystemAnnouncement> {
+    const [newAnnouncement] = await db
+      .insert(systemAnnouncements)
+      .values(announcement)
+      .returning();
+
+    return newAnnouncement;
+  }
+
+  async updateSystemAnnouncement(id: number, announcement: Partial<InsertSystemAnnouncement>, tenantId: number): Promise<SystemAnnouncement> {
+    const [updatedAnnouncement] = await db
+      .update(systemAnnouncements)
+      .set({
+        ...announcement,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(systemAnnouncements.id, id),
+        eq(systemAnnouncements.tenantId, tenantId)
+      ))
+      .returning();
+
+    return updatedAnnouncement;
+  }
+
+  async deleteSystemAnnouncement(id: number, tenantId: number): Promise<void> {
+    await db
+      .delete(systemAnnouncements)
+      .where(and(
+        eq(systemAnnouncements.id, id),
+        eq(systemAnnouncements.tenantId, tenantId)
       ));
   }
 }
