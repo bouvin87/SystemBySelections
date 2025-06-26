@@ -532,6 +532,32 @@ export const insertDeviationAttachmentSchema = createInsertSchema(deviationAttac
   createdAt: true,
 });
 
+// Custom Fields types and schemas
+export type CustomField = typeof customFields.$inferSelect;
+export type InsertCustomField = z.infer<typeof insertCustomFieldSchema>;
+export type CustomFieldTypeMapping = typeof customFieldTypeMappings.$inferSelect;
+export type InsertCustomFieldTypeMapping = z.infer<typeof insertCustomFieldTypeMappingSchema>;
+export type CustomFieldValue = typeof customFieldValues.$inferSelect;
+export type InsertCustomFieldValue = z.infer<typeof insertCustomFieldValueSchema>;
+
+export const insertCustomFieldSchema = createInsertSchema(customFields).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  options: z.array(z.string()).optional(), // JSON array validation for select options
+});
+
+export const insertCustomFieldTypeMappingSchema = createInsertSchema(customFieldTypeMappings).omit({
+  id: true,
+});
+
+export const insertCustomFieldValueSchema = createInsertSchema(customFieldValues).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertDeviationPrioritySchema = createInsertSchema(deviationPriorities).omit({
   id: true,
   createdAt: true,

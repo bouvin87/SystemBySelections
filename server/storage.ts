@@ -2,7 +2,7 @@ import {
   tenants, users, workTasks, workStations, shifts, departments, categories, questions, checklists, 
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
-  systemAnnouncements,
+  systemAnnouncements, customFields, customFieldTypeMappings, customFieldValues,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -19,7 +19,10 @@ import {
   type DeviationLog, type InsertDeviationLog,
   type DeviationSetting, type InsertDeviationSetting,
   type DeviationAttachment, type InsertDeviationAttachment,
-  type SystemAnnouncement, type InsertSystemAnnouncement
+  type SystemAnnouncement, type InsertSystemAnnouncement,
+  type CustomField, type InsertCustomField,
+  type CustomFieldTypeMapping, type InsertCustomFieldTypeMapping,
+  type CustomFieldValue, type InsertCustomFieldValue
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
