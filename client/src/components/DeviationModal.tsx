@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -51,8 +62,6 @@ interface DeviationPriority {
   isActive: boolean;
 }
 
-
-
 interface Deviation {
   id: number;
   tenantId: number;
@@ -78,14 +87,22 @@ interface DeviationModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   deviation?: Deviation;
-  mode?: 'create' | 'edit';
+  mode?: "create" | "edit";
 }
 
-export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, mode = 'create' }: DeviationModalProps) {
+export default function DeviationModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  deviation,
+  mode = "create",
+}: DeviationModalProps) {
   const { toast } = useToast();
   const [selectedDueDate, setSelectedDueDate] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [createdDeviationId, setCreatedDeviationId] = useState<number | null>(null);
+  const [createdDeviationId, setCreatedDeviationId] = useState<number | null>(
+    null,
+  );
 
   // Fetch deviation types
   const { data: deviationTypes = [] } = useQuery<DeviationType[]>({
@@ -104,8 +121,6 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
     queryKey: ["/api/deviations/statuses"],
     enabled: isOpen,
   });
-
-
 
   // Fetch work tasks
   const { data: workTasks = [] } = useQuery<WorkTask[]>({
@@ -149,8 +164,8 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
 
   // Fetch deviation settings
   const { data: deviationSettings } = useQuery({
-    queryKey: ['/api/deviations/settings'],
-    enabled: isOpen
+    queryKey: ["/api/deviations/settings"],
+    enabled: isOpen,
   });
 
   // Create deviation mutation
@@ -161,7 +176,7 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
     },
     onSuccess: async (newDeviation) => {
       setCreatedDeviationId(newDeviation.id);
-      
+
       // Upload files if any are selected
       if (selectedFiles.length > 0) {
         await uploadFiles(newDeviation.id);
@@ -182,12 +197,18 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
   // Update deviation mutation
   const updateDeviationMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", `/api/deviations/${deviation?.id}`, data);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/deviations/${deviation?.id}`,
+        data,
+      );
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/deviations/${deviation?.id}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/deviations/${deviation?.id}`],
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/deviations/stats"] });
       onClose();
       toast({
@@ -208,29 +229,33 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
   const uploadFiles = async (deviationId: number) => {
     try {
       const formData = new FormData();
-      selectedFiles.forEach(file => {
-        formData.append('files', file);
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
       });
 
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`/api/deviations/${deviationId}/attachments`, {
-        method: 'POST',
-        headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(
+        `/api/deviations/${deviationId}/attachments`,
+        {
+          method: "POST",
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+          body: formData,
         },
-        body: formData,
-      });
+      );
 
       if (!response.ok) {
-        throw new Error('File upload failed');
+        throw new Error("File upload failed");
       }
 
       completeCreation();
     } catch (error) {
-      console.error('File upload error:', error);
+      console.error("File upload error:", error);
       toast({
         title: "Varning",
-        description: "Avvikelsen skapades men filuppladdningen misslyckades. Du kan lägga till filer senare.",
+        description:
+          "Avvikelsen skapades men filuppladdningen misslyckades. Du kan lägga till filer senare.",
         variant: "destructive",
       });
       completeCreation();
@@ -244,9 +269,10 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
     setCreatedDeviationId(null);
     toast({
       title: "Avvikelse skapad",
-      description: selectedFiles.length > 0 
-        ? `Avvikelsen har skapats med ${selectedFiles.length} fil(er).`
-        : "En ny avvikelse har skapats framgångsrikt.",
+      description:
+        selectedFiles.length > 0
+          ? `Avvikelsen har skapats med ${selectedFiles.length} fil(er).`
+          : "En ny avvikelse har skapats framgångsrikt.",
     });
     onSuccess?.();
   };
@@ -256,17 +282,37 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
       title: formData.get("title"),
       description: formData.get("description") || undefined,
       deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priorityId: formData.get("priorityId") ? parseInt(formData.get("priorityId") as string) : undefined,
-      statusId: formData.get("statusId") ? parseInt(formData.get("statusId") as string) : undefined,
-      workTaskId: formData.get("workTaskId") && formData.get("workTaskId") !== "0" ? parseInt(formData.get("workTaskId") as string) : undefined,
-      locationId: formData.get("locationId") && formData.get("locationId") !== "0" ? parseInt(formData.get("locationId") as string) : undefined,
-      departmentId: formData.get("departmentId") && formData.get("departmentId") !== "0" ? parseInt(formData.get("departmentId") as string) : undefined,
-      assignedToUserId: formData.get("assignedToUserId") && formData.get("assignedToUserId") !== "0" ? parseInt(formData.get("assignedToUserId") as string) : undefined,
-      dueDate: formData.get("dueDate") && formData.get("dueDate") !== "" ? formData.get("dueDate") as string : undefined,
+      priorityId: formData.get("priorityId")
+        ? parseInt(formData.get("priorityId") as string)
+        : undefined,
+      statusId: formData.get("statusId")
+        ? parseInt(formData.get("statusId") as string)
+        : undefined,
+      workTaskId:
+        formData.get("workTaskId") && formData.get("workTaskId") !== "0"
+          ? parseInt(formData.get("workTaskId") as string)
+          : undefined,
+      locationId:
+        formData.get("locationId") && formData.get("locationId") !== "0"
+          ? parseInt(formData.get("locationId") as string)
+          : undefined,
+      departmentId:
+        formData.get("departmentId") && formData.get("departmentId") !== "0"
+          ? parseInt(formData.get("departmentId") as string)
+          : undefined,
+      assignedToUserId:
+        formData.get("assignedToUserId") &&
+        formData.get("assignedToUserId") !== "0"
+          ? parseInt(formData.get("assignedToUserId") as string)
+          : undefined,
+      dueDate:
+        formData.get("dueDate") && formData.get("dueDate") !== ""
+          ? (formData.get("dueDate") as string)
+          : undefined,
       isHidden: formData.get("isHidden") === "on",
     };
 
-    if (mode === 'edit') {
+    if (mode === "edit") {
       updateDeviationMutation.mutate(data);
     } else {
       createDeviationMutation.mutate(data);
@@ -277,36 +323,45 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{mode === 'edit' ? 'Redigera avvikelse' : 'Skapa ny avvikelse'}</DialogTitle>
+          <DialogTitle>
+            {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit(new FormData(e.currentTarget));
-        }} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(new FormData(e.currentTarget));
+          }}
+          className="space-y-4"
+        >
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Label htmlFor="title">Titel *</Label>
-              <Input 
-                id="title" 
-                name="title" 
-                required 
+              <Input
+                id="title"
+                name="title"
+                required
                 defaultValue={deviation?.title || ""}
               />
             </div>
-            
+
             <div className="col-span-2">
               <Label htmlFor="description">Beskrivning</Label>
-              <Textarea 
-                id="description" 
-                name="description" 
+              <Textarea
+                id="description"
+                name="description"
                 rows={3}
                 defaultValue={deviation?.description || ""}
               />
             </div>
-            
+
             <div>
               <Label htmlFor="deviationTypeId">Avvikelsetyp *</Label>
-              <Select name="deviationTypeId" required defaultValue={deviation?.deviationTypeId?.toString()}>
+              <Select
+                name="deviationTypeId"
+                required
+                defaultValue={deviation?.deviationTypeId?.toString()}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Välj typ" />
                 </SelectTrigger>
@@ -314,8 +369,8 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                   {deviationTypes.map((type) => (
                     <SelectItem key={type.id} value={type.id.toString()}>
                       <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
+                        <div
+                          className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: type.color }}
                         />
                         {type.name}
@@ -325,80 +380,108 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <Label htmlFor="departmentId">Avdelning *</Label>
-              <Select name="departmentId" required defaultValue={deviation?.departmentId?.toString()}>
+              <Select
+                name="departmentId"
+                required
+                defaultValue={deviation?.departmentId?.toString()}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Välj avdelning" />
                 </SelectTrigger>
                 <SelectContent>
-                  {departments.filter((dept: any) => dept.isActive).map((department: any) => (
-                    <SelectItem key={department.id} value={department.id.toString()}>
-                      {department.name}
-                    </SelectItem>
-                  ))}
+                  {departments
+                    .filter((dept: any) => dept.isActive)
+                    .map((department: any) => (
+                      <SelectItem
+                        key={department.id}
+                        value={department.id.toString()}
+                      >
+                        {department.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
-            {mode === 'edit' && (
-            <div>
-              <Label htmlFor="statusId">Status</Label>
-              <Select name="statusId" defaultValue={deviation?.statusId?.toString() || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Välj status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {deviationStatuses
-                    ?.filter((status: DeviationStatus) => status.isActive)
-                    ?.sort((a: DeviationStatus, b: DeviationStatus) => a.order - b.order)
-                    ?.map((status: DeviationStatus) => (
-                    <SelectItem key={status.id} value={status.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: status.color || '#10b981' }}
-                        />
-                        {status.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-      )}
+            {mode === "edit" && (
+              <div>
+                <Label htmlFor="statusId">Status</Label>
+                <Select
+                  name="statusId"
+                  defaultValue={deviation?.statusId?.toString() || ""}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deviationStatuses
+                      ?.filter((status: DeviationStatus) => status.isActive)
+                      ?.sort(
+                        (a: DeviationStatus, b: DeviationStatus) =>
+                          a.order - b.order,
+                      )
+                      ?.map((status: DeviationStatus) => (
+                        <SelectItem
+                          key={status.id}
+                          value={status.id.toString()}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{
+                                backgroundColor: status.color || "#10b981",
+                              }}
+                            />
+                            {status.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {(deviationSettings?.usePriorities ?? true) && (
               <div>
                 <Label htmlFor="priorityId">Prioritet</Label>
-                <Select name="priorityId" defaultValue={deviation?.priorityId?.toString() || ""}>
+                <Select
+                  name="priorityId"
+                  defaultValue={deviation?.priorityId?.toString() || ""}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj prioritet" />
                   </SelectTrigger>
                   <SelectContent>
                     {deviationPriorities
-                      .filter(priority => priority.isActive)
+                      .filter((priority) => priority.isActive)
                       .sort((a, b) => a.order - b.order)
                       .map((priority) => (
-                      <SelectItem key={priority.id} value={priority.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: priority.color }}
-                          />
-                          {priority.name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                        <SelectItem
+                          key={priority.id}
+                          value={priority.id.toString()}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: priority.color }}
+                            />
+                            {priority.name}
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
-            
 
             {(deviationSettings?.useWorkTasks ?? true) && (
               <div>
                 <Label htmlFor="workTaskId">Arbetsmoment</Label>
-                <Select name="workTaskId" defaultValue={deviation?.workTaskId?.toString() || "0"}>
+                <Select
+                  name="workTaskId"
+                  defaultValue={deviation?.workTaskId?.toString() || "0"}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj arbetsmoment" />
                   </SelectTrigger>
@@ -414,36 +497,47 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               </div>
             )}
 
-            {mode === 'edit' && (
+            {mode === "edit" && (
               <div>
                 <Label htmlFor="assignedToUserId">Tilldela till</Label>
-                <Select name="assignedToUserId" defaultValue={deviation?.assignedToUserId?.toString() || ""}>
+                <Select
+                  name="assignedToUserId"
+                  defaultValue={deviation?.assignedToUserId?.toString() || ""}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj användare" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Ingen vald</SelectItem>
-                    {users.filter(user => user.isActive).map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.firstName} {user.lastName} ({user.email})
-                      </SelectItem>
-                    ))}
+                    {users
+                      .filter((user) => user.isActive)
+                      .map((user) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.firstName} {user.lastName} ({user.email})
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
-            
+
             {(deviationSettings?.useWorkStations ?? true) && (
               <div>
                 <Label htmlFor="locationId">Plats</Label>
-                <Select name="locationId" defaultValue={deviation?.locationId?.toString() || "0"}>
+                <Select
+                  name="locationId"
+                  defaultValue={deviation?.locationId?.toString() || "0"}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Välj plats" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Ingen vald</SelectItem>
                     {workStations.map((station) => (
-                      <SelectItem key={station.id} value={station.id.toString()}>
+                      <SelectItem
+                        key={station.id}
+                        value={station.id.toString()}
+                      >
                         {station.name}
                       </SelectItem>
                     ))}
@@ -452,23 +546,42 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
               </div>
             )}
 
+            {mode === "edit" && (
+              <div>
+                <Label htmlFor="dueDate">Deadline</Label>
+                <DatePicker
+                  value={
+                    selectedDueDate !== ""
+                      ? selectedDueDate
+                      : deviation?.dueDate
+                        ? new Date(deviation.dueDate)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                  }
+                  onChange={(value) => {
+                    setSelectedDueDate(value);
+                  }}
+                  placeholder="Välj deadline"
+                />
+                <input
+                  type="hidden"
+                  name="dueDate"
+                  value={
+                    selectedDueDate !== ""
+                      ? selectedDueDate
+                      : deviation?.dueDate
+                        ? new Date(deviation.dueDate)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                  }
+                />
+              </div>
+            )}
 
-            {mode === 'edit' && (
-            <div>
-              <Label htmlFor="dueDate">Deadline</Label>
-              <DatePicker
-                value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")}
-                onChange={(value) => {
-                  setSelectedDueDate(value);
-                }}
-                placeholder="Välj deadline"
-              />
-              <input type="hidden" name="dueDate" value={selectedDueDate !== "" ? selectedDueDate : (deviation?.dueDate ? new Date(deviation.dueDate).toISOString().split('T')[0] : "")} />
-            </div>
-      )}
+            {/* Hidden checkbox - Only for users with permission */}
 
-          {/* Hidden checkbox - Only for users with permission */}
-          {(user?.role === 'admin' || user?.role === 'superadmin') && (
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="isHidden"
@@ -476,13 +589,13 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
                 defaultChecked={deviation?.isHidden || false}
               />
               <Label htmlFor="isHidden" className="text-sm font-medium">
-                Dölj avvikelse (endast synlig för admin, superadmin, avdelningsansvarig och tilldelad person)
+                Dölj avvikelse (endast synlig för admin, avdelningsansvarig och
+                tilldelad person)
               </Label>
             </div>
-          )}
-            </div>
+          </div>
           {/* File Upload Section - Only for Create Mode */}
-          {mode === 'create' && (
+          {mode === "create" && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Bilagor</h3>
               <FileUploadSimple
@@ -494,17 +607,25 @@ export default function DeviationModal({ isOpen, onClose, onSuccess, deviation, 
             </div>
           )}
 
-          
-          
-          
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Avbryt
             </Button>
-            <Button type="submit" disabled={createDeviationMutation.isPending || updateDeviationMutation.isPending}>
-              {(createDeviationMutation.isPending || updateDeviationMutation.isPending) 
-            ? (mode === 'edit' ? "Uppdaterar..." : "Skapar...") 
-            : (mode === 'edit' ? "Uppdatera avvikelse" : "Skapa avvikelse")}
+            <Button
+              type="submit"
+              disabled={
+                createDeviationMutation.isPending ||
+                updateDeviationMutation.isPending
+              }
+            >
+              {createDeviationMutation.isPending ||
+              updateDeviationMutation.isPending
+                ? mode === "edit"
+                  ? "Uppdaterar..."
+                  : "Skapar..."
+                : mode === "edit"
+                  ? "Uppdatera avvikelse"
+                  : "Skapa avvikelse"}
             </Button>
           </div>
         </form>

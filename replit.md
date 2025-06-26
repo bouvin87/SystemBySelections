@@ -128,6 +128,7 @@ Preferred communication style: Simple, everyday language.
   - Added checkbox in DeviationModal for admin/superadmin users to hide deviations
   - Updated backend filtering logic to enforce hidden deviation access rules
   - Modified storage methods to include user context for permission checking
+  - Ensured creators can always see their own deviations, even when hidden
 
 - **June 24, 2025**: Added file attachment functionality for deviations
   - Created deviation_attachments table for storing file metadata
