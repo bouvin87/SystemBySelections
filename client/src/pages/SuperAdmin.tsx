@@ -46,7 +46,6 @@ import {
   Bell,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { SystemAnnouncementModal } from "@/components/SystemAnnouncementModal";
 import type { Tenant, SystemAnnouncement } from "@shared/schema";
@@ -84,17 +83,6 @@ const AVAILABLE_ROLES = [
   { id: "viewer", name: "Läsare", description: "Endast läsrättigheter" },
 ];
 
-interface SystemAnnouncement {
-  id: number;
-  tenantId: number;
-  message: string;
-  isActive: boolean;
-  createdAt: string;
-  createdBy: number;
-  updatedAt: string;
-  updatedBy: number;
-}
-
 export default function SuperAdmin() {
   const { toast } = useToast();
   const { user, logout } = useAuth();
@@ -105,10 +93,6 @@ export default function SuperAdmin() {
     name: "",
     modules: [] as string[],
   });
-  
-  // System announcement state
-  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
-  const [editingAnnouncement, setEditingAnnouncement] = useState<SystemAnnouncement | null>(null);
   
   // System announcement state
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
@@ -180,7 +164,7 @@ export default function SuperAdmin() {
   });
 
   // Fetch system announcements
-  const { data: systemAnnouncements = [] } = useQuery({
+  const { data: systemAnnouncements = [] } = useQuery<SystemAnnouncement[]>({
     queryKey: ["/api/system/announcements"],
     retry: false,
   });
@@ -1332,7 +1316,7 @@ export default function SuperAdmin() {
                     <p>Inga systemmeddelanden skapade än</p>
                   </div>
                 ) : (
-                  systemAnnouncements.map((announcement: SystemAnnouncement) => (
+                  systemAnnouncements.map((announcement) => (
                     <div key={announcement.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -1346,7 +1330,7 @@ export default function SuperAdmin() {
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={announcement.isActive}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked: boolean) => 
                               toggleAnnouncementMutation.mutate({ 
                                 id: announcement.id, 
                                 isActive: checked 
@@ -1390,7 +1374,8 @@ export default function SuperAdmin() {
             setIsAnnouncementModalOpen(false);
             setEditingAnnouncement(null);
           }}
-          announcement={editingAnnouncement}
+          announcement={editingAnnouncement || undefined}
+          mode={editingAnnouncement ? "edit" : "create"}
         />
       </main>
     </div>
