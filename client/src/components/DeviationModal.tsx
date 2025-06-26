@@ -242,6 +242,25 @@ export default function DeviationModal({
     }
   }, [existingCustomFieldValues]);
 
+  // Save custom field values mutation
+  const saveCustomFieldValuesMutation = useMutation({
+    mutationFn: async ({ deviationId, fieldValues }: { deviationId: number, fieldValues: Record<number, string> }) => {
+      const promises = Object.entries(fieldValues).map(([fieldId, value]) => {
+        if (value.trim()) {
+          return apiRequest("POST", `/api/deviations/${deviationId}/custom-field-values`, {
+            customFieldId: parseInt(fieldId),
+            value: value.trim()
+          });
+        }
+      }).filter(Boolean);
+      
+      await Promise.all(promises);
+    },
+    onError: (error) => {
+      console.error('Error saving custom field values:', error);
+    },
+  });
+
   // Create deviation mutation
   const createDeviationMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -250,6 +269,15 @@ export default function DeviationModal({
     },
     onSuccess: async (newDeviation) => {
       setCreatedDeviationId(newDeviation.id);
+
+      // Save custom field values if any
+      const hasCustomFieldValues = Object.keys(customFieldValues).some(key => customFieldValues[parseInt(key)]?.trim());
+      if (hasCustomFieldValues) {
+        await saveCustomFieldValuesMutation.mutateAsync({ 
+          deviationId: newDeviation.id, 
+          fieldValues: customFieldValues 
+        });
+      }
 
       // Upload files if any are selected
       if (selectedFiles.length > 0) {
@@ -451,6 +479,7 @@ export default function DeviationModal({
                 required
                 defaultValue={deviation?.deviationTypeId?.toString()}
                 disabled={typesLoading}
+                onValueChange={(value) => setSelectedTypeId(parseInt(value))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={typesLoading ? "Laddar..." : "Välj typ"} />
@@ -496,6 +525,104 @@ export default function DeviationModal({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Custom Fields Section */}
+            {customFields.length > 0 && (
+              <div className="col-span-2">
+                <div className="space-y-4 pt-4 border-t">
+                  <h4 className="font-medium text-sm text-gray-700">Extrafält</h4>
+                  {customFields
+                    .sort((a, b) => a.order - b.order)
+                    .map((field) => (
+                      <div key={field.id}>
+                        <Label htmlFor={`custom_field_${field.id}`}>
+                          {field.name}
+                          {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        
+                        {field.fieldType === 'text' && (
+                          <Input
+                            id={`custom_field_${field.id}`}
+                            value={customFieldValues[field.id] || ''}
+                            onChange={(e) => setCustomFieldValues(prev => ({
+                              ...prev,
+                              [field.id]: e.target.value
+                            }))}
+                            required={field.isRequired}
+                            placeholder={`Ange ${field.name.toLowerCase()}`}
+                          />
+                        )}
+                        
+                        {field.fieldType === 'number' && (
+                          <Input
+                            id={`custom_field_${field.id}`}
+                            type="number"
+                            value={customFieldValues[field.id] || ''}
+                            onChange={(e) => setCustomFieldValues(prev => ({
+                              ...prev,
+                              [field.id]: e.target.value
+                            }))}
+                            required={field.isRequired}
+                            placeholder={`Ange ${field.name.toLowerCase()}`}
+                          />
+                        )}
+                        
+                        {field.fieldType === 'checkbox' && (
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`custom_field_${field.id}`}
+                              checked={customFieldValues[field.id] === 'true'}
+                              onCheckedChange={(checked) => setCustomFieldValues(prev => ({
+                                ...prev,
+                                [field.id]: checked ? 'true' : 'false'
+                              }))}
+                            />
+                            <Label htmlFor={`custom_field_${field.id}`} className="text-sm font-normal">
+                              {field.name}
+                            </Label>
+                          </div>
+                        )}
+                        
+                        {field.fieldType === 'date' && (
+                          <Input
+                            id={`custom_field_${field.id}`}
+                            type="date"
+                            value={customFieldValues[field.id] || ''}
+                            onChange={(e) => setCustomFieldValues(prev => ({
+                              ...prev,
+                              [field.id]: e.target.value
+                            }))}
+                            required={field.isRequired}
+                          />
+                        )}
+                        
+                        {field.fieldType === 'select' && field.options && (
+                          <Select
+                            value={customFieldValues[field.id] || ''}
+                            onValueChange={(value) => setCustomFieldValues(prev => ({
+                              ...prev,
+                              [field.id]: value
+                            }))}
+                            required={field.isRequired}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={`Välj ${field.name.toLowerCase()}`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {field.options.map((option, index) => (
+                                <SelectItem key={index} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
             {mode === "edit" && (
               <div>
                 <Label htmlFor="statusId">Status</Label>
