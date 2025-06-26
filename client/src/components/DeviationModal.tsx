@@ -585,6 +585,175 @@ export default function DeviationModal({
               </Select>
             </div>
 
+            {/* Work Task - only show if enabled in settings */}
+            {deviationSettings?.showWorkTaskField && (
+              <div>
+                <Label htmlFor="workTaskId">Arbetsuppgift</Label>
+                <Select
+                  name="workTaskId"
+                  defaultValue={deviation?.workTaskId?.toString() || "0"}
+                  disabled={workTasksLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        workTasksLoading ? "Laddar..." : "Välj arbetsuppgift"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Ingen arbetsuppgift</SelectItem>
+                    {workTasks
+                      .filter((task: any) => task.isActive)
+                      .map((task: any) => (
+                        <SelectItem key={task.id} value={task.id.toString()}>
+                          {task.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Location/Work Station - only show if enabled in settings */}
+            {deviationSettings?.showLocationField && (
+              <div>
+                <Label htmlFor="locationId">Plats/Station</Label>
+                <Select
+                  name="locationId"
+                  defaultValue={deviation?.locationId?.toString() || "0"}
+                  disabled={workStationsLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={
+                        workStationsLoading ? "Laddar..." : "Välj plats"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Ingen plats</SelectItem>
+                    {workStations
+                      .filter((station: any) => station.isActive)
+                      .map((station: any) => (
+                        <SelectItem key={station.id} value={station.id.toString()}>
+                          {station.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Priority */}
+            <div>
+              <Label htmlFor="priorityId">Prioritet</Label>
+              <Select
+                name="priorityId"
+                defaultValue={deviation?.priorityId?.toString() || "0"}
+                disabled={prioritiesLoading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      prioritiesLoading ? "Laddar..." : "Välj prioritet"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Ingen prioritet</SelectItem>
+                  {deviationPriorities
+                    .filter((priority) => priority.isActive)
+                    .map((priority) => (
+                      <SelectItem key={priority.id} value={priority.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: priority.color }}
+                          />
+                          {priority.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status - only for edit mode */}
+            {mode === "edit" && (
+              <div>
+                <Label htmlFor="statusId">Status</Label>
+                <Select
+                  name="statusId"
+                  defaultValue={deviation?.statusId?.toString()}
+                  disabled={statusesLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={statusesLoading ? "Laddar..." : "Välj status"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deviationStatuses
+                      .filter((status) => status.isActive)
+                      .map((status) => (
+                        <SelectItem key={status.id} value={status.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: status.color }}
+                            />
+                            {status.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Assigned User - only for edit mode */}
+            {mode === "edit" && (
+              <div>
+                <Label htmlFor="assignedToUserId">Tilldelad till</Label>
+                <Select
+                  name="assignedToUserId"
+                  defaultValue={deviation?.assignedToUserId?.toString() || "0"}
+                  disabled={usersLoading}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={usersLoading ? "Laddar..." : "Välj användare"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Ingen tilldelning</SelectItem>
+                    {users.map((user: any) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.firstName && user.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : user.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Due Date - only for edit mode */}
+            {mode === "edit" && (
+              <div>
+                <Label htmlFor="dueDate">Förfallodatum</Label>
+                <input type="hidden" name="dueDate" value={selectedDueDate} />
+                <DatePicker
+                  value={selectedDueDate}
+                  onChange={(value) => setSelectedDueDate(value)}
+                  placeholder="Välj förfallodatum"
+                  className="w-full"
+                />
+              </div>
+            )}
+
             {customFields.length > 0 && (
               <div className="col-span-1 sm:col-span-2">
                 <details className="border rounded-md p-4">
