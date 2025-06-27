@@ -24,7 +24,10 @@ import type { DeviationStatus } from "@shared/schema";
 import { FileUploadSimple } from "./FileUploadSimple";
 import { AttachmentList } from "./AttachmentList";
 import { Checkbox } from "@/components/ui/checkbox";
-
+import { FloatingInput } from "./ui/floatingInput";
+import { FloatingTextarea } from "./ui/floatingTextarea";
+import { FloatingSelect } from "./ui/floatingSelect";
+import { FloatingDatePicker } from "./ui/floatingDatePicker";
 interface DeviationType {
   id: number;
   tenantId: number;
@@ -129,23 +132,26 @@ export default function DeviationModal({
   const [customFieldValues, setCustomFieldValues] = useState<
     Record<number, string>
   >({});
-  
+
   // Form state for controlled components
   const [formValues, setFormValues] = useState({
-    workTaskId: "none",
-    locationId: "none", 
-    priorityId: "none",
-    statusId: "none",
-    assignedToUserId: "none",
-    departmentId: "none"
+      title: "",
+      description: "",
+      workTaskId: "none",
+      locationId: "none",
+      priorityId: "none",
+      statusId: "none",
+      assignedToUserId: "none",
+      departmentId: "none",
   });
+  const [customFieldsExpanded, setCustomFieldsExpanded] = useState(false);
 
   // Handle work task change - reset location when work task changes
   const handleWorkTaskChange = (value: string) => {
-    setFormValues(prev => ({ 
-      ...prev, 
+    setFormValues((prev) => ({
+      ...prev,
       workTaskId: value,
-      locationId: "none" // Reset location when work task changes
+      locationId: "none", // Reset location when work task changes
     }));
   };
 
@@ -287,29 +293,32 @@ export default function DeviationModal({
       if (deviation.dueDate) {
         setSelectedDueDate(deviation.dueDate);
       }
-      // Set form values from existing deviation
-      const newFormValues = {
+
+      setFormValues({
+        title: deviation.title || "",
+        description: deviation.description || "",
         workTaskId: deviation.workTaskId?.toString() || "none",
         locationId: deviation.locationId?.toString() || "none",
         priorityId: deviation.priorityId?.toString() || "none",
         statusId: deviation.statusId?.toString() || "none",
         assignedToUserId: deviation.assignedToUserId?.toString() || "none",
-        departmentId: deviation.departmentId?.toString() || "none"
-      };
-      console.log("Setting form values:", newFormValues);
-      setFormValues(newFormValues);
-    } else {
+        departmentId: deviation.departmentId?.toString() || "none",
+      });
+    }
+else {
       setSelectedTypeId(null);
       setSelectedDueDate("");
       setCustomFieldValues({});
       // Reset form values for new deviation
       setFormValues({
+        title: "",
+        description: "",
         workTaskId: "",
         locationId: "",
         priorityId: "",
         statusId: "",
         assignedToUserId: "",
-        departmentId: ""
+        departmentId: "",
       });
     }
   }, [deviation, isOpen]);
@@ -336,7 +345,7 @@ export default function DeviationModal({
     }) => {
       const promises = Object.entries(fieldValues)
         .map(([fieldId, value]) => {
-          if (value.trim()) {
+          if (value && value.trim()) {
             return apiRequest(
               "POST",
               `/api/deviations/${deviationId}/custom-field-values`,
@@ -346,6 +355,7 @@ export default function DeviationModal({
               },
             );
           }
+          return null;
         })
         .filter(Boolean);
 
@@ -403,12 +413,28 @@ export default function DeviationModal({
       );
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Save custom field values if any
+      if (deviation?.id) {
+        const hasCustomFieldValues = Object.keys(customFieldValues).some((key) =>
+          customFieldValues[parseInt(key)]?.trim(),
+        );
+        if (hasCustomFieldValues) {
+          await saveCustomFieldValuesMutation.mutateAsync({
+            deviationId: deviation.id,
+            fieldValues: customFieldValues,
+          });
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ["/api/deviations"] });
       queryClient.invalidateQueries({
         queryKey: [`/api/deviations/${deviation?.id}`],
       });
       queryClient.invalidateQueries({ queryKey: ["/api/deviations/stats"] });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/deviations/${deviation?.id}/custom-field-values`],
+      });
       onClose();
       toast({
         title: "Avvikelse uppdaterad",
@@ -476,37 +502,37 @@ export default function DeviationModal({
     onSuccess?.();
   };
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = () => {
+    const missingRequiredCustomFields = customFields
+    .filter((f) => f.isRequired)
+    .filter((f) => !customFieldValues[f.id]?.trim());
+    
+    if (missingRequiredCustomFields.length > 0) {
+      setCustomFieldsExpanded(true); // skapa en `useState` för detta
+      toast({
+        title: "Obligatoriska extrafält saknas",
+        description: "Fyll i alla obligatoriska extrafält innan du kan spara.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const data = {
-      title: formData.get("title"),
-      description: formData.get("description") || undefined,
-      deviationTypeId: parseInt(formData.get("deviationTypeId") as string),
-      priorityId: formValues.priorityId && formValues.priorityId !== ""
-        ? parseInt(formValues.priorityId)
-        : undefined,
-      statusId: formValues.statusId && formValues.statusId !== ""
-        ? parseInt(formValues.statusId)
-        : undefined,
-      workTaskId: formValues.workTaskId && formValues.workTaskId !== ""
-        ? parseInt(formValues.workTaskId)
-        : undefined,
-      locationId: formValues.locationId && formValues.locationId !== ""
-        ? parseInt(formValues.locationId)
-        : undefined,
-      departmentId: formValues.departmentId && formValues.departmentId !== ""
-        ? parseInt(formValues.departmentId)
-        : undefined,
-      assignedToUserId: formValues.assignedToUserId && formValues.assignedToUserId !== ""
-        ? parseInt(formValues.assignedToUserId)
-        : undefined,
-      dueDate:
-        formData.get("dueDate") && formData.get("dueDate") !== ""
-          ? (formData.get("dueDate") as string)
-          : undefined,
-      isHidden: formData.get("isHidden") === "on",
+      title: formValues.title,
+        description: formValues.description,
+        deviationTypeId: selectedTypeId!,
+        priorityId: formValues.priorityId !== "none" ? parseInt(formValues.priorityId) : undefined,
+        statusId: formValues.statusId !== "none" ? parseInt(formValues.statusId) : undefined,
+        workTaskId: formValues.workTaskId !== "none" ? parseInt(formValues.workTaskId) : undefined,
+        locationId: formValues.locationId !== "none" ? parseInt(formValues.locationId) : undefined,
+        departmentId: formValues.departmentId !== "none" ? parseInt(formValues.departmentId) : undefined,
+        assignedToUserId: formValues.assignedToUserId !== "none" ? parseInt(formValues.assignedToUserId) : undefined,
+        dueDate: selectedDueDate || undefined,
+        isHidden: formValues.isHidden === "true" || false,
     };
 
     if (mode === "edit") {
+      
       updateDeviationMutation.mutate(data);
     } else {
       createDeviationMutation.mutate(data);
@@ -519,7 +545,7 @@ export default function DeviationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full h-screen max-w-none rounded-none sm:max-w-3xl sm:h-auto sm:rounded-lg">
+      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
@@ -540,275 +566,265 @@ export default function DeviationModal({
         </DialogHeader>
 
         <form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
-            handleSubmit(new FormData(e.currentTarget));
+            handleSubmit(); // Utan FormData
           }}
-          className="space-y-6"
+          className="space-y-4"
         >
           <div className="space-y-4">
             <div className="w-full">
-              <Label htmlFor="title">Titel *</Label>
-              <Input
+        
+              <FloatingInput
                 id="title"
                 name="title"
+                label="Rubrik"
                 required
-                defaultValue={deviation?.title || ""}
+                value={formValues.title}
                 className="w-full"
+                onChange={(e) =>
+                  setFormValues((prev) => ({ ...prev, title: e.target.value }))
+                }
               />
             </div>
 
             <div className="w-full">
-              <Label htmlFor="description">Beskrivning</Label>
-              <Textarea
+              <FloatingTextarea
+                label="Beskrivning"
                 id="description"
                 name="description"
-                rows={3}
-                defaultValue={deviation?.description || ""}
+                required
+                value={formValues.description}
                 className="w-full"
+                onChange={(e) =>
+                  setFormValues((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
               />
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="deviationTypeId">Avvikelsetyp *</Label>
-              <Select
+              <FloatingSelect
+                label="Avvikelsestyp"
                 name="deviationTypeId"
+                value={selectedTypeId?.toString() || ""}
+                onChange={(value) => setSelectedTypeId(parseInt(value))}
                 required
-                defaultValue={deviation?.deviationTypeId?.toString()}
                 disabled={typesLoading}
-                onValueChange={(value) => setSelectedTypeId(parseInt(value))}
+                placeholder={typesLoading ? "Laddar..." : "Välj typ"}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={typesLoading ? "Laddar..." : "Välj typ"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {deviationTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: type.color }}
-                        />
-                        {type.name}
-                      </div>
+                {deviationTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: type.color }}
+                      />
+                      {type.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </FloatingSelect>
+            </div>
+
+            <div>
+              <FloatingSelect
+                label="Avdelning"
+                name="departmentId"
+                value={formValues.departmentId}
+                onChange={(value) =>
+                  setFormValues((prev) => ({ ...prev, departmentId: value }))
+                }
+                required
+                disabled={departmentsLoading}
+                placeholder={
+                  departmentsLoading ? "Laddar..." : "Välj avdelning"
+                }
+                className="w-full"
+              >
+                {departments
+                  .filter((dept: any) => dept.isActive)
+                  .map((department: any) => (
+                    <SelectItem
+                      key={department.id}
+                      value={department.id.toString()}
+                    >
+                      {department.name}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
+              </FloatingSelect>
             </div>
-
-            <div>
-              <Label htmlFor="departmentId">Avdelning *</Label>
-              <Select
-                name="departmentId"
-                required
-                value={formValues.departmentId}
-                onValueChange={(value) => setFormValues(prev => ({ ...prev, departmentId: value }))}
-                disabled={departmentsLoading}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      departmentsLoading ? "Laddar..." : "Välj avdelning"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments
-                    .filter((dept: any) => dept.isActive)
-                    .map((department: any) => (
+            {/* Priority - only show if enabled in settings */}
+            {deviationSettings?.usePriorities && (
+              <div>
+                <FloatingSelect
+                  label="Prioritet"
+                  name="priorityId"
+                  value={formValues.priorityId}
+                  onChange={(value) =>
+                    setFormValues((prev) => ({ ...prev, priorityId: value }))
+                  }
+                  disabled={prioritiesLoading}
+                  placeholder={
+                    prioritiesLoading ? "Laddar..." : "Välj prioritet"
+                  }
+                >
+                  <SelectItem value="none">Ingen prioritet</SelectItem>
+                  {deviationPriorities
+                    .filter((priority) => priority.isActive)
+                    .map((priority) => (
                       <SelectItem
-                        key={department.id}
-                        value={department.id.toString()}
+                        key={priority.id}
+                        value={priority.id.toString()}
                       >
-                        {department.name}
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: priority.color }}
+                          />
+                          {priority.name}
+                        </div>
                       </SelectItem>
                     ))}
-                </SelectContent>
-              </Select>
-            </div>
-
+                </FloatingSelect>
+              </div>
+            )}
             {/* Work Task - only show if enabled in settings */}
             {deviationSettings?.useWorkTasks && (
               <div>
-                <Label htmlFor="workTaskId">Arbetsuppgift</Label>
-
-                <Select
+                <FloatingSelect
+                  label="Arbetsuppgift"
                   name="workTaskId"
                   value={formValues.workTaskId}
-                  onValueChange={handleWorkTaskChange}
+                  onChange={handleWorkTaskChange}
                   disabled={workTasksLoading}
+                  placeholder={
+                    workTasksLoading ? "Laddar..." : "Välj arbetsuppgift"
+                  }
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        workTasksLoading ? "Laddar..." : "Välj arbetsuppgift"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Ingen arbetsuppgift</SelectItem>
-                    {workTasks.map((task: any) => (
-                        <SelectItem key={task.id} value={task.id.toString()}>
-                          {task.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="none">Ingen arbetsuppgift</SelectItem>
+                  {workTasks.map((task: any) => (
+                    <SelectItem key={task.id} value={task.id.toString()}>
+                      {task.name}
+                    </SelectItem>
+                  ))}
+                </FloatingSelect>
               </div>
             )}
 
             {/* Location/Work Station - only show if enabled in settings and work task is selected with stations */}
-            {deviationSettings?.useWorkStations && formValues.workTaskId !== "none" && formValues.workTaskId !== "" && selectedWorkTaskHasStations && (
-              <div>
-                <Label htmlFor="locationId">Plats/Station</Label>
-                <Select
-                  name="locationId"
-                  value={formValues.locationId}
-                  onValueChange={(value) => setFormValues(prev => ({ ...prev, locationId: value }))}
-                  disabled={workStationsLoading}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        workStationsLoading ? "Laddar..." : "Välj plats"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
+            {deviationSettings?.useWorkStations &&
+              formValues.workTaskId !== "none" &&
+              formValues.workTaskId !== "" &&
+              selectedWorkTaskHasStations && (
+                <div>
+                  <FloatingSelect
+                    label="Plats/Station"
+                    name="locationId"
+                    value={formValues.locationId}
+                    onChange={(value) =>
+                      setFormValues((prev) => ({ ...prev, locationId: value }))
+                    }
+                    disabled={workStationsLoading}
+                    placeholder={
+                      workStationsLoading ? "Laddar..." : "Välj plats"
+                    }
+                  >
                     <SelectItem value="none">Ingen plats</SelectItem>
                     {filteredWorkStations.map((station: any) => (
-                        <SelectItem key={station.id} value={station.id.toString()}>
-                          {station.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Priority - only show if enabled in settings */}
-            {deviationSettings?.usePriorities && (
-              <div>
-                <Label htmlFor="priorityId">Prioritet</Label>
-                <Select
-                  name="priorityId"
-                  value={formValues.priorityId}
-                  onValueChange={(value) => setFormValues(prev => ({ ...prev, priorityId: value }))}
-                  disabled={prioritiesLoading}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        prioritiesLoading ? "Laddar..." : "Välj prioritet"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Ingen prioritet</SelectItem>
-                    {deviationPriorities
-                      .filter((priority) => priority.isActive)
-                      .map((priority) => (
-                        <SelectItem key={priority.id} value={priority.id.toString()}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: priority.color }}
-                            />
-                            {priority.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                      <SelectItem
+                        key={station.id}
+                        value={station.id.toString()}
+                      >
+                        {station.name}
+                      </SelectItem>
+                    ))}
+                  </FloatingSelect>
+                </div>
+              )}
 
             {/* Status - only for edit mode */}
             {mode === "edit" && (
               <div>
-                <Label htmlFor="statusId">Status</Label>
-                <Select
+                <FloatingSelect
+                  label="Status"
                   name="statusId"
                   value={formValues.statusId}
-                  onValueChange={(value) => setFormValues(prev => ({ ...prev, statusId: value }))}
+                  onChange={(value) =>
+                    setFormValues((prev) => ({ ...prev, statusId: value }))
+                  }
                   disabled={statusesLoading}
+                  placeholder={statusesLoading ? "Laddar..." : "Välj status"}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={statusesLoading ? "Laddar..." : "Välj status"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {deviationStatuses
-                      .filter((status) => status.isActive)
-                      .map((status) => (
-                        <SelectItem key={status.id} value={status.id.toString()}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: status.color }}
-                            />
-                            {status.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  {deviationStatuses
+                    .filter((status) => status.isActive)
+                    .map((status) => (
+                      <SelectItem key={status.id} value={status.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: status.color }}
+                          />
+                          {status.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                </FloatingSelect>
               </div>
             )}
 
             {/* Assigned User - only for edit mode */}
             {mode === "edit" && (
               <div>
-                <Label htmlFor="assignedToUserId">Tilldelad till</Label>
-                <Select
+                <FloatingSelect
+                  label="Tilldelad till"
                   name="assignedToUserId"
                   value={formValues.assignedToUserId}
-                  onValueChange={(value) => setFormValues(prev => ({ ...prev, assignedToUserId: value }))}
+                  onChange={(value) =>
+                    setFormValues((prev) => ({
+                      ...prev,
+                      assignedToUserId: value,
+                    }))
+                  }
                   disabled={usersLoading}
+                  placeholder={usersLoading ? "Laddar..." : "Välj användare"}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={usersLoading ? "Laddar..." : "Välj användare"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Ingen tilldelning</SelectItem>
-                    {users.map((user: any) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.firstName && user.lastName
-                          ? `${user.firstName} ${user.lastName}`
-                          : user.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <SelectItem value="none">Ingen tilldelning</SelectItem>
+                  {users.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.firstName && user.lastName
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.email}
+                    </SelectItem>
+                  ))}
+                </FloatingSelect>
               </div>
             )}
 
             {/* Due Date - only for edit mode */}
             {mode === "edit" && (
               <div>
-                <Label htmlFor="dueDate">Förfallodatum</Label>
-                <input type="hidden" name="dueDate" value={selectedDueDate} />
-                <DatePicker
+                <FloatingDatePicker
+                  label="Förfallodatum"
+                  name="dueDate"
                   value={selectedDueDate}
                   onChange={(value) => setSelectedDueDate(value)}
                   placeholder="Välj förfallodatum"
-                  className="w-full"
                 />
               </div>
             )}
 
             {customFields.length > 0 && (
               <div className="col-span-1 sm:col-span-2">
-                <details className="border rounded-md p-4">
-                  <summary className="cursor-pointer font-medium text-sm">
+                <details open={customFieldsExpanded} className="border rounded-md p-4">
+                  <summary onClick={() => setCustomFieldsExpanded((prev) => !prev)} className="cursor-pointer font-medium text-sm">
                     Extrafält
                     {customFields.some((f) => f.isRequired) && (
                       <span className="text-red-500 ml-1">*</span>
@@ -819,16 +835,11 @@ export default function DeviationModal({
                       .sort((a, b) => a.order - b.order)
                       .map((field) => (
                         <div key={field.id} className="space-y-1 sm:space-y-2">
-                          <Label htmlFor={`custom_field_${field.id}`}>
-                            {field.name}
-                            {field.isRequired && (
-                              <span className="text-red-500 ml-1">*</span>
-                            )}
-                          </Label>
-
                           {field.fieldType === "text" && (
-                            <Input
+                            <FloatingInput
+                              label={`${field.name}`}
                               id={`custom_field_${field.id}`}
+                              name={`custom_field_${field.id}`}
                               value={customFieldValues[field.id] || ""}
                               onChange={(e) =>
                                 setCustomFieldValues((prev) => ({
@@ -837,16 +848,17 @@ export default function DeviationModal({
                                 }))
                               }
                               required={field.isRequired}
-                              placeholder={`Ange ${field.name.toLowerCase()}`}
                               className="w-full"
                             />
                           )}
 
                           {field.fieldType === "number" && (
-                            <Input
+                            <FloatingInput
+                              label={`${field.name}`}
                               id={`custom_field_${field.id}`}
-                              type="number"
+                              name={`custom_field_${field.id}`}
                               value={customFieldValues[field.id] || ""}
+                              type="number"
                               onChange={(e) =>
                                 setCustomFieldValues((prev) => ({
                                   ...prev,
@@ -854,7 +866,6 @@ export default function DeviationModal({
                                 }))
                               }
                               required={field.isRequired}
-                              placeholder={`Ange ${field.name.toLowerCase()}`}
                               className="w-full"
                             />
                           )}
@@ -881,7 +892,9 @@ export default function DeviationModal({
                           )}
 
                           {field.fieldType === "date" && (
-                            <DatePicker
+                            <FloatingDatePicker
+                              label={field.name}
+                              name={`custom_field_${field.id}`}
                               value={customFieldValues[field.id] || ""}
                               onChange={(value) =>
                                 setCustomFieldValues((prev) => ({
@@ -891,33 +904,30 @@ export default function DeviationModal({
                               }
                               placeholder="Välj datum"
                               className="w-full"
+                              required={field.isRequired}
                             />
                           )}
 
                           {field.fieldType === "select" && field.options && (
-                            <Select
+                            <FloatingSelect
+                              label={field.name}
+                              name={`custom_field_${field.id}`}
                               value={customFieldValues[field.id] || ""}
-                              onValueChange={(value) =>
+                              onChange={(value) =>
                                 setCustomFieldValues((prev) => ({
                                   ...prev,
                                   [field.id]: value,
                                 }))
                               }
                               required={field.isRequired}
+                              placeholder={`Välj ${field.name.toLowerCase()}`}
                             >
-                              <SelectTrigger className="w-full">
-                                <SelectValue
-                                  placeholder={`Välj ${field.name.toLowerCase()}`}
-                                />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {field.options.map((option, index) => (
-                                  <SelectItem key={index} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              {field.options.map((option, index) => (
+                                <SelectItem key={index} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </FloatingSelect>
                           )}
                         </div>
                       ))}
@@ -929,7 +939,6 @@ export default function DeviationModal({
 
           {mode === "create" && (
             <div className="space-y-2 sm:space-y-4">
-              <h3 className="text-lg font-semibold">Bilagor</h3>
               <FileUploadSimple
                 selectedFiles={selectedFiles}
                 onFilesChange={setSelectedFiles}
@@ -939,7 +948,7 @@ export default function DeviationModal({
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4">
+          <div className="flex flex-col sm:flex-row justify-between gap-6">
             <div className="flex gap-3">
               <Checkbox
                 id="isHidden"
