@@ -143,6 +143,7 @@ export default function DeviationModal({
       statusId: "none",
       assignedToUserId: "none",
       departmentId: "none",
+      isHidden: false,
   });
   const [customFieldsExpanded, setCustomFieldsExpanded] = useState(false);
 
@@ -303,6 +304,7 @@ export default function DeviationModal({
         statusId: deviation.statusId?.toString() || "none",
         assignedToUserId: deviation.assignedToUserId?.toString() || "none",
         departmentId: deviation.departmentId?.toString() || "none",
+        isHidden: deviation.isHidden || false,
       });
     }
 else {
@@ -319,6 +321,7 @@ else {
         statusId: "",
         assignedToUserId: "",
         departmentId: "",
+        isHidden: false,
       });
     }
   }, [deviation, isOpen]);
@@ -503,15 +506,37 @@ else {
   };
 
   const handleSubmit = () => {
+    // Validate all required fields
+    const missingFields: string[] = [];
+    
+    // Check basic required fields
+    if (!formValues.title?.trim()) {
+      missingFields.push("Titel");
+    }
+    if (!formValues.description?.trim()) {
+      missingFields.push("Beskrivning");
+    }
+    if (!selectedTypeId) {
+      missingFields.push("Avvikelsetyp");
+    }
+    
+    // Check required custom fields
     const missingRequiredCustomFields = customFields
-    .filter((f) => f.isRequired)
-    .filter((f) => !customFieldValues[f.id]?.trim());
+      .filter((f) => f.isRequired)
+      .filter((f) => !customFieldValues[f.id]?.trim());
     
     if (missingRequiredCustomFields.length > 0) {
-      setCustomFieldsExpanded(true); // skapa en `useState` för detta
+      missingRequiredCustomFields.forEach(field => {
+        missingFields.push(`Extrafält: ${field.name}`);
+      });
+      setCustomFieldsExpanded(true);
+    }
+    
+    // Show toast if there are missing fields
+    if (missingFields.length > 0) {
       toast({
-        title: "Obligatoriska extrafält saknas",
-        description: "Fyll i alla obligatoriska extrafält innan du kan spara.",
+        title: "Obligatoriska fält saknas",
+        description: `Följande fält måste fyllas i: ${missingFields.join(", ")}`,
         variant: "destructive",
       });
       return;
@@ -519,20 +544,19 @@ else {
     
     const data = {
       title: formValues.title,
-        description: formValues.description,
-        deviationTypeId: selectedTypeId!,
-        priorityId: formValues.priorityId !== "none" ? parseInt(formValues.priorityId) : undefined,
-        statusId: formValues.statusId !== "none" ? parseInt(formValues.statusId) : undefined,
-        workTaskId: formValues.workTaskId !== "none" ? parseInt(formValues.workTaskId) : undefined,
-        locationId: formValues.locationId !== "none" ? parseInt(formValues.locationId) : undefined,
-        departmentId: formValues.departmentId !== "none" ? parseInt(formValues.departmentId) : undefined,
-        assignedToUserId: formValues.assignedToUserId !== "none" ? parseInt(formValues.assignedToUserId) : undefined,
-        dueDate: selectedDueDate || undefined,
-        isHidden: formValues.isHidden === "true" || false,
+      description: formValues.description,
+      deviationTypeId: selectedTypeId!,
+      priorityId: formValues.priorityId !== "none" ? parseInt(formValues.priorityId) : undefined,
+      statusId: formValues.statusId !== "none" ? parseInt(formValues.statusId) : undefined,
+      workTaskId: formValues.workTaskId !== "none" ? parseInt(formValues.workTaskId) : undefined,
+      locationId: formValues.locationId !== "none" ? parseInt(formValues.locationId) : undefined,
+      departmentId: formValues.departmentId !== "none" ? parseInt(formValues.departmentId) : undefined,
+      assignedToUserId: formValues.assignedToUserId !== "none" ? parseInt(formValues.assignedToUserId) : undefined,
+      dueDate: selectedDueDate || undefined,
+      isHidden: formValues.isHidden || false,
     };
 
     if (mode === "edit") {
-      
       updateDeviationMutation.mutate(data);
     } else {
       createDeviationMutation.mutate(data);
