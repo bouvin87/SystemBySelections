@@ -1,4 +1,9 @@
-import { useState, useCallback } from 'react';
+import React from 'react';
+
+// Global toast state
+let toastListeners: Array<(toasts: Toast[]) => void> = [];
+let toasts: Toast[] = [];
+let toastCount = 0;
 
 export interface Toast {
   id: string;
@@ -8,93 +13,70 @@ export interface Toast {
   variant?: 'default' | 'destructive';
 }
 
-interface ToastState {
-  toasts: Toast[];
-}
-
-const toastTimeouts = new Map<string, NodeJS.Timeout>();
-
-let toastCount = 0;
-
 function genId() {
   toastCount = (toastCount + 1) % Number.MAX_SAFE_INTEGER;
   return toastCount.toString();
 }
 
-export const useToast = () => {
-  const [state, setState] = useState<ToastState>({ toasts: [] });
+function notifyListeners() {
+  toastListeners.forEach(listener => listener([...toasts]));
+}
 
-  const dismiss = useCallback((toastId?: string) => {
-    setState((state) => ({
-      ...state,
-      toasts: toastId
-        ? state.toasts.filter((toast) => toast.id !== toastId)
-        : [],
-    }));
+export function addToast(toastProps: Omit<Toast, 'id'>) {
+  const id = genId();
+  const toast: Toast = {
+    id,
+    ...toastProps,
+  };
+  
+  toasts.push(toast);
+  notifyListeners();
+  
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    removeToast(id);
+  }, 5000);
+  
+  return id;
+}
 
-    if (toastId) {
-      const timeout = toastTimeouts.get(toastId);
-      if (timeout) {
-        clearTimeout(timeout);
-        toastTimeouts.delete(toastId);
-      }
+export function removeToast(id: string) {
+  toasts = toasts.filter(t => t.id !== id);
+  notifyListeners();
+}
+
+export function useToast() {
+  const [currentToasts, setCurrentToasts] = React.useState<Toast[]>([]);
+  
+  React.useEffect(() => {
+    const listener = (newToasts: Toast[]) => {
+      setCurrentToasts(newToasts);
+    };
+    
+    toastListeners.push(listener);
+    setCurrentToasts([...toasts]);
+    
+    return () => {
+      toastListeners = toastListeners.filter(l => l !== listener);
+    };
+  }, []);
+  
+  const toast = React.useCallback((props: Omit<Toast, 'id'>) => {
+    addToast(props);
+  }, []);
+  
+  const dismiss = React.useCallback((id?: string) => {
+    if (id) {
+      removeToast(id);
     } else {
-      toastTimeouts.forEach((timeout) => clearTimeout(timeout));
-      toastTimeouts.clear();
+      toasts = [];
+      notifyListeners();
     }
   }, []);
-
-  const toast = useCallback(
-    ({ title, description, action, variant = 'default', ...props }: Omit<Toast, 'id'>) => {
-      const id = genId();
-
-      const update = (props: Partial<Toast>) =>
-        setState((state) => ({
-          ...state,
-          toasts: state.toasts.map((t) =>
-            t.id === id ? { ...t, ...props } : t
-          ),
-        }));
-
-      const dismiss = () => setState((state) => ({
-        ...state,
-        toasts: state.toasts.filter((t) => t.id !== id),
-      }));
-
-      setState((state) => ({
-        ...state,
-        toasts: [
-          ...state.toasts,
-          {
-            id,
-            title,
-            description,
-            action,
-            variant,
-            ...props,
-          },
-        ],
-      }));
-
-      const timeout = setTimeout(() => {
-        dismiss();
-        toastTimeouts.delete(id);
-      }, 5000);
-
-      toastTimeouts.set(id, timeout);
-
-      return {
-        id,
-        dismiss,
-        update,
-      };
-    },
-    []
-  );
-
+  
   return {
-    ...state,
+    toasts: currentToasts,
     toast,
     dismiss,
   };
-};
+}
