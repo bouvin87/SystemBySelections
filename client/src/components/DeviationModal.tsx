@@ -634,20 +634,20 @@ else {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <FloatingSelect
-                label="Avvikelsestyp"
-                name="deviationTypeId"
-                value={selectedTypeId?.toString() || ""}
-                onChange={(value) => setSelectedTypeId(parseInt(value))}
-                required
-                disabled={typesLoading}
-                placeholder={typesLoading ? "Laddar..." : "Välj typ"}
-              >
-                {deviationTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      <div
+                <div>
+                  <FloatingSelect
+                    label="Avvikelsestyp"
+                    name="deviationTypeId"
+                    value={selectedTypeId?.toString() || ""}
+                    onChange={(value) => setSelectedTypeId(parseInt(value))}
+                    required
+                    disabled={typesLoading}
+                    placeholder={typesLoading ? "Laddar..." : "Välj typ"}
+                  >
+                    {deviationTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: type.color }}
                       />
