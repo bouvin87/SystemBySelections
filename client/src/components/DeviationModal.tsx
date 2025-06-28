@@ -569,7 +569,7 @@ else {
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg">
+      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg p-4 sm:p-6">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
@@ -583,8 +583,8 @@ else {
           </div>
         )}
 
-        <DialogHeader>
-          <DialogTitle>
+        <DialogHeader className="pt-2 pb-4">
+          <DialogTitle className="text-lg sm:text-xl">
             {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
           </DialogTitle>
         </DialogHeader>
@@ -607,6 +607,7 @@ else {
                 required
                 value={formValues.title}
                 className="w-full"
+                autoFocus={false}
                 onChange={(e) =>
                   setFormValues((prev) => ({ ...prev, title: e.target.value }))
                 }
@@ -972,7 +973,7 @@ else {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-between gap-6">
+          <div className="flex flex-col gap-4 pt-4 border-t border-gray-100">
             <div className="flex gap-3">
               <Checkbox
                 id="isHidden"
@@ -988,11 +989,20 @@ else {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="w-full sm:w-auto"
+              >
                 Avbryt
               </Button>
-              <Button type="submit" disabled={isDataLoading || isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isDataLoading || isSubmitting}
+                className="w-full sm:w-auto"
+              >
                 {isSubmitting
                   ? mode === "edit"
                     ? "Uppdaterar..."
