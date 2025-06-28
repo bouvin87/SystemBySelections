@@ -569,7 +569,7 @@ else {
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg p-4 sm:p-6">
+      <DialogContent className="w-full h-screen max-h-screen overflow-hidden max-w-none rounded-none sm:max-w-3xl sm:rounded-lg sm:h-auto p-2 sm:p-6">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
@@ -583,58 +583,57 @@ else {
           </div>
         )}
 
-        <DialogHeader className="pt-2 pb-4">
-          <DialogTitle className="text-lg sm:text-xl">
-            {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
-          </DialogTitle>
-        </DialogHeader>
+        <div className="flex flex-col h-full">
+          <DialogHeader className="flex-shrink-0 pt-2 pb-4">
+            <DialogTitle className="text-lg sm:text-xl">
+              {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
+            </DialogTitle>
+          </DialogHeader>
 
-        <form
-          noValidate
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit(); // Utan FormData
-          }}
-          className="space-y-4"
-        >
-          <div className="space-y-4">
-            <div className="w-full">
-        
-              <FloatingInput
-                id="title"
-                name="title"
-                label="Rubrik"
-                required
-                value={formValues.title}
-                className="w-full"
-                autoFocus={false}
-                onChange={(e) =>
-                  setFormValues((prev) => ({ ...prev, title: e.target.value }))
-                }
-              />
-            </div>
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit(); // Utan FormData
+            }}
+            className="flex flex-col h-full"
+          >
+            <div className="flex-1 overflow-y-auto space-y-4 px-2 sm:px-0">
+              <div className="space-y-4">
+                <div className="w-full">
+                  <FloatingInput
+                    id="title"
+                    name="title"
+                    label="Rubrik"
+                    required
+                    value={formValues.title}
+                    className="w-full"
+                    autoFocus={false}
+                    onChange={(e) =>
+                      setFormValues((prev) => ({ ...prev, title: e.target.value }))
+                    }
+                  />
+                </div>
 
-            <div className="w-full">
-              <FloatingTextarea
-                label="Beskrivning"
-                id="description"
-                name="description"
-                required
-                value={formValues.description}
-                className="w-full"
-                onChange={(e) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div></div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="w-full">
+                  <FloatingTextarea
+                    label="Beskrivning"
+                    id="description"
+                    name="description"
+                    required
+                    value={formValues.description}
+                    className="w-full"
+                    onChange={(e) =>
+                      setFormValues((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <FloatingSelect
                 label="Avvikelsestyp"
@@ -973,49 +972,52 @@ else {
             </div>
           )}
 
-          <div className="flex flex-col gap-4 pt-4 border-t border-gray-100">
-            <div className="flex gap-3">
-              <Checkbox
-                id="isHidden"
-                name="isHidden"
-                defaultChecked={deviation?.isHidden || false}
-              />
-              <div>
-                <Label htmlFor="isHidden">Dölj avvikelse</Label>
-                <p className="text-xs text-muted-foreground">
-                  Endast synlig för admin, avdelningsansvarig och tilldelad
-                  person
-                </p>
-              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose}
-                className="w-full sm:w-auto"
-              >
-                Avbryt
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={isDataLoading || isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                {isSubmitting
-                  ? mode === "edit"
-                    ? "Uppdaterar..."
-                    : "Skapar..."
-                  : isDataLoading
-                    ? "Laddar..."
-                    : mode === "edit"
-                      ? "Uppdatera avvikelse"
-                      : "Skapa avvikelse"}
-              </Button>
+            <div className="flex-shrink-0 flex flex-col gap-4 pt-4 border-t border-gray-100 px-2 sm:px-0">
+              <div className="flex gap-3">
+                <Checkbox
+                  id="isHidden"
+                  name="isHidden"
+                  defaultChecked={deviation?.isHidden || false}
+                />
+                <div>
+                  <Label htmlFor="isHidden">Dölj avvikelse</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Endast synlig för admin, avdelningsansvarig och tilldelad
+                    person
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onClose}
+                  className="w-full sm:w-auto"
+                >
+                  Avbryt
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isDataLoading || isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  {isSubmitting
+                    ? mode === "edit"
+                      ? "Uppdaterar..."
+                      : "Skapar..."
+                    : isDataLoading
+                      ? "Laddar..."
+                      : mode === "edit"
+                        ? "Uppdatera avvikelse"
+                        : "Skapa avvikelse"}
+                </Button>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
