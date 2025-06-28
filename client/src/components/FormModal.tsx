@@ -888,24 +888,33 @@ export default function FormModal({
           {renderStep()}
         </div>
 
-        <DialogFooter className="flex justify-between">
-          <Button
-            variant="ghost"
-            onClick={handlePrevious}
-            disabled={currentStep === 2}
-            className={currentStep === 2 ? "invisible" : ""}
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            {t('form.previous')}
-          </Button>
+        <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+          {/* Mobile: Stack buttons vertically, Desktop: Previous on left */}
+          <div className="order-2 sm:order-1">
+            <Button
+              variant="ghost"
+              onClick={handlePrevious}
+              disabled={currentStep === 2}
+              className={`w-full sm:w-auto ${currentStep === 2 ? "invisible" : ""}`}
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              {t('form.previous')}
+            </Button>
+          </div>
 
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose}>
+          {/* Mobile: Full width buttons at top, Desktop: Right aligned */}
+          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="w-full sm:w-auto"
+            >
               {t('admin.cancel')}
             </Button>
             <Button
               onClick={handleNext}
               disabled={submitMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {currentStep === totalSteps + 1 ? (
                 <>
