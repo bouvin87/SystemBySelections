@@ -276,11 +276,77 @@ export default function FormModal({
   const progress = totalSteps > 1 ? ((currentStep - 2) / (totalSteps - 1)) * 100 : 0;
 
   const handleNext = () => {
+    // Validate current step before proceeding
+    if (!validateCurrentStep()) {
+      return; // Stop if validation fails
+    }
+
     if (currentStep < totalSteps + 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
     }
+  };
+
+  const validateCurrentStep = () => {
+    const missingFields: string[] = [];
+
+    if (currentStep === 2) {
+      // Identification step validation
+      if (!formData.operatorName.trim()) {
+        missingFields.push("Operatörsnamn");
+      }
+      
+      if (currentChecklist?.includeWorkTasks && !formData.workTaskId) {
+        missingFields.push("Arbetsuppgift");
+      }
+      
+      if (currentChecklist?.includeWorkStations && formData.workTaskId) {
+        const selectedWorkTask = workTasks.find(task => task.id === formData.workTaskId);
+        if (selectedWorkTask?.hasStations && !formData.workStationId) {
+          missingFields.push("Arbetsstation");
+        }
+      }
+      
+      if (currentChecklist?.includeShifts && !formData.shiftId) {
+        missingFields.push("Skift");
+      }
+    } else if (currentStep >= 3) {
+      // Question step validation
+      const categoryIndex = currentStep - 3;
+      const category = categoriesWithQuestions[categoryIndex];
+      
+      if (category) {
+        const categoryQuestions = filteredQuestions.filter(q => q.categoryId === category.id);
+        
+        for (const question of categoryQuestions) {
+          if (question.isRequired) {
+            const response = formData.responses[question.id];
+            
+            if (question.type === "check") {
+              if (response !== true) {
+                missingFields.push(`Fråga: "${question.text}"`);
+              }
+            } else {
+              if (response === undefined || response === null || response === "") {
+                missingFields.push(`Fråga: "${question.text}"`);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (missingFields.length > 0) {
+      toast({
+        title: "Obligatoriska fält saknas",
+        description: `Följande fält måste fyllas i: ${missingFields.join(", ")}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handlePrevious = () => {
@@ -839,7 +905,7 @@ export default function FormModal({
             </Button>
             <Button
               onClick={handleNext}
-              disabled={!canProceed() || submitMutation.isPending}
+              disabled={submitMutation.isPending}
             >
               {currentStep === totalSteps + 1 ? (
                 <>
