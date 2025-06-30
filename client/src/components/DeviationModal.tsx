@@ -569,7 +569,7 @@ else {
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg">
+      <DialogContent className="w-full h-screen max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg fixed inset-0 sm:relative">
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
@@ -599,7 +599,6 @@ else {
         >
           <div className="space-y-4">
             <div className="w-full">
-        
               <FloatingInput
                 id="title"
                 name="title"

@@ -251,7 +251,7 @@ export default function Navigation() {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <nav className="bg-white border-b border-gray-100  top-0 z-50">
         <div className="max-w-7xl mx-auto">
           {/* Mobile-first header - modern design */}
           <div className="flex items-center h-16 px-6">

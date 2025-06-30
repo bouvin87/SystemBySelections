@@ -122,6 +122,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **June 27, 2025**: Enhanced mobile experience and validation system
+  - Implemented comprehensive toast validation for both DeviationModal and FormModal
+  - Fixed global toast system with proper state management
+  - Improved mobile layout for FormModal with responsive button positioning
+  - Added mobile-first meta tags to hide URL bar and improve fullscreen experience
+  - DeviationModal now uses fullscreen on mobile while maintaining desktop modal behavior
+  - All validation messages now clearly indicate missing required fields
+
 - **June 26, 2025**: Completed custom fields system implementation
   - Created custom_fields, custom_field_deviation_type_mappings, and custom_field_values database tables
   - Built comprehensive backend API with full CRUD operations for custom fields
