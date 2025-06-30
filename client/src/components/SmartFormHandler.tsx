@@ -1,14 +1,13 @@
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { useLocation } from "wouter";
-import FormModal from "@/components/FormModal";
+import { FormModal } from "@/components/FormModal";
 
 interface SmartFormHandlerProps {
   isOpen: boolean;
   onClose: () => void;
-  preselectedChecklistId?: number | null;
 }
 
-export function SmartFormHandler({ isOpen, onClose, preselectedChecklistId }: SmartFormHandlerProps) {
+export function SmartFormHandler({ isOpen, onClose }: SmartFormHandlerProps) {
   const { isMobile } = useDeviceType();
   const [, setLocation] = useLocation();
 
@@ -24,7 +23,6 @@ export function SmartFormHandler({ isOpen, onClose, preselectedChecklistId }: Sm
     <FormModal
       isOpen={isOpen}
       onClose={onClose}
-      preselectedChecklistId={preselectedChecklistId}
     />
   );
 }

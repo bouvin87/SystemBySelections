@@ -1,15 +1,16 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import FormModal from "@/components/FormModal";
+import { ChecklistForm } from "@/components/shared/ChecklistForm";
 
 export default function MobileChecklistPage() {
   const [, setLocation] = useLocation();
-  const [isModalOpen, setIsModalOpen] = useState(true);
 
-  const handleClose = () => {
-    setIsModalOpen(false);
+  const handleSuccess = () => {
+    setLocation("/");
+  };
+
+  const handleCancel = () => {
     setLocation("/");
   };
 
@@ -20,7 +21,7 @@ export default function MobileChecklistPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleClose}
+          onClick={handleCancel}
           className="p-2"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -28,11 +29,12 @@ export default function MobileChecklistPage() {
         <h1 className="text-lg font-semibold">Ny kontroll</h1>
       </div>
 
-      {/* Use the existing FormModal as a fullscreen component on mobile */}
+      {/* Form content */}
       <div className="p-4">
-        <FormModal
-          isOpen={isModalOpen}
-          onClose={handleClose}
+        <ChecklistForm
+          onSuccess={handleSuccess}
+          onCancel={handleCancel}
+          showProgress={true}
         />
       </div>
     </div>
