@@ -17,6 +17,8 @@ import Deviations from "@/pages/deviations";
 import DeviationDetail from "@/pages/deviation-detail";
 import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
+import MobileChecklistPage from "@/pages/mobile-checklist";
+import MobileDeviationPage from "@/pages/mobile-deviation";
 import { useState, useEffect } from "react";
 
 function Router() {
