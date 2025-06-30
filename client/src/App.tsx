@@ -104,6 +104,8 @@ function Router() {
         <Route path="/faq" component={FAQ} />
         <Route path="/deviations/:id" component={DeviationDetail} />
         <Route path="/deviations" component={Deviations} />
+        <Route path="/mobile/checklist" component={MobileChecklistPage} />
+        <Route path="/mobile/deviation" component={MobileDeviationPage} />
         <Route component={NotFound} />
       </Switch>
     </>

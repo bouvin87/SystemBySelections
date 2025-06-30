@@ -1,20 +1,14 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-// Import floating components
-import { FloatingInput } from "@/components/ui/floating-input";
-import { FloatingTextarea } from "@/components/ui/floating-textarea";
-import { FloatingSelect } from "@/components/ui/floating-select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface ChecklistFormProps {
   onSuccess: () => void;
@@ -169,55 +163,70 @@ export function ChecklistForm({ onSuccess, onCancel, showProgress = true }: Chec
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Identifiering</h2>
       
-      <FloatingSelect
-        value={formData.checklistId?.toString() || ""}
-        onValueChange={(value) => updateFormData("checklistId", parseInt(value))}
-        placeholder="Välj checklista"
-        label="Checklista *"
-        required
-      >
-        <SelectItem value="0">Välj checklista</SelectItem>
-        {checklists.map((checklist: any) => (
-          <SelectItem key={checklist.id} value={checklist.id.toString()}>
-            {checklist.name}
-          </SelectItem>
-        ))}
-      </FloatingSelect>
+      <div className="space-y-2">
+        <Label htmlFor="checklist">Checklista *</Label>
+        <Select
+          value={formData.checklistId?.toString() || ""}
+          onValueChange={(value: string) => updateFormData("checklistId", parseInt(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Välj checklista" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Välj checklista</SelectItem>
+            {(checklists as any[]).map((checklist: any) => (
+              <SelectItem key={checklist.id} value={checklist.id.toString()}>
+                {checklist.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <FloatingSelect
-        value={formData.shiftId?.toString() || ""}
-        onValueChange={(value) => updateFormData("shiftId", parseInt(value))}
-        placeholder="Välj skift"
-        label="Skift *"
-        required
-      >
-        <SelectItem value="0">Välj skift</SelectItem>
-        {shifts.map((shift: any) => (
-          <SelectItem key={shift.id} value={shift.id.toString()}>
-            {shift.name}
-          </SelectItem>
-        ))}
-      </FloatingSelect>
+      <div className="space-y-2">
+        <Label htmlFor="shift">Skift *</Label>
+        <Select
+          value={formData.shiftId?.toString() || ""}
+          onValueChange={(value: string) => updateFormData("shiftId", parseInt(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Välj skift" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Välj skift</SelectItem>
+            {(shifts as any[]).map((shift: any) => (
+              <SelectItem key={shift.id} value={shift.id.toString()}>
+                {shift.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <FloatingSelect
-        value={formData.workStationId?.toString() || ""}
-        onValueChange={(value) => updateFormData("workStationId", parseInt(value))}
-        placeholder="Välj arbetsstation"
-        label="Arbetsstation *"
-        required
-      >
-        <SelectItem value="0">Välj arbetsstation</SelectItem>
-        {filteredWorkStations.map((station: any) => (
-          <SelectItem key={station.id} value={station.id.toString()}>
-            {station.name}
-          </SelectItem>
-        ))}
-      </FloatingSelect>
+      <div className="space-y-2">
+        <Label htmlFor="workStation">Arbetsstation *</Label>
+        <Select
+          value={formData.workStationId?.toString() || ""}
+          onValueChange={(value: string) => updateFormData("workStationId", parseInt(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Välj arbetsstation" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="0">Välj arbetsstation</SelectItem>
+            {filteredWorkStations.map((station: any) => (
+              <SelectItem key={station.id} value={station.id.toString()}>
+                {station.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 
   const renderQuestionStep = () => {
-    const category = categories[currentStep - 2];
+    const category = (categories as any[])[currentStep - 2];
     if (!category) return null;
 
     const categoryQuestions = filteredQuestions.filter((q: any) => q.categoryId === category.id);
@@ -229,52 +238,60 @@ export function ChecklistForm({ onSuccess, onCancel, showProgress = true }: Chec
         {categoryQuestions.map((question: any) => (
           <div key={question.id} className="space-y-2">
             {question.type === "text" && (
-              <FloatingInput
-                value={formData.responses[question.id] || ""}
-                onChange={(e) => updateResponse(question.id, e.target.value)}
-                placeholder="Skriv ditt svar"
-                label={`${question.text}${question.isRequired ? " *" : ""}`}
-                required={question.isRequired}
-              />
+              <div className="space-y-2">
+                <Label>{question.text}{question.isRequired ? " *" : ""}</Label>
+                <Input
+                  value={formData.responses[question.id] || ""}
+                  onChange={(e: any) => updateResponse(question.id, e.target.value)}
+                  placeholder="Skriv ditt svar"
+                />
+              </div>
             )}
 
             {question.type === "textarea" && (
-              <FloatingTextarea
-                value={formData.responses[question.id] || ""}
-                onChange={(e) => updateResponse(question.id, e.target.value)}
-                placeholder="Skriv ditt svar"
-                label={`${question.text}${question.isRequired ? " *" : ""}`}
-                required={question.isRequired}
-                rows={3}
-              />
+              <div className="space-y-2">
+                <Label>{question.text}{question.isRequired ? " *" : ""}</Label>
+                <Textarea
+                  value={formData.responses[question.id] || ""}
+                  onChange={(e: any) => updateResponse(question.id, e.target.value)}
+                  placeholder="Skriv ditt svar"
+                  rows={3}
+                />
+              </div>
             )}
 
             {question.type === "number" && (
-              <FloatingInput
-                type="number"
-                value={formData.responses[question.id] || ""}
-                onChange={(e) => updateResponse(question.id, parseFloat(e.target.value))}
-                placeholder="Ange nummer"
-                label={`${question.text}${question.isRequired ? " *" : ""}`}
-                required={question.isRequired}
-              />
+              <div className="space-y-2">
+                <Label>{question.text}{question.isRequired ? " *" : ""}</Label>
+                <Input
+                  type="number"
+                  value={formData.responses[question.id] || ""}
+                  onChange={(e: any) => updateResponse(question.id, parseFloat(e.target.value))}
+                  placeholder="Ange nummer"
+                />
+              </div>
             )}
 
             {question.type === "select" && question.options && (
-              <FloatingSelect
-                value={formData.responses[question.id]?.toString() || ""}
-                onValueChange={(value) => updateResponse(question.id, value)}
-                placeholder="Välj alternativ"
-                label={`${question.text}${question.isRequired ? " *" : ""}`}
-                required={question.isRequired}
-              >
-                <SelectItem value="">Välj alternativ</SelectItem>
-                {question.options.map((option: string, index: number) => (
-                  <SelectItem key={index} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </FloatingSelect>
+              <div className="space-y-2">
+                <Label>{question.text}{question.isRequired ? " *" : ""}</Label>
+                <Select
+                  value={formData.responses[question.id]?.toString() || ""}
+                  onValueChange={(value: string) => updateResponse(question.id, value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj alternativ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Välj alternativ</SelectItem>
+                    {question.options.map((option: string, index: number) => (
+                      <SelectItem key={index} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
 
             {question.type === "switch" && (
@@ -282,20 +299,20 @@ export function ChecklistForm({ onSuccess, onCancel, showProgress = true }: Chec
                 <input
                   type="checkbox"
                   checked={formData.responses[question.id] || false}
-                  onChange={(e) => updateResponse(question.id, e.target.checked)}
+                  onChange={(e: any) => updateResponse(question.id, e.target.checked)}
                   className="h-4 w-4"
                 />
-                <label className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   {question.text}{question.isRequired && " *"}
-                </label>
+                </Label>
               </div>
             )}
 
             {question.type === "stars" && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <Label className="text-sm font-medium">
                   {question.text}{question.isRequired && " *"}
-                </label>
+                </Label>
                 <div className="flex space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
