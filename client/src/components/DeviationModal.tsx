@@ -567,6 +567,42 @@ else {
   const isSubmitting =
     createDeviationMutation.isPending || updateDeviationMutation.isPending;
 
+  // Auto-hide URL bar on mobile when modal opens
+  useEffect(() => {
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const hideUrlBar = () => {
+      if (isMobile && window.innerWidth <= 768 && isOpen) {
+        // Multiple strategies to hide URL bar
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          // Force viewport recalculation
+          document.body.style.height = '100.1%';
+          setTimeout(() => {
+            document.body.style.height = '100%';
+          }, 50);
+        }, 100);
+      }
+    };
+
+    if (isOpen && isMobile) {
+      hideUrlBar();
+      
+      // Listen for various events that might restore URL bar
+      const events = ['orientationchange', 'resize', 'scroll', 'touchstart'];
+      events.forEach(event => {
+        window.addEventListener(event, hideUrlBar, { passive: true });
+      });
+
+      return () => {
+        events.forEach(event => {
+          window.removeEventListener(event, hideUrlBar);
+        });
+      };
+    }
+  }, [isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
       <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg">
