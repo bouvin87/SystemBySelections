@@ -24,7 +24,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
-import FormModal from "@/components/FormModal";
+import { SmartFormHandler } from "@/components/SmartFormHandler";
 import ChecklistSelectionModal from "@/components/ChecklistSelectionModal";
 import UserMenu from "@/components/UserMenu";
 import { renderIcon } from "@/lib/icon-utils";
