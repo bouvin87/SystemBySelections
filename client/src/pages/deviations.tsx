@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Plus, TrendingUp, Filter, X, Calendar } from "lucide-react";
-import DeviationModal from "@/components/DeviationModal";
+import { SmartDeviationHandler } from "@/components/SmartDeviationHandler";
 import {
   PieChart,
   Pie,
@@ -905,14 +905,9 @@ export default function DeviationsPage() {
         </Card>
 
         {/* Create Modal */}
-        <DeviationModal
+        <SmartDeviationHandler
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={() => {
-            setIsCreateModalOpen(false);
-            // Refresh data would happen automatically via react-query
-          }}
-          mode="create"
         />
       </div>
     </div>

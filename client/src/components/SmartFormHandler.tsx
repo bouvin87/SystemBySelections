@@ -24,7 +24,7 @@ export function SmartFormHandler({ isOpen, onClose, preselectedChecklistId }: Sm
     <FormModal
       isOpen={isOpen}
       onClose={onClose}
-      preselectedChecklistId={preselectedChecklistId}
+      preselectedChecklistId={preselectedChecklistId || undefined}
     />
   );
 }
