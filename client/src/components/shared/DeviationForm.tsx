@@ -369,7 +369,7 @@ export function DeviationForm({
             name="departmentId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Avdelninga</FormLabel>
+                <FormLabel>Avdelning</FormLabel>
                 <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                   <FormControl>
                     <SelectTrigger>
@@ -377,7 +377,7 @@ export function DeviationForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="0">Ingen avdelningss</SelectItem>
+                    <SelectItem value="0">Ingen avdelning</SelectItem>
                     {departments.map((dept: any) => (
                       <SelectItem key={dept.id} value={dept.id.toString()}>
                         {dept.name}

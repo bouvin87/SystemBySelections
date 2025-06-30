@@ -395,7 +395,7 @@ export default function Navigation() {
 
       {/* Modals */}
       {modalOpen && selectedChecklistId && (
-        <SmartFormHandler
+        <FormModal
           isOpen={modalOpen}
           preselectedChecklistId={selectedChecklistId}
           onClose={() => {
