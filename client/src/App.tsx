@@ -21,6 +21,7 @@ import MobileChecklistPage from "@/pages/mobile-checklist";
 import MobileDeviationPage from "@/pages/mobile-deviation";
 import Profile from "@/pages/profile";
 import More from "@/pages/more";
+import About from "@/pages/about";
 import { useState, useEffect } from "react";
 
 function Router() {
@@ -110,6 +111,7 @@ function Router() {
         <Route path="/mobile/deviation" component={MobileDeviationPage} />
         <Route path="/profile" component={Profile} />
         <Route path="/more" component={More} />
+        <Route path="/about" component={About} />
         <Route component={NotFound} />
       </Switch>
     </>
