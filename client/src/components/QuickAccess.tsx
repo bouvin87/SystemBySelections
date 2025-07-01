@@ -62,31 +62,56 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   if (!hasChecklistItems && !hasDeviationButton) {
     return null;
   }
-  const numButtons =
-    (hasChecklistItems ? menuChecklists.length : 0) + (hasDeviationButton ? 1 : 0);
-  const numCols = Math.min(numButtons, 4); // max 4 kolumner
   return (
-    <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-center md:justify-start">
-          <div className={clsx(`grid gap-4 py-4`, `grid-cols-${numCols}`)}>
-            {hasChecklistItems && menuChecklists.map((checklist) => (
-              <IconActionButton
-                key={checklist.id}
-                label={checklist.name}
-                icon={renderIcon(checklist.icon, "h-5 w-5")}
-                onClick={() => onChecklistSelect(checklist.id)}
-              />
-            ))}
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-inset-bottom">
+      <div className="max-w-md mx-auto px-4 py-2">
+        <div className="grid grid-cols-2 gap-3">
+          {hasChecklistItems && menuChecklists.slice(0, 2).map((checklist) => (
+            <button
+              key={checklist.id}
+              onClick={() => onChecklistSelect(checklist.id)}
+              className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-100 hover:bg-gray-200 transition-colors min-h-[80px]"
+            >
+              <div className="mb-2 text-gray-600">
+                {renderIcon(checklist.icon, "h-6 w-6")}
+              </div>
+              <span className="text-sm font-medium text-gray-900 text-center leading-tight">
+                {checklist.name}
+              </span>
+            </button>
+          ))}
 
-            {hasDeviationButton && (
-              <IconActionButton
-                icon={<Plus className="w-5 h-5" />}
-                label="Ny avvikelse"
-                onClick={() => setIsDeviationModalOpen(true)}
-              />
-            )}
-          </div>
+          {hasDeviationButton && (
+            <button
+              onClick={() => setIsDeviationModalOpen(true)}
+              className="flex flex-col items-center justify-center p-4 rounded-2xl bg-red-50 hover:bg-red-100 transition-colors min-h-[80px]"
+            >
+              <div className="mb-2 text-red-600">
+                <Plus className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium text-red-900 text-center leading-tight">
+                Ny avvikelse
+              </span>
+            </button>
+          )}
+          
+          {/* Fill remaining slots with additional checklists if available */}
+          {hasChecklistItems && menuChecklists.length > 2 && (
+            menuChecklists.slice(2, 4).map((checklist) => (
+              <button
+                key={checklist.id}
+                onClick={() => onChecklistSelect(checklist.id)}
+                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 transition-colors min-h-[80px]"
+              >
+                <div className="mb-2 text-blue-600">
+                  {renderIcon(checklist.icon, "h-6 w-6")}
+                </div>
+                <span className="text-sm font-medium text-blue-900 text-center leading-tight">
+                  {checklist.name}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       </div>
       

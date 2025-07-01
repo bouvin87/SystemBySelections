@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
+import QuickAccess from "@/components/QuickAccess";
 import { ClipboardList, AlertTriangle, BarChart3, Plus, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import FormModal from "@/components/FormModal";
@@ -14,6 +15,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const [showFormModal, setShowFormModal] = useState(false);
   const [showDeviationModal, setShowDeviationModal] = useState(false);
+  const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(null);
 
   // Query for production statistics
   const { data: responses = [] } = useQuery({
@@ -57,6 +59,15 @@ export default function Home() {
       setLocation("/mobile/deviation");
     } else {
       setShowDeviationModal(true);
+    }
+  };
+
+  const handleChecklistSelect = (checklistId: number) => {
+    if (isMobile) {
+      setLocation(`/mobile/checklist?checklistId=${checklistId}`);
+    } else {
+      // Set the checklist ID and open modal
+      setShowFormModal(true);
     }
   };
 
@@ -182,6 +193,9 @@ export default function Home() {
           />
         </>
       )}
+
+      {/* Quick Access Component at bottom */}
+      <QuickAccess onChecklistSelect={handleChecklistSelect} />
     </div>
   );
 }
