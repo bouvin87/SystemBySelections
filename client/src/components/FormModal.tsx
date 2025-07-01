@@ -36,6 +36,10 @@ import {
   type Category,
   type QuestionWorkTask,
 } from "@shared/schema";
+import { FloatingInput } from "./ui/floatingInput";
+import { FloatingSelect } from "./ui/floatingSelect";
+import { FloatingDatePicker } from "./ui/floatingDatePicker";
+import { FloatingTextarea } from "./ui/floatingTextarea";
 
 interface FormModalProps {
   isOpen: boolean;
@@ -439,12 +443,11 @@ export default function FormModal({
           <h3 className="text-lg font-medium mb-4">Identifiering</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="operator">
-                {t('form.operatorName')} <span className="text-destructive ml-1">*</span>
-              </Label>
-              <Input
+              <FloatingInput
+                label={t('form.operatorName')}
                 id="operator"
-                placeholder={t('form.operatorName')}
+                name="operator"
+                required
                 value={formData.operatorName}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -452,106 +455,91 @@ export default function FormModal({
                     operatorName: e.target.value,
                   }))
                 }
-                required
               />
             </div>
 
             {currentChecklist?.includeWorkTasks && (
               <div>
-                <Label>
-                  {t('admin.workTasks')} <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Select
+                <FloatingSelect
+                  label={t('admin.workTasks')}
+                  name="workTaskId"
+                  required
                   value={formData.workTaskId?.toString() || ""}
-                  onValueChange={(value) => {
+                  onChange={(value) => {
                     const taskId = parseInt(value);
                     const selectedTask = workTasks.find(task => task.id === taskId);
                     setFormData((prev) => ({
                       ...prev,
                       workTaskId: taskId,
-                      // Clear station selection if the new task doesn't have stations
                       workStationId: selectedTask?.hasStations ? prev.workStationId : null,
                     }));
                   }}
+                  placeholder={t('form.selectWorkTask')}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('form.selectWorkTask')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {workTasks.map((task) => (
-                      <SelectItem key={task.id} value={task.id.toString()}>
-                        {task.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {workTasks.map((task) => (
+                    <SelectItem key={task.id} value={task.id.toString()}>
+                      {task.name}
+                    </SelectItem>
+                  ))}
+                </FloatingSelect>
+
               </div>
             )}
 
             {currentChecklist?.includeWorkStations && (
               <div>
-                <Label>
-                  {t('admin.workStations')}
-                  {formData.workTaskId && workTasks.find(task => task.id === formData.workTaskId)?.hasStations && (
-                    <span className="text-destructive ml-1">*</span>
-                  )}
-                </Label>
-                <Select
+                <FloatingSelect
+                  label={t('admin.workStations')}
+                  name="workStationId"
                   value={formData.workStationId?.toString() || ""}
-                  onValueChange={(value) =>
+                  onChange={(value) =>
                     setFormData((prev) => ({
                       ...prev,
                       workStationId: parseInt(value),
                     }))
                   }
+                  placeholder={t('form.selectWorkStation')}
+                  required={
+                    !!formData.workTaskId &&
+                    !!workTasks.find((task) => task.id === formData.workTaskId)?.hasStations
+                  }
                   disabled={
-                    !formData.workTaskId || 
-                    !workTasks.find(task => task.id === formData.workTaskId)?.hasStations
+                    !formData.workTaskId ||
+                    !workTasks.find((task) => task.id === formData.workTaskId)?.hasStations
                   }
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('form.selectWorkStation')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {workStations
-                      .filter(
-                        (station) => station.workTaskId === formData.workTaskId,
-                      )
-                      .map((station) => (
-                        <SelectItem
-                          key={station.id}
-                          value={station.id.toString()}
-                        >
-                          {station.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  {workStations
+                    .filter((station) => station.workTaskId === formData.workTaskId)
+                    .map((station) => (
+                      <SelectItem key={station.id} value={station.id.toString()}>
+                        {station.name}
+                      </SelectItem>
+                    ))}
+                </FloatingSelect>
+
+
               </div>
             )}
 
             {currentChecklist?.includeShifts && (
               <div>
-                <Label>
-                  {t('admin.shifts')} <span className="text-destructive ml-1">*</span>
-                </Label>
-                <Select
+                <FloatingSelect
+                  label={t('admin.shifts')}
+                  name="shiftId"
                   value={formData.shiftId?.toString() || ""}
-                  onValueChange={(value) =>
+                  onChange={(value) =>
                     setFormData((prev) => ({ ...prev, shiftId: parseInt(value) }))
                   }
+                  placeholder={t('form.selectShift')}
+                  required
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('form.selectShift')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {shifts.map((shift) => (
-                      <SelectItem key={shift.id} value={shift.id.toString()}>
-                        {shift.name} ({shift.startTime}-{shift.endTime})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {shifts.map((shift) => (
+                    <SelectItem key={shift.id} value={shift.id.toString()}>
+                      {shift.name} ({shift.startTime}-{shift.endTime})
+                    </SelectItem>
+                  ))}
+                </FloatingSelect>
+
               </div>
             )}
           </div>
@@ -567,39 +555,41 @@ export default function FormModal({
     );
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
         {categoryQuestions.map((question) => (
           <div key={question.id} className="space-y-3">
-            {question.type !== "check" && question.type !== "ja_nej" && (
-              <Label className="text-sm font-medium text-gray-900">
-                {question.text}
-                {question.isRequired && (
-                  <span className="text-destructive ml-1">*</span>
-                )}
-              </Label>
-            )}
+            
 
             {question.type === "text" && (
-              <Textarea
-                placeholder={t('form.writeComments')}
-                value={formData.responses[question.id] || ""}
-                onChange={(e) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    responses: {
-                      ...prev.responses,
-                      [question.id]: e.target.value,
-                    },
-                  }));
-                }}
-                rows={3}
-              />
+            <FloatingTextarea
+              label={question.text}
+              id={`question_${question.id}`}
+              name={`question_${question.id}`}
+              value={formData.responses[question.id] || ""}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  responses: {
+                    ...prev.responses,
+                    [question.id]: e.target.value,
+                  },
+                }));
+              }}
+              rows={3}
+            />
+
             )}
 
             {question.type === "val" &&
               question.options &&
               Array.isArray(question.options) && (
+                <><Label className="text-sm font-medium text-gray-900">
+                    {question.text}
+                    {question.isRequired && (
+                        <span className="text-destructive ml-1">*</span>
+                    )}
+                </Label>
                 <RadioGroup
                   value={formData.responses[question.id]?.toString() || ""}
                   onValueChange={(value) => {
@@ -623,28 +613,32 @@ export default function FormModal({
                       </Label>
                     </div>
                   ))}
-                </RadioGroup>
+                </RadioGroup></>
               )}
 
             {question.type === "nummer" && (
-              <Input
-                type="number"
-                placeholder="Ange nummer..."
-                value={formData.responses[question.id] || ""}
-                onChange={(e) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    responses: {
-                        ...prev.responses,
-                        [question.id]: e.target.value,
-                      },
-                    }));
-                  }}
-                />
+            <FloatingInput
+              label={question.text}
+              id={`question_${question.id}`}
+              name={`question_${question.id}`}
+              type="number"
+              value={formData.responses[question.id] || ""}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  responses: {
+                    ...prev.responses,
+                    [question.id]: e.target.value,
+                  },
+                }));
+              }}
+            />
+
               )}
 
               {(question.type === "ja_nej" || question.type === "boolean") && (
                 <div className="flex items-center space-x-3">
+                  
                   <Switch
                     id={`question-${question.id}`}
                     checked={formData.responses[question.id] || false}
@@ -671,19 +665,21 @@ export default function FormModal({
               )}
 
               {(question.type === "datum" || question.type === "date") && (
-                <Input
-                  type="date"
-                  value={formData.responses[question.id] || ""}
-                  onChange={(e) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      responses: {
-                        ...prev.responses,
-                        [question.id]: e.target.value,
-                      },
-                    }));
-                  }}
-                />
+            <FloatingDatePicker
+              label={question.text}
+              name={`question_${question.id}`}
+              value={formData.responses[question.id] || ""}
+              onChange={(value) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  responses: {
+                    ...prev.responses,
+                    [question.id]: value,
+                  },
+                }));
+              }}
+            />
+
               )}
 
               {question.type === "fil" && (
@@ -705,70 +701,76 @@ export default function FormModal({
               )}
 
               {question.type === "stjärnor" && (
-                <div className="flex space-x-2">
-                  {[1, 2, 3, 4, 5].map((star) => {
-                    const responseValue = formData.responses[question.id];
-                    const currentRating = responseValue ? Number(responseValue) : 0;
-                    const isActive = currentRating > 0 && star <= currentRating;
-                    
+                <><Label className="text-sm font-medium text-gray-900">
+                        {question.text}
+                        {question.isRequired && (
+                            <span className="text-destructive ml-1">*</span>
+                        )}
+                    </Label><div className="flex space-x-2">
 
-                    
-                    return (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            responses: { ...prev.responses, [question.id]: star },
-                          }));
-                        }}
-                        className={`transition-colors hover:text-yellow-400 focus:outline-none ${
-                          isActive ? "text-yellow-500" : "text-gray-400"
-                        }`}
-                      >
-                        <Star 
-                          className="h-8 w-8" 
-                          fill={isActive ? "currentColor" : "none"}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
+                            {[1, 2, 3, 4, 5].map((star) => {
+                                const responseValue = formData.responses[question.id];
+                                const currentRating = responseValue ? Number(responseValue) : 0;
+                                const isActive = currentRating > 0 && star <= currentRating;
+
+
+
+                                return (
+                                    <><button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                responses: { ...prev.responses, [question.id]: star },
+                                            }));
+                                        } }
+                                        className={`transition-colors hover:text-yellow-400 focus:outline-none ${isActive ? "text-yellow-500" : "text-gray-400"}`}
+                                    >
+                                        <Star
+                                            className="h-8 w-8"
+                                            fill={isActive ? "currentColor" : "none"} />
+                                    </button></>
+                                );
+                            })}
+                        </div></>
               )}
 
               {question.type === "humör" && (
-                <div className="flex space-x-2">
-                  {[
-                    { value: 1, emoji: "😢", label: "Mycket dåligt" },
-                    { value: 2, emoji: "😞", label: "Dåligt" },
-                    { value: 3, emoji: "😐", label: "Okej" },
-                    { value: 4, emoji: "😊", label: "Bra" },
-                    { value: 5, emoji: "😄", label: "Mycket bra" },
-                  ].map((mood) => (
-                    <button
-                      key={mood.value}
-                      type="button"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          responses: {
-                            ...prev.responses,
-                            [question.id]: mood.value,
-                          },
-                        }));
-                      }}
-                      className={`text-3xl p-2 rounded-lg border-2 transition-all ${
-                        formData.responses[question.id] === mood.value
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      title={mood.label}
-                    >
-                      {mood.emoji}
-                    </button>
-                  ))}
-                </div>
+            <><Label className="text-sm font-medium text-gray-900">
+                        {question.text}
+                        {question.isRequired && (
+                            <span className="text-destructive ml-1">*</span>
+                        )}
+                    </Label><div className="flex space-x-2">
+                            {[
+                                { value: 1, emoji: "😢", label: "Mycket dåligt" },
+                                { value: 2, emoji: "😞", label: "Dåligt" },
+                                { value: 3, emoji: "😐", label: "Okej" },
+                                { value: 4, emoji: "😊", label: "Bra" },
+                                { value: 5, emoji: "😄", label: "Mycket bra" },
+                            ].map((mood) => (
+                                <button
+                                    key={mood.value}
+                                    type="button"
+                                    onClick={() => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            responses: {
+                                                ...prev.responses,
+                                                [question.id]: mood.value,
+                                            },
+                                        }));
+                                    } }
+                                    className={`text-3xl p-2 rounded-lg border-2 transition-all ${formData.responses[question.id] === mood.value
+                                            ? "border-blue-500 bg-blue-50"
+                                            : "border-gray-200 hover:border-gray-300"}`}
+                                    title={mood.label}
+                                >
+                                    {mood.emoji}
+                                </button>
+                            ))}
+                        </div></>
               )}
 
               {question.type === "check" && (
@@ -906,13 +908,13 @@ export default function FormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-2xl max-h-screen overflow-hidden mobile-fullscreen">
-        <DialogHeader>
+      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg mobile-fullscreen">
+        <DialogHeader className="pt-2">
           <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
 
         {/* Progress Bar */}
-        <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 -mx-6">
+        <div className="p-2 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
               {t('form.step')} {currentStep - 1} {t('form.of')} {totalSteps}
@@ -920,20 +922,21 @@ export default function FormModal({
             <span className="text-sm text-gray-500">
               {Math.round(progress)}% {t('form.complete')}
             </span>
+            
           </div>
           <Progress value={progress} className="w-full" />
         </div>
 
         {/* Modal Content */}
-        <div className="px-6 py-6 overflow-y-auto max-h-96 -mx-6">
+        <div className="p-2 sm:overflow-y-auto sm:max-h-96 ">
           {renderStep()}
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+        <div className="flex flex-col sm:flex-row gap-2 sm:justify-between p-2">
           {/* Mobile: Stack buttons vertically, Desktop: Previous on left */}
-          <div className="order-2 sm:order-1">
+          <div className="order-1 sm:order-1">
             <Button
-              variant="ghost"
+              variant="outline" 
               onClick={handlePrevious}
               disabled={currentStep === 2}
               className={`w-full sm:w-auto ${currentStep === 2 ? "invisible" : ""}`}
@@ -944,7 +947,7 @@ export default function FormModal({
           </div>
 
           {/* Mobile: Full width buttons at top, Desktop: Right aligned */}
-          <div className="flex flex-col sm:flex-row gap-3 order-1 sm:order-2">
+          <div className="flex flex-col sm:flex-row gap-3 order-2 sm:order-2">
             <Button 
               variant="outline" 
               onClick={onClose}
@@ -970,7 +973,7 @@ export default function FormModal({
               )}
             </Button>
           </div>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -251,7 +251,7 @@ export default function Navigation() {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-100  top-0 z-50">
+      <nav className="bg-gray-50 dark:bg-gray-800  top-0 z-50">
         <div className="max-w-7xl mx-auto">
           {/* Mobile-first header - modern design */}
           <div className="flex items-center h-16 px-6">
@@ -260,7 +260,7 @@ export default function Navigation() {
               href="/"
               className="flex items-center text-gray-900 hover:text-blue-600 transition-colors"
             >
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-1 p-0">
+              <div className="w-8 h-8 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center mr-1 p-0">
                 <img
                   src={logoSvg}
                   alt={t("common.applicationName")}
@@ -366,9 +366,11 @@ export default function Navigation() {
                       )}
                       {checklist.name}
                     </button>
+              
                   ))}
 
                   {hasChecklistsModule && (
+
                     <button
                       onClick={() => setChecklistSelectionOpen(true)}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md gap-2 transition-colors"

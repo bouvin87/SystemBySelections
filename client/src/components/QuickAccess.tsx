@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { renderIcon } from "@/lib/icon-utils";
 import DeviationModal from "@/components/DeviationModal";
 import type { Checklist } from "@shared/schema";
+import clsx from "clsx"; // eller classnames
+import IconActionButton from "./ui/actionbutton";
 
 interface QuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
@@ -18,7 +20,9 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
     queryKey: ["/api/auth/me"],
     retry: false,
   });
+  
 
+  
   const hasChecklistsModule = authData?.tenant?.modules?.includes("checklists") ?? false;
   const hasDeviationsModule = authData?.tenant?.modules?.includes("deviations") ?? false;
 
@@ -58,51 +62,31 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   if (!hasChecklistItems && !hasDeviationButton) {
     return null;
   }
-
+  const numButtons =
+    (hasChecklistItems ? menuChecklists.length : 0) + (hasDeviationButton ? 1 : 0);
+  const numCols = Math.min(numButtons, 4); // max 4 kolumner
   return (
     <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center space-x-4 py-2 overflow-x-auto">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
-            Snabbåtkomst:
-          </span>
-          
-          {/* Checklist buttons */}
-          {hasChecklistItems && menuChecklists.map((checklist) => (
-            <button
-              key={`checklist-${checklist.id}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(
-                  "Checklist button clicked:",
-                  checklist.id,
-                  checklist.name,
-                );
-                onChecklistSelect(checklist.id);
-              }}
-              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white flex items-center gap-2 transition-all duration-200 cursor-pointer bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md border border-gray-200 dark:border-gray-600 whitespace-nowrap"
-              type="button"
-            >
-              {renderIcon(checklist.icon, "h-3 w-3") || (
-                <CheckSquare className="h-3 w-3" />
-              )}
-              {checklist.name}
-            </button>
-          ))}
-          
-          {/* Deviation create button */}
-          {hasDeviationButton && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setIsDeviationModalOpen(true)}
-              className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300 whitespace-nowrap"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Skapa avvikelse
-            </Button>
-          )}
+        <div className="flex justify-center md:justify-start">
+          <div className={clsx(`grid gap-4 py-4`, `grid-cols-${numCols}`)}>
+            {hasChecklistItems && menuChecklists.map((checklist) => (
+              <IconActionButton
+                key={checklist.id}
+                label={checklist.name}
+                icon={renderIcon(checklist.icon, "h-5 w-5")}
+                onClick={() => onChecklistSelect(checklist.id)}
+              />
+            ))}
+
+            {hasDeviationButton && (
+              <IconActionButton
+                icon={<Plus className="w-5 h-5" />}
+                label="Ny avvikelse"
+                onClick={() => setIsDeviationModalOpen(true)}
+              />
+            )}
+          </div>
         </div>
       </div>
       

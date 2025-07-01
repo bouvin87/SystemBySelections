@@ -42,7 +42,7 @@ export function FloatingDatePicker({
         htmlFor={id}
         className={`absolute bg-background px-1 left-2.5 text-muted-foreground text-sm transition-all transform origin-left -top-2 text-xs scale-90
           peer-focus:-top-2 peer-focus:text-xs peer-focus:scale-90
-          peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:scale-100
+          peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-base peer-placeholder-shown:scale-100
           pointer-events-none z-10
         `}
       >
@@ -56,7 +56,7 @@ export function FloatingDatePicker({
         value={currentValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="peer pt-3 w-full"
+        className="peer w-full h-12 px-4 py-3 text-base border border-slate-400 rounded-md text-slate-700 bg-transparent transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
       />
     </div>
   );

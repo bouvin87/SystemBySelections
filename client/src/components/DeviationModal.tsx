@@ -624,7 +624,7 @@ else {
           </div>
         )}
 
-        <DialogHeader>
+        <DialogHeader className="pt-3">
           <DialogTitle>
             {mode === "edit" ? "Redigera avvikelse" : "Skapa ny avvikelse"}
           </DialogTitle>
@@ -636,7 +636,7 @@ else {
             e.preventDefault();
             handleSubmit(); // Utan FormData
           }}
-          className="space-y-4"
+          className="space-y-4 p-2"
         >
           <div className="space-y-4">
             <div className="w-full">
