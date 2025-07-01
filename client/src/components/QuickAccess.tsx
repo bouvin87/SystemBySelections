@@ -122,10 +122,10 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
               <button
                 key={button.id}
                 onClick={button.onClick}
-                className={`flex flex-col items-center justify-center py-2 px-2 transition-colors min-w-[50px] ${
+                className={`flex flex-col items-center justify-center py-2 px-2 modern-button min-w-[50px] ${
                   button.active 
-                    ? 'text-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'text-primary' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <div className={`mb-1 ${button.active ? 'scale-110' : ''}`}>
@@ -135,7 +135,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
                   {button.label}
                 </span>
                 {button.active && (
-                  <div className="mt-1 w-4 h-0.5 bg-blue-600 rounded-full"></div>
+                  <div className="mt-1 w-4 h-0.5 bg-primary rounded-full"></div>
                 )}
               </button>
             );
