@@ -7,6 +7,7 @@ import FormModal from "@/components/FormModal";
 import DeviationModal from "@/components/DeviationModal";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { useLocation } from "wouter";
+import ChecklistSelectionModal from "@/components/ChecklistSelectionModal";
 
 export default function Home() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export default function Home() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [showDeviationModal, setShowDeviationModal] = useState(false);
   const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(null);
+  const [checklistSelectionOpen, setChecklistSelectionOpen] = useState(false);
 
   // Query for production statistics
   const { data: responses = [] } = useQuery({
@@ -46,28 +48,22 @@ export default function Home() {
   ).length;
 
   const handleNewChecklist = () => {
-    if (isMobile) {
-      setLocation("/mobile/checklist");
-    } else {
-      setShowFormModal(true);
-    }
+
+      setChecklistSelectionOpen(true);
+
   };
 
   const handleNewDeviation = () => {
-    if (isMobile) {
-      setLocation("/mobile/deviation");
-    } else {
+
       setShowDeviationModal(true);
-    }
+
   };
 
   const handleChecklistSelect = (checklistId: number) => {
-    if (isMobile) {
-      setLocation(`/mobile/checklist?checklistId=${checklistId}`);
-    } else {
+
       setSelectedChecklistId(checklistId);
       setShowFormModal(true);
-    }
+    
   };
 
   return (
@@ -83,8 +79,8 @@ export default function Home() {
         </div>
 
         {/* Status Cards */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 rounded-xl p-4">
+        <div className="modern-card-grid">
+          <div className="modern-stats-card bg-gradient-to-br from-blue-50 to-blue-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-blue-900">{(activeChecklists as any[]).length}</p>
@@ -94,7 +90,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-red-50 rounded-xl p-4">
+          <div className="modern-stats-card bg-gradient-to-br from-red-50 to-red-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold text-red-900">{openDeviationsCount}</p>
@@ -107,20 +103,20 @@ export default function Home() {
 
         {/* Quick Actions */}
         <div className="space-y-3">
-          <p className="text-sm font-medium">Snabbåtgärder</p>
-          <div className="grid grid-cols-2 gap-4">
+          <p className="text-sm font-medium text-muted-foreground">Snabbåtgärder</p>
+          <div className="modern-card-grid">
             <button 
               onClick={handleNewChecklist}
-              className="rounded-xl bg-green-50 p-4 text-left hover:bg-green-100 transition-colors"
+              className="modern-action-card bg-gradient-to-br from-green-50 to-green-100 text-left"
             >
               <Plus className="h-5 w-5 mb-2 text-green-600" />
               <p className="font-medium text-sm">Ny kontroll</p>
-              <p className="text-xs text-gray-500">Starta en ny checklista</p>
+              <p className="text-xs text-muted-foreground">Starta en ny checklista</p>
             </button>
 
             <button 
               onClick={handleNewDeviation}
-              className="rounded-xl bg-orange-50 p-4 text-left hover:bg-orange-100 transition-colors"
+              className="modern-action-card bg-gradient-to-br from-orange-50 to-orange-100 text-left"
             >
               <AlertTriangle className="h-5 w-5 mb-2 text-orange-600" />
               <p className="font-medium text-sm">Rapportera avvikelse</p>
@@ -180,8 +176,7 @@ export default function Home() {
       </main>
 
       {/* Modals - only show on desktop */}
-      {!isMobile && (
-        <>
+      
           <FormModal 
             isOpen={showFormModal} 
             preselectedChecklistId={selectedChecklistId || undefined}
@@ -194,9 +189,18 @@ export default function Home() {
             isOpen={showDeviationModal} 
             onClose={() => setShowDeviationModal(false)} 
           />
-        </>
+        
+      
+      {checklistSelectionOpen && (
+        <ChecklistSelectionModal
+          isOpen={checklistSelectionOpen}
+          onClose={() => setChecklistSelectionOpen(false)}
+          onSelectChecklist={(checklistId: number) => {
+            setChecklistSelectionOpen(false);
+            handleChecklistSelect(checklistId);
+          }}
+        />
       )}
-
     </div>
   );
 }
