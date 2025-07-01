@@ -122,12 +122,11 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **July 1, 2025**: Synchronized Tailwind theme with modern CSS design system
-  - Updated Tailwind config to use CSS custom properties (hsl(var(--color)))
-  - Replaced hardcoded color values with CSS variable references
-  - Added support for success and warning colors in theme
-  - Improved border radius system using CSS variables
-  - Enhanced dark mode compatibility through CSS variable architecture
+- **July 1, 2025**: Restored stable Tailwind configuration
+  - Reverted Tailwind config to use hardcoded color values for better stability
+  - Maintained original color palette that works well with existing components
+  - Kept modern CSS design system in index.css for custom styling
+  - Ensured consistent styling across all UI components
 
 - **January 1, 2025**: Modernized visual theme to match financial app design
   - Updated color palette with softer, more professional colors
