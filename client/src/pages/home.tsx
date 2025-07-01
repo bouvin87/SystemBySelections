@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
-import { ClipboardList, AlertTriangle, BarChart3, Settings, Plus, TrendingUp } from "lucide-react";
+import { ClipboardList, AlertTriangle, BarChart3, Plus, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import FormModal from "@/components/FormModal";
 import DeviationModal from "@/components/DeviationModal";
@@ -10,9 +10,55 @@ import { useLocation } from "wouter";
 
 export default function Home() {
   const { user } = useAuth();
-  const { data: authData } = useQuery({ queryKey: ["/api/auth/me"], retry: false });
+  const { isMobile } = useDeviceType();
+  const [, setLocation] = useLocation();
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [showDeviationModal, setShowDeviationModal] = useState(false);
 
-  const displayName = user?.firstName || "Användare";
+  // Query for production statistics
+  const { data: responses = [] } = useQuery({
+    queryKey: ["/api/responses"],
+    retry: false
+  });
+
+  const { data: deviations = [] } = useQuery({
+    queryKey: ["/api/deviations"],
+    retry: false
+  });
+
+  const { data: activeChecklists = [] } = useQuery({
+    queryKey: ["/api/checklists/active"],
+    retry: false
+  });
+
+  const displayName = (user as any)?.name || user?.email?.split('@')[0] || "Användare";
+  
+  // Calculate today's count from responses
+  const today = new Date().toDateString();
+  const todayCount = (responses as any[]).filter((response: any) => 
+    new Date(response.createdAt).toDateString() === today
+  ).length;
+  
+  // Calculate open deviations count
+  const openDeviationsCount = (deviations as any[]).filter((deviation: any) => 
+    deviation.status?.name !== "Stängd" && deviation.status?.name !== "Löst"
+  ).length;
+
+  const handleNewChecklist = () => {
+    if (isMobile) {
+      setLocation("/mobile/checklist");
+    } else {
+      setShowFormModal(true);
+    }
+  };
+
+  const handleNewDeviation = () => {
+    if (isMobile) {
+      setLocation("/mobile/deviation");
+    } else {
+      setShowDeviationModal(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -22,61 +68,120 @@ export default function Home() {
         {/* Header */}
         <div className="space-y-1">
           <p className="text-sm">Hej {displayName},</p>
-          <h1 className="text-3xl font-bold">1 234,00</h1>
-          <p className="text-sm text-gray-500">SEK</p>
+          <h1 className="text-3xl font-bold">{todayCount}</h1>
+          <p className="text-sm text-gray-500">kontroller idag</p>
         </div>
 
-        {/* Action Grid */}
+        {/* Status Cards */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-blue-50 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-blue-900">{(activeChecklists as any[]).length}</p>
+                <p className="text-sm text-blue-700">Aktiva checklistor</p>
+              </div>
+              <ClipboardList className="h-8 w-8 text-blue-600" />
+            </div>
+          </div>
+
+          <div className="bg-red-50 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold text-red-900">{openDeviationsCount}</p>
+                <p className="text-sm text-red-700">Öppna avvikelser</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
         <div className="space-y-3">
-          <p className="text-sm font-medium">Vad vill du göra?</p>
+          <p className="text-sm font-medium">Snabbåtgärder</p>
           <div className="grid grid-cols-2 gap-4">
-            <button className="rounded-xl bg-violet-50 p-4 text-left">
-              <ArrowUpRight className="h-5 w-5 mb-2 text-violet-600" />
-              <p className="font-medium text-sm">Skicka pengar</p>
-              <p className="text-xs text-gray-500">Till bank, Swish eller konto</p>
+            <button 
+              onClick={handleNewChecklist}
+              className="rounded-xl bg-green-50 p-4 text-left hover:bg-green-100 transition-colors"
+            >
+              <Plus className="h-5 w-5 mb-2 text-green-600" />
+              <p className="font-medium text-sm">Ny kontroll</p>
+              <p className="text-xs text-gray-500">Starta en ny checklista</p>
             </button>
 
-            <button className="rounded-xl bg-green-50 p-4 text-left">
-              <ArrowDownLeft className="h-5 w-5 mb-2 text-green-600" />
-              <p className="font-medium text-sm">Begär pengar</p>
-              <p className="text-xs text-gray-500">Från andra användare</p>
+            <button 
+              onClick={handleNewDeviation}
+              className="rounded-xl bg-orange-50 p-4 text-left hover:bg-orange-100 transition-colors"
+            >
+              <AlertTriangle className="h-5 w-5 mb-2 text-orange-600" />
+              <p className="font-medium text-sm">Rapportera avvikelse</p>
+              <p className="text-xs text-gray-500">Ny avvikelserapport</p>
             </button>
 
-            <button className="rounded-xl bg-yellow-50 p-4 text-left">
-              <Smartphone className="h-5 w-5 mb-2 text-yellow-600" />
-              <p className="font-medium text-sm">Köp surf</p>
-              <p className="text-xs text-gray-500">Ladda eller skicka data</p>
+            <button 
+              onClick={() => setLocation("/deviations")}
+              className="rounded-xl bg-purple-50 p-4 text-left hover:bg-purple-100 transition-colors"
+            >
+              <BarChart3 className="h-5 w-5 mb-2 text-purple-600" />
+              <p className="font-medium text-sm">Visa avvikelser</p>
+              <p className="text-xs text-gray-500">Alla avvikelserapporter</p>
             </button>
 
-            <button className="rounded-xl bg-gray-100 p-4 text-left">
-              <Wallet className="h-5 w-5 mb-2 text-gray-600" />
-              <p className="font-medium text-sm">Betala faktura</p>
-              <p className="text-xs text-gray-500">Inga avgifter när du betalar</p>
+            <button 
+              onClick={() => setLocation("/checklists")}
+              className="rounded-xl bg-blue-50 p-4 text-left hover:bg-blue-100 transition-colors"
+            >
+              <ClipboardList className="h-5 w-5 mb-2 text-blue-600" />
+              <p className="font-medium text-sm">Checklistor</p>
+              <p className="text-xs text-gray-500">Visa alla checklistor</p>
             </button>
           </div>
         </div>
 
-        {/* Favorite users */}
+        {/* Recent Activity */}
         <div className="space-y-3">
-          <p className="text-sm font-medium">Favoritanvändare</p>
-          <div className="flex gap-4 items-center">
-            <div className="flex flex-col items-center text-sm text-gray-500">
-              <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center text-xl">+</div>
-              <span className="text-xs mt-1">Lägg till</span>
-            </div>
-            <div className="flex flex-col items-center text-sm">
-              <img src="https://i.pravatar.cc/48?img=1" alt="Grace" className="h-12 w-12 rounded-full" />
-              <span className="text-xs mt-1">Grace L.</span>
-            </div>
-            <div className="flex flex-col items-center text-sm">
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center font-semibold text-blue-600">
-                LA
+          <p className="text-sm font-medium">Senaste aktivitet</p>
+          <div className="space-y-2">
+            {(responses as any[]).filter((response: any) => 
+              new Date(response.createdAt).toDateString() === today
+            ).slice(0, 3).map((response: any, index: number) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium">Kontroll slutförd</p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(response.createdAt).toLocaleTimeString('sv-SE')}
+                    </p>
+                  </div>
+                </div>
+                <TrendingUp className="h-4 w-4 text-green-600" />
               </div>
-              <span className="text-xs mt-1">Lawrence A.</span>
-            </div>
+            ))}
+            
+            {todayCount === 0 && (
+              <div className="text-center py-6 text-gray-500">
+                <ClipboardList className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Inga kontroller registrerade idag</p>
+                <p className="text-xs">Börja genom att skapa en ny kontroll</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
+
+      {/* Modals - only show on desktop */}
+      {!isMobile && (
+        <>
+          <FormModal 
+            isOpen={showFormModal} 
+            onClose={() => setShowFormModal(false)} 
+          />
+          <DeviationModal 
+            isOpen={showDeviationModal} 
+            onClose={() => setShowDeviationModal(false)} 
+          />
+        </>
+      )}
     </div>
   );
 }
