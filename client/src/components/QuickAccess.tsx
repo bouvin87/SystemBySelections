@@ -105,6 +105,15 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       active: false
     });
   }
+
+  // Add more button at the end
+  allButtons.push({
+    id: 'more',
+    icon: <MoreHorizontal className="h-6 w-6" />,
+    label: "Mer",
+    onClick: () => {}, // Empty for now
+    active: false
+  });
   
   
   return (
