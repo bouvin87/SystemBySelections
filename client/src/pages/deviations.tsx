@@ -306,7 +306,7 @@ export default function DeviationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background text-foreground pb-[theme(spacing.20)]">
       <Navigation />
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Header */}
@@ -319,7 +319,7 @@ export default function DeviationsPage() {
         </div>
 
         {/* Filters */}
-        <Card>
+        <Card className="bg-card text-foreground rounded-xl shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
@@ -613,7 +613,7 @@ export default function DeviationsPage() {
           {/* Department Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Avdelningar
               </CardTitle>
             </CardHeader>
@@ -663,7 +663,7 @@ export default function DeviationsPage() {
           {/* Type Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Typer
               </CardTitle>
             </CardHeader>
@@ -713,7 +713,7 @@ export default function DeviationsPage() {
           {/* Status Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Status
               </CardTitle>
             </CardHeader>
@@ -763,7 +763,7 @@ export default function DeviationsPage() {
           {/* Monthly Chart - spans full width */}
           <Card className="md:col-span-2 lg:col-span-3">
             <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 Inlämnade per månad
               </CardTitle>
             </CardHeader>

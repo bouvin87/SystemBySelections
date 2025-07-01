@@ -8,6 +8,7 @@ import DeviationModal from "@/components/DeviationModal";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { useLocation } from "wouter";
 import ChecklistSelectionModal from "@/components/ChecklistSelectionModal";
+import AnimatedNav from "@/components/testmenu";
 
 export default function Home() {
   const { user } = useAuth();
@@ -67,36 +68,35 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-background text-foreground pb-[theme(spacing.20)]">
       <Navigation />
-
+      
       <main className="max-w-md mx-auto px-4 pt-6 pb-32 space-y-8">
         {/* Header */}
         <div className="space-y-1">
-          <p className="text-sm">Hej {displayName},</p>
-          <h1 className="text-3xl font-bold">{todayCount}</h1>
-          <p className="text-sm text-gray-500">kontroller idag</p>
+          <h1 className="text-3xl font-bold">Hej {displayName}</h1>
+
         </div>
 
         {/* Status Cards */}
         <div className="modern-card-grid">
-          <div className="modern-stats-card bg-gradient-to-br from-blue-50 to-blue-100">
+          <div className="modern-stats-card bg-pastel-purple">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-blue-900">{(activeChecklists as any[]).length}</p>
-                <p className="text-sm text-blue-700">Aktiva checklistor</p>
+                <p className="text-2xl font-bold text-foreground">{(activeChecklists as any[]).length}</p>
+                <p className="text-sm text-muted-foreground">Aktiva checklistor</p>
               </div>
-              <ClipboardList className="h-8 w-8 text-blue-600" />
+              <ClipboardList className="h-8 w-8 text-primary" />
             </div>
           </div>
 
-          <div className="modern-stats-card bg-gradient-to-br from-red-50 to-red-100">
+          <div className="modern-stats-card bg-pastel-yellow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-red-900">{openDeviationsCount}</p>
-                <p className="text-sm text-red-700">Öppna avvikelser</p>
+                <p className="text-2xl font-bold text-foreground">{openDeviationsCount}</p>
+                <p className="text-sm text-muted-foreground">Öppna avvikelser</p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+              <AlertTriangle className="h-8 w-8 text-accent-foreground" />
             </div>
           </div>
         </div>
@@ -107,38 +107,38 @@ export default function Home() {
           <div className="modern-card-grid">
             <button 
               onClick={handleNewChecklist}
-              className="modern-action-card bg-gradient-to-br from-green-50 to-green-100 text-left"
+              className="modern-action-card bg-pastel-green text-left"
             >
-              <Plus className="h-5 w-5 mb-2 text-green-600" />
+              <Plus className="h-5 w-5 mb-2 text-success" />
               <p className="font-medium text-sm">Ny kontroll</p>
               <p className="text-xs text-muted-foreground">Starta en ny checklista</p>
             </button>
 
             <button 
               onClick={handleNewDeviation}
-              className="modern-action-card bg-gradient-to-br from-orange-50 to-orange-100 text-left"
+              className="modern-action-card bg-pastel-yellow text-left"
             >
-              <AlertTriangle className="h-5 w-5 mb-2 text-orange-600" />
+              <AlertTriangle className="h-5 w-5 mb-2 text-accent" />
               <p className="font-medium text-sm">Rapportera avvikelse</p>
-              <p className="text-xs text-gray-500">Ny avvikelserapport</p>
+              <p className="text-xs text-muted-foreground">Ny avvikelserapport</p>
             </button>
 
             <button 
               onClick={() => setLocation("/deviations")}
-              className="rounded-xl bg-purple-50 p-4 text-left hover:bg-purple-100 transition-colors"
+              className="rounded-xl bg-pastel-purple p-4 text-left hover:bg-purple-100 transition-colors"
             >
-              <BarChart3 className="h-5 w-5 mb-2 text-purple-600" />
+              <BarChart3 className="h-5 w-5 mb-2 text-primary" />
               <p className="font-medium text-sm">Visa avvikelser</p>
-              <p className="text-xs text-gray-500">Alla avvikelserapporter</p>
+              <p className="text-xs text-muted-foreground">Alla avvikelserapporter</p>
             </button>
 
             <button 
               onClick={() => setLocation("/checklists")}
-              className="rounded-xl bg-blue-50 p-4 text-left hover:bg-blue-100 transition-colors"
+              className="rounded-xl bg-pastel-gray p-4 text-left hover:bg-surface DEFAULT transition-colors"
             >
-              <ClipboardList className="h-5 w-5 mb-2 text-blue-600" />
+              <ClipboardList className="h-5 w-5 mb-2 text-primary" />
               <p className="font-medium text-sm">Checklistor</p>
-              <p className="text-xs text-gray-500">Visa alla checklistor</p>
+              <p className="text-xs text-muted-foreground">Visa alla checklistor</p>
             </button>
           </div>
         </div>
@@ -150,22 +150,22 @@ export default function Home() {
             {(responses as any[]).filter((response: any) => 
               new Date(response.createdAt).toDateString() === today
             ).slice(0, 3).map((response: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-surface.subtle rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="h-2 w-2 bg-success rounded-full"></div>
                   <div>
                     <p className="text-sm font-medium">Kontroll slutförd</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       {new Date(response.createdAt).toLocaleTimeString('sv-SE')}
                     </p>
                   </div>
                 </div>
-                <TrendingUp className="h-4 w-4 text-green-600" />
+                <TrendingUp className="h-4 w-4 text-success" />
               </div>
             ))}
-            
+
             {todayCount === 0 && (
-              <div className="text-center py-6 text-gray-500">
+              <div className="text-center py-6 text-muted-foreground">
                 <ClipboardList className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Inga kontroller registrerade idag</p>
                 <p className="text-xs">Börja genom att skapa en ny kontroll</p>
@@ -175,22 +175,20 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Modals - only show on desktop */}
-      
-          <FormModal 
-            isOpen={showFormModal} 
-            preselectedChecklistId={selectedChecklistId || undefined}
-            onClose={() => {
-              setShowFormModal(false);
-              setSelectedChecklistId(null);
-            }} 
-          />
-          <DeviationModal 
-            isOpen={showDeviationModal} 
-            onClose={() => setShowDeviationModal(false)} 
-          />
-        
-      
+      {/* Modals */}
+      <FormModal 
+        isOpen={showFormModal} 
+        preselectedChecklistId={selectedChecklistId || undefined}
+        onClose={() => {
+          setShowFormModal(false);
+          setSelectedChecklistId(null);
+        }} 
+      />
+      <DeviationModal 
+        isOpen={showDeviationModal} 
+        onClose={() => setShowDeviationModal(false)} 
+      />
+
       {checklistSelectionOpen && (
         <ChecklistSelectionModal
           isOpen={checklistSelectionOpen}
@@ -203,4 +201,5 @@ export default function Home() {
       )}
     </div>
   );
+
 }

@@ -202,7 +202,8 @@ export default function ChecklistDashboard({
 
   if (!checklist) {
     return (
-      <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background text-foreground pb-20">
+
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
@@ -215,15 +216,16 @@ export default function ChecklistDashboard({
 
   if (!checklist.hasDashboard) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background text-foreground pb-20">
+
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="text-center py-12">
+          <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
             <CardContent>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
                 {t("dashboard.dashboardNotEnabled")}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted mb-6">
                 {t("dashboard.dashboardNotEnabledDescription")}
               </p>
               <Link href="/">
@@ -240,11 +242,12 @@ export default function ChecklistDashboard({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background text-foreground pb-20">
+
       <Navigation />
 
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -255,10 +258,10 @@ export default function ChecklistDashboard({
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-foreground">
                   {checklist.name}
                 </h1>
-                <p className="text-sm text-gray-600">{t("dashboard.title")}</p>
+                <p className="text-sm text-muted-foreground">{t("dashboard.title")}</p>
               </div>
             </div>
             <Button
@@ -273,11 +276,11 @@ export default function ChecklistDashboard({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar with filters */}
           {showFilters && (
-            <div className="w-80 flex-shrink-0">
-              <Card className="sticky top-8">
+            <div className="w-full lg:w-80 flex-shrink-0">
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Filter className="h-5 w-5" />
@@ -468,65 +471,56 @@ export default function ChecklistDashboard({
 
           {/* Main content */}
           <div className="flex-1 space-y-6">
-            {/* Statistics Overview - Falcon Style */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold">
-                        {stats?.totalResponses || 0}
-                      </div>
-                      <div className="text-blue-100 text-sm">
-                        {t("dashboard.totalResponsesFiltered")}
-                      </div>
-                      <div className="text-blue-200 text-xs mt-1">
-                        {
-                          responses.filter((r) => {
-                            const responseDate = new Date(r.createdAt);
-                            const yesterday = new Date();
-                            yesterday.setDate(yesterday.getDate() - 1);
-                            return responseDate >= yesterday;
-                          }).length
-                        }{" "}
-                        senaste 24 timmar
-                      </div>
-                    </div>
-                    <div className="bg-white/20 p-3 rounded-lg">
-                      <BarChart3 className="h-6 w-6" />
-                    </div>
+            {/* Statistics Overview - Modern Style */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="modern-stats-card bg-pastel-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">
+                      {stats?.totalResponses || 0}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("dashboard.totalResponsesFiltered")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {
+                        responses.filter((r) => {
+                          const responseDate = new Date(r.createdAt);
+                          const yesterday = new Date();
+                          yesterday.setDate(yesterday.getDate() - 1);
+                          return responseDate >= yesterday;
+                        }).length
+                      } senaste 24 timmar
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                  <BarChart3 className="h-8 w-8 text-primary" />
+                </div>
+              </div>
 
-              <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold">
-                        {
-                          Object.values(filters).filter((v) => v && v !== "all")
-                            .length
-                        }
-                      </div>
-                      <div className="text-green-100 text-sm">
-                        {t("dashboard.activeFilters")}
-                      </div>
-                      <div className="text-green-200 text-xs mt-1">
-                        Nuvarande filter
-                      </div>
-                    </div>
-                    <div className="bg-white/20 p-3 rounded-lg">
-                      <Filter className="h-6 w-6" />
-                    </div>
+              <div className="modern-stats-card bg-pastel-green">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">
+                      {
+                        Object.values(filters).filter((v) => v && v !== "all").length
+                      }
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t("dashboard.activeFilters")}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Nuvarande filter
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                  <Filter className="h-8 w-8 text-accent" />
+                </div>
+              </div>
             </div>
+
 
             {/* Dashboard Question Cards */}
             {dashboardQuestions.length > 0 ? (
-              <Card>
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-blue-600" />
@@ -534,7 +528,7 @@ export default function ChecklistDashboard({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     {dashboardQuestions.map((item: any) => {
                       const question = item.questions || item;
                       return (
@@ -550,10 +544,10 @@ export default function ChecklistDashboard({
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
                 <CardContent className="py-12 text-center">
                   <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     Inga dashboard-frågor konfigurerade
                   </p>
                 </CardContent>
@@ -561,7 +555,7 @@ export default function ChecklistDashboard({
             )}
 
             {/* Recent Responses Table */}
-            <Card>
+            <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-green-600" />
@@ -574,16 +568,16 @@ export default function ChecklistDashboard({
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">
+                          <th className="text-left py-3 px-4 font-medium text-muted text-sm">
                             Operatör
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">
+                          <th className="text-left py-3 px-4 font-medium text-muted text-sm">
                             Datum & Tid
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-600 text-sm">
+                          <th className="text-left py-3 px-4 font-medium text-muted text-sm">
                             Detaljer
                           </th>
-                          <th className="text-right py-3 px-4 font-medium text-gray-600 text-sm">
+                          <th className="text-right py-3 px-4 font-medium text-muted text-sm">
                             Åtgärd
                           </th>
                         </tr>
@@ -621,7 +615,7 @@ export default function ChecklistDashboard({
                                     response.createdAt,
                                   ).toLocaleDateString("sv-SE")}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-muted-foreground">
                                   {new Date(
                                     response.createdAt,
                                   ).toLocaleTimeString("sv-SE", {
@@ -685,7 +679,7 @@ export default function ChecklistDashboard({
                 ) : (
                   <div className="text-center py-12">
                     <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">
+                    <p className="text-muted-foreground">
                       {t("dashboard.noResponsesYet")}
                     </p>
                   </div>
