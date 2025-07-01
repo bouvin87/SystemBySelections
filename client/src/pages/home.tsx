@@ -95,7 +95,47 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Quick Actions */}
+        <div className="space-y-3">
+          <p className="text-sm font-medium">Snabbåtgärder</p>
+          <div className="grid grid-cols-2 gap-4">
+            <button 
+              onClick={handleNewChecklist}
+              className="rounded-xl bg-green-50 p-4 text-left hover:bg-green-100 transition-colors"
+            >
+              <Plus className="h-5 w-5 mb-2 text-green-600" />
+              <p className="font-medium text-sm">Ny kontroll</p>
+              <p className="text-xs text-gray-500">Starta en ny checklista</p>
+            </button>
 
+            <button 
+              onClick={handleNewDeviation}
+              className="rounded-xl bg-orange-50 p-4 text-left hover:bg-orange-100 transition-colors"
+            >
+              <AlertTriangle className="h-5 w-5 mb-2 text-orange-600" />
+              <p className="font-medium text-sm">Rapportera avvikelse</p>
+              <p className="text-xs text-gray-500">Ny avvikelserapport</p>
+            </button>
+
+            <button 
+              onClick={() => setLocation("/deviations")}
+              className="rounded-xl bg-purple-50 p-4 text-left hover:bg-purple-100 transition-colors"
+            >
+              <BarChart3 className="h-5 w-5 mb-2 text-purple-600" />
+              <p className="font-medium text-sm">Visa avvikelser</p>
+              <p className="text-xs text-gray-500">Alla avvikelserapporter</p>
+            </button>
+
+            <button 
+              onClick={() => setLocation("/checklists")}
+              className="rounded-xl bg-blue-50 p-4 text-left hover:bg-blue-100 transition-colors"
+            >
+              <ClipboardList className="h-5 w-5 mb-2 text-blue-600" />
+              <p className="font-medium text-sm">Checklistor</p>
+              <p className="text-xs text-gray-500">Visa alla checklistor</p>
+            </button>
+          </div>
+        </div>
 
         {/* Recent Activity */}
         <div className="space-y-3">
