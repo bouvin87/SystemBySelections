@@ -8,7 +8,6 @@ import type { Checklist } from "@shared/schema";
 import clsx from "clsx"; // eller classnames
 import IconActionButton from "./ui/actionbutton";
 import { useLocation } from "wouter";
-import ChecklistSelectionModal from "./ChecklistSelectionModal";
 
 interface QuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
@@ -17,15 +16,15 @@ interface QuickAccessProps {
 
 function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   const [isDeviationModalOpen, setIsDeviationModalOpen] = useState(false);
-  const [checklistSelectionOpen, setChecklistSelectionOpen] = useState(false);
+  
   const [, setLocation] = useLocation();
-
+  
   // Check if user has access to checklists module
   const { data: authData } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
-
+  
   const hasChecklistsModule = (authData as any)?.tenant?.modules?.includes("checklists") ?? false;
   const hasDeviationsModule = (authData as any)?.tenant?.modules?.includes("deviations") ?? false;
 
@@ -63,8 +62,39 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   const hasDeviationButton = hasDeviationsModule && deviationSettings?.showCreateButtonInMenu;
   // Always show navigation bar with standard buttons
   const allButtons = [
-
+    {
+      id: 'home',
+      icon: <Home className="h-6 w-6" />,
+      label: "Hem",
+      onClick: () => setLocation("/"),
+      active: typeof window !== 'undefined' && window.location.pathname === "/"
+    }
   ];
+  
+  // Add checklist button if user has access and there are checklists
+  if (hasChecklistItems && menuChecklists.length > 0) {
+    allButtons.push({
+      id: 'checklists',
+      icon: <ClipboardList className="h-6 w-6" />,
+      label: "Kontroller",
+      onClick: () => setLocation("/checklists"),
+      active: typeof window !== 'undefined' && window.location.pathname === "/checklists"
+    });
+  }
+  
+  // Add first checklist as quick access if available
+  if (hasChecklistItems && menuChecklists.length > 0) {
+    const firstChecklist = menuChecklists[0];
+    allButtons.push({
+      id: `checklist-${firstChecklist.id}`,
+      icon: renderIcon(firstChecklist.icon, "h-6 w-6") || <CheckSquare className="h-6 w-6" />,
+      label: firstChecklist.name,
+      onClick: () => onChecklistSelect(firstChecklist.id),
+      active: false
+    });
+  }
+
+  
   // Add deviation button if available
   if (hasDeviationButton) {
     allButtons.push({
@@ -72,90 +102,53 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       icon: <Plus className="h-6 w-6" />,
       label: "Avvikelse",
       onClick: () => setIsDeviationModalOpen(true),
-
+      active: false
     });
   }
-  // Add checklist button if user has access and there are checklists
-  if (hasChecklistItems && menuChecklists.length > 0) {
-    allButtons.push({
-      id: 'checklists',
-      icon: <ClipboardList className="h-6 w-6" />,
-      label: "Checklistor",
-      onClick: () => {
-        setChecklistSelectionOpen(true);
-      },
 
-    });
-  }
-  // ➕ Lägg till separator
+  // Add more button at the end
+  allButtons.push({
+    id: 'more',
+    icon: <MoreHorizontal className="h-6 w-6" />,
+    label: "Mer",
+    onClick: () => {}, // Empty for now
+    active: false
+  });
   
-
-  // Add first checklist as quick access if available
-  if (hasChecklistItems && menuChecklists.length > 0) {
-    allButtons.push({ id: 'divider' }); // specialtyp
-    menuChecklists.forEach((checklist) => {
-      allButtons.push({
-        id: `checklist-${checklist.id}`,
-        icon: renderIcon(checklist.icon, "h-6 w-6") || <CheckSquare className="h-6 w-6" />,
-        label: checklist.name,
-        onClick: () => onChecklistSelect(checklist.id),
-        active: false
-      });
-    });
-  }
-
+  
   return (
-    <div className="fixed bottom-0 left-0 right-0 modern-nav safe-area-inset-bottom z-10">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-inset-bottom">
       <div className="max-w-md mx-auto px-4 py-3">
         <div className="flex justify-around items-center">
-          {allButtons.map((button) => {
-            if (button.id === 'divider') {
-              return (
-                <div
-                  key="divider"
-                  className="h-8 w-px bg-gray-300 mx-2 opacity-50"
-                />
-              );
-            }
-
-            return (
-              <button
-                key={button.id}
-                onClick={button.onClick}
-                className={`flex flex-col items-center justify-center py-2 px-2 modern-button min-w-[50px] ${
-                  button.active 
-                    ? 'text-primary' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <div className={`mb-1 ${button.active ? 'scale-110' : ''}`}>
-                  {button.icon}
-                </div>
-                <span className="text-xs font-medium text-center leading-tight">
-                  {button.label}
-                </span>
-                {button.active && (
-                  <div className="mt-1 w-4 h-0.5 bg-primary rounded-full"></div>
-                )}
-              </button>
-            );
-          })}
-
+          {allButtons.map((button) => (
+            <button
+              key={button.id}
+              onClick={button.onClick}
+              className={`flex flex-col items-center justify-center py-2 px-2 transition-colors min-w-[50px] ${
+                button.active 
+                  ? 'text-blue-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <div className={`mb-1 ${button.active ? 'scale-110' : ''}`}>
+                {button.icon}
+              </div>
+              <span className="text-xs font-medium text-center leading-tight">
+                {button.label}
+              </span>
+              {button.active && (
+                <div className="mt-1 w-4 h-0.5 bg-blue-600 rounded-full"></div>
+              )}
+            </button>
+          ))}
         </div>
       </div>
-
+      
       {/* Deviation Modal */}
       <DeviationModal 
         isOpen={isDeviationModalOpen} 
         onClose={() => setIsDeviationModalOpen(false)}
       />
-      {checklistSelectionOpen && (
-        <ChecklistSelectionModal
-          isOpen={checklistSelectionOpen}
-          onClose={() => setChecklistSelectionOpen(false)}
-          onSelectChecklist={onChecklistSelect}
-        />
-      )}
     </div>
   );
 }
