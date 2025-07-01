@@ -2,6 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Modern minimal color palette inspired by the image */
+    --background: 248 250 252; /* Slate-50 */
+    --foreground: 15 23 42; /* Slate-900 */
+    --card: 255 255 255; /* White */
+    --card-foreground: 15 23 42; /* Slate-900 */
+    --popover: 255 255 255; /* White */
+    --popover-foreground: 15 23 42; /* Slate-900 */
+    --primary: 59 130 246; /* Blue-500 */
+    --primary-foreground: 248 250 252; /* Slate-50 */
+    --secondary: 241 245 249; /* Slate-100 */
+    --secondary-foreground: 15 23 42; /* Slate-900 */
+    --muted: 241 245 249; /* Slate-100 */
+    --muted-foreground: 100 116 139; /* Slate-500 */
+    --accent: 241 245 249; /* Slate-100 */
+    --accent-foreground: 15 23 42; /* Slate-900 */
+    --destructive: 239 68 68; /* Red-500 */
+    --destructive-foreground: 248 250 252; /* Slate-50 */
+    --border: 226 232 240; /* Slate-200 */
+    --input: 226 232 240; /* Slate-200 */
+    --ring: 59 130 246; /* Blue-500 */
+    --radius: 1rem; /* Larger radius for modern look */
+  }
+}
+
+/* Modern app styling inspired by the image */
+.app-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  min-height: 100vh;
+}
+
+.action-card {
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgb(0 0 0 / 0.15);
+}
+
+.status-card {
+  border-radius: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgb(255 255 255 / 0.2);
+}
+
+/* Safe area support for mobile devices */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* Mobile fullscreen modal styles */
 @media screen and (max-width: 768px) {
   .mobile-fullscreen {
@@ -12,7 +67,7 @@
     bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    height: 100dvh !important; /* Dynamic viewport height for better mobile support */
+    height: 100dvh !important;
     max-height: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -20,7 +75,6 @@
     transform: none !important;
   }
   
-  /* Force fullscreen on mobile when modal is open */
   body:has(.mobile-fullscreen) {
     position: fixed !important;
     width: 100% !important;

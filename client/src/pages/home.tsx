@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import Navigation from "@/components/Navigation";
+import BottomNavigation from "@/components/BottomNavigation";
 import { ClipboardList, AlertTriangle, BarChart3, Plus, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import FormModal from "@/components/FormModal";
@@ -61,113 +61,126 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <Navigation />
+    <div className="app-container min-h-screen text-slate-900">
+      {/* Header with notification */}
+      <div className="flex justify-between items-center px-6 pt-12 pb-6">
+        <div>
+          <p className="text-sm text-slate-600">Hej {displayName},</p>
+        </div>
+        <div className="relative">
+          <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+            <div className="w-2 h-2 bg-red-500 rounded-full absolute -top-1 -right-1"></div>
+            <span className="text-sm">🔔</span>
+          </div>
+        </div>
+      </div>
 
-      <main className="max-w-md mx-auto px-4 pt-6 pb-24 space-y-8">
-        {/* Header */}
-        <div className="space-y-1">
-          <p className="text-sm">Hej {displayName},</p>
-          <h1 className="text-3xl font-bold">{todayCount}</h1>
-          <p className="text-sm text-gray-500">kontroller idag</p>
+      <main className="max-w-md mx-auto px-6 pb-32 space-y-8">
+        {/* Main Balance Display */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-light text-slate-900">{todayCount}</h1>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-6 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-sm flex items-center justify-center">
+              <span className="text-white text-xs font-bold">SBH</span>
+            </div>
+            <p className="text-sm text-slate-600 font-medium">kontroller idag ▼</p>
+          </div>
         </div>
 
-        {/* Status Cards */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-blue-900">{(activeChecklists as any[]).length}</p>
-                <p className="text-sm text-blue-700">Aktiva checklistor</p>
+        {/* Status Section */}
+        <div className="space-y-4">
+          <p className="text-sm font-medium text-slate-800">Översikt av systemet</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="status-card bg-slate-100/50 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-light text-slate-900">{(activeChecklists as any[]).length}</p>
+                  <p className="text-sm text-slate-600 font-medium">Aktiva checklistor</p>
+                </div>
+                <ClipboardList className="h-6 w-6 text-slate-400" />
               </div>
-              <ClipboardList className="h-8 w-8 text-blue-600" />
             </div>
-          </div>
 
-          <div className="bg-red-50 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-red-900">{openDeviationsCount}</p>
-                <p className="text-sm text-red-700">Öppna avvikelser</p>
+            <div className="status-card bg-green-100/60 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-light text-slate-900">{openDeviationsCount}</p>
+                  <p className="text-sm text-slate-600 font-medium">Öppna avvikelser</p>
+                </div>
+                <AlertTriangle className="h-6 w-6 text-green-600" />
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-3">
-          <p className="text-sm font-medium">Snabbåtgärder</p>
+        <div className="space-y-4">
+          <p className="text-sm font-medium text-slate-800">Här är några saker du kan göra</p>
           <div className="grid grid-cols-2 gap-4">
             <button 
               onClick={handleNewChecklist}
-              className="rounded-xl bg-green-50 p-4 text-left hover:bg-green-100 transition-colors"
+              className="action-card p-6 text-left bg-slate-50"
             >
-              <Plus className="h-5 w-5 mb-2 text-green-600" />
-              <p className="font-medium text-sm">Ny kontroll</p>
-              <p className="text-xs text-gray-500">Starta en ny checklista</p>
+              <Plus className="h-6 w-6 mb-3 text-slate-700" />
+              <p className="font-medium text-sm text-slate-900">Ny kontroll</p>
+              <p className="text-xs text-slate-500 mt-1">Starta en ny checklista</p>
             </button>
 
             <button 
               onClick={handleNewDeviation}
-              className="rounded-xl bg-orange-50 p-4 text-left hover:bg-orange-100 transition-colors"
+              className="action-card p-6 text-left bg-green-50"
             >
-              <AlertTriangle className="h-5 w-5 mb-2 text-orange-600" />
-              <p className="font-medium text-sm">Rapportera avvikelse</p>
-              <p className="text-xs text-gray-500">Ny avvikelserapport</p>
+              <AlertTriangle className="h-6 w-6 mb-3 text-slate-700" />
+              <p className="font-medium text-sm text-slate-900">Rapportera avvikelse</p>
+              <p className="text-xs text-slate-500 mt-1">Skapa ny rapport från användare</p>
             </button>
 
             <button 
               onClick={() => setLocation("/deviations")}
-              className="rounded-xl bg-purple-50 p-4 text-left hover:bg-purple-100 transition-colors"
+              className="action-card p-6 text-left bg-orange-50"
             >
-              <BarChart3 className="h-5 w-5 mb-2 text-purple-600" />
-              <p className="font-medium text-sm">Visa avvikelser</p>
-              <p className="text-xs text-gray-500">Alla avvikelserapporter</p>
+              <BarChart3 className="h-6 w-6 mb-3 text-slate-700" />
+              <p className="font-medium text-sm text-slate-900">Visa avvikelser</p>
+              <p className="text-xs text-slate-500 mt-1">Inga avgifter när du granskar</p>
             </button>
 
             <button 
               onClick={() => setLocation("/checklists")}
-              className="rounded-xl bg-blue-50 p-4 text-left hover:bg-blue-100 transition-colors"
+              className="action-card p-6 text-left bg-slate-100"
             >
-              <ClipboardList className="h-5 w-5 mb-2 text-blue-600" />
-              <p className="font-medium text-sm">Checklistor</p>
-              <p className="text-xs text-gray-500">Visa alla checklistor</p>
+              <ClipboardList className="h-6 w-6 mb-3 text-slate-700" />
+              <p className="font-medium text-sm text-slate-900">Checklistor</p>
+              <p className="text-xs text-slate-500 mt-1">Toppa upp eller skicka data</p>
             </button>
           </div>
         </div>
 
-        {/* Recent Activity */}
-        <div className="space-y-3">
-          <p className="text-sm font-medium">Senaste aktivitet</p>
-          <div className="space-y-2">
-            {(responses as any[]).filter((response: any) => 
-              new Date(response.createdAt).toDateString() === today
-            ).slice(0, 3).map((response: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <div>
-                    <p className="text-sm font-medium">Kontroll slutförd</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(response.createdAt).toLocaleTimeString('sv-SE')}
-                    </p>
-                  </div>
-                </div>
-                <TrendingUp className="h-4 w-4 text-green-600" />
+        {/* Your favorites people */}
+        <div className="space-y-4">
+          <p className="text-sm font-medium text-slate-800">Dina favoritanvändare</p>
+          <div className="flex gap-4 items-center">
+            <div className="flex flex-col items-center text-sm text-slate-500">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-xl border-2 border-dashed border-slate-300">+</div>
+              <span className="text-xs mt-2 font-medium">Lägg till</span>
+            </div>
+            <div className="flex flex-col items-center text-sm">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-pink-400 to-red-400 flex items-center justify-center text-white font-semibold border-2 border-white shadow-sm">
+                G
               </div>
-            ))}
-            
-            {todayCount === 0 && (
-              <div className="text-center py-6 text-gray-500">
-                <ClipboardList className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Inga kontroller registrerade idag</p>
-                <p className="text-xs">Börja genom att skapa en ny kontroll</p>
+              <span className="text-xs mt-2 font-medium text-slate-600">Grace L.</span>
+            </div>
+            <div className="flex flex-col items-center text-sm">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center font-semibold text-white border-2 border-white shadow-sm">
+                LA
               </div>
-            )}
+              <span className="text-xs mt-2 font-medium text-slate-600">Lawrence A.</span>
+            </div>
           </div>
         </div>
       </main>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation />
 
       {/* Modals - only show on desktop */}
       {!isMobile && (
