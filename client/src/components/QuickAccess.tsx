@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckSquare, Plus } from "lucide-react";
+import { CheckSquare, Plus, Home, MoreHorizontal, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { renderIcon } from "@/lib/icon-utils";
 import DeviationModal from "@/components/DeviationModal";
 import type { Checklist } from "@shared/schema";
 import clsx from "clsx"; // eller classnames
 import IconActionButton from "./ui/actionbutton";
+import { useLocation } from "wouter";
 
 interface QuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
@@ -14,6 +15,7 @@ interface QuickAccessProps {
 
 function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   const [isDeviationModalOpen, setIsDeviationModalOpen] = useState(false);
+  const [, setLocation] = useLocation();
   
   // Check if user has access to checklists module
   const { data: authData } = useQuery({
@@ -21,10 +23,8 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
     retry: false,
   });
   
-
-  
-  const hasChecklistsModule = authData?.tenant?.modules?.includes("checklists") ?? false;
-  const hasDeviationsModule = authData?.tenant?.modules?.includes("deviations") ?? false;
+  const hasChecklistsModule = (authData as any)?.tenant?.modules?.includes("checklists") ?? false;
+  const hasDeviationsModule = (authData as any)?.tenant?.modules?.includes("deviations") ?? false;
 
   // Fetch checklistor that should be shown in menu (only if user has access)
   const { data: menuChecklists = [] } = useQuery<Checklist[]>({
@@ -58,60 +58,85 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   // Don't render if no access to any modules or no items to show
   const hasChecklistItems = hasChecklistsModule && menuChecklists.length > 0;
   const hasDeviationButton = hasDeviationsModule && deviationSettings?.showCreateButtonInMenu;
+  // Always show navigation bar with standard buttons
+  const allButtons = [
+    {
+      id: 'home',
+      icon: <Home className="h-6 w-6" />,
+      label: "Hem",
+      onClick: () => setLocation("/"),
+      active: window.location.pathname === "/"
+    }
+  ];
   
-  if (!hasChecklistItems && !hasDeviationButton) {
-    return null;
+  // Add checklist button if user has access and there are checklists
+  if (hasChecklistItems && menuChecklists.length > 0) {
+    allButtons.push({
+      id: 'checklists',
+      icon: <ClipboardList className="h-6 w-6" />,
+      label: "Kontroller",
+      onClick: () => setLocation("/checklists"),
+      active: window.location.pathname === "/checklists"
+    });
   }
+  
+  // Add first checklist as quick access if available
+  if (hasChecklistItems && menuChecklists.length > 0) {
+    const firstChecklist = menuChecklists[0];
+    allButtons.push({
+      id: `checklist-${firstChecklist.id}`,
+      icon: renderIcon(firstChecklist.icon, "h-6 w-6") || <CheckSquare className="h-6 w-6" />,
+      label: firstChecklist.name,
+      onClick: () => onChecklistSelect(firstChecklist.id),
+      active: false
+    });
+  }
+  
+  // Add deviation button if available
+  if (hasDeviationButton) {
+    allButtons.push({
+      id: 'deviations',
+      icon: <Plus className="h-6 w-6" />,
+      label: "Avvikelse",
+      onClick: () => setIsDeviationModalOpen(true),
+      active: false
+    });
+  }
+  
+  // Add more button
+  allButtons.push({
+    id: 'more',
+    icon: <MoreHorizontal className="h-6 w-6" />,
+    label: "Mer",
+    onClick: () => setLocation("/menu"),
+    active: false
+  });
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-inset-bottom">
-      <div className="max-w-md mx-auto px-4 py-2">
-        <div className="grid grid-cols-2 gap-3">
-          {hasChecklistItems && menuChecklists.slice(0, 2).map((checklist) => (
+      <div className="max-w-md mx-auto px-4 py-3">
+        <div className="flex justify-around items-center">
+          {allButtons.map((button) => (
             <button
-              key={checklist.id}
-              onClick={() => onChecklistSelect(checklist.id)}
-              className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-100 hover:bg-gray-200 transition-colors min-h-[80px]"
+              key={button.id}
+              onClick={button.onClick}
+              className={`flex flex-col items-center justify-center py-2 px-2 transition-colors min-w-[50px] ${
+                button.active 
+                  ? 'text-blue-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
             >
-              <div className="mb-2 text-gray-600">
-                {renderIcon(checklist.icon, "h-6 w-6")}
+              <div className={`mb-1 ${button.active ? 'scale-110' : ''}`}>
+                {button.icon}
               </div>
-              <span className="text-sm font-medium text-gray-900 text-center leading-tight">
-                {checklist.name}
+              <span className="text-xs font-medium text-center leading-tight">
+                {button.label}
               </span>
+              {button.active && (
+                <div className="mt-1 w-4 h-0.5 bg-blue-600 rounded-full"></div>
+              )}
             </button>
           ))}
-
-          {hasDeviationButton && (
-            <button
-              onClick={() => setIsDeviationModalOpen(true)}
-              className="flex flex-col items-center justify-center p-4 rounded-2xl bg-red-50 hover:bg-red-100 transition-colors min-h-[80px]"
-            >
-              <div className="mb-2 text-red-600">
-                <Plus className="h-6 w-6" />
-              </div>
-              <span className="text-sm font-medium text-red-900 text-center leading-tight">
-                Ny avvikelse
-              </span>
-            </button>
-          )}
-          
-          {/* Fill remaining slots with additional checklists if available */}
-          {hasChecklistItems && menuChecklists.length > 2 && (
-            menuChecklists.slice(2, 4).map((checklist) => (
-              <button
-                key={checklist.id}
-                onClick={() => onChecklistSelect(checklist.id)}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 transition-colors min-h-[80px]"
-              >
-                <div className="mb-2 text-blue-600">
-                  {renderIcon(checklist.icon, "h-6 w-6")}
-                </div>
-                <span className="text-sm font-medium text-blue-900 text-center leading-tight">
-                  {checklist.name}
-                </span>
-              </button>
-            ))
-          )}
         </div>
       </div>
       

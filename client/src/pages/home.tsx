@@ -75,7 +75,7 @@ export default function Home() {
     <div className="min-h-screen bg-white text-gray-900">
       <Navigation />
 
-      <main className="max-w-md mx-auto px-4 pt-6 pb-24 space-y-8">
+      <main className="max-w-md mx-auto px-4 pt-6 pb-32 space-y-8">
         {/* Header */}
         <div className="space-y-1">
           <p className="text-sm">Hej {displayName},</p>
