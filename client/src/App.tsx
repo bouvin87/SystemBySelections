@@ -19,9 +19,6 @@ import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import MobileChecklistPage from "@/pages/mobile-checklist";
 import MobileDeviationPage from "@/pages/mobile-deviation";
-import Profile from "@/pages/profile";
-import More from "@/pages/more";
-import About from "@/pages/about";
 import { useState, useEffect } from "react";
 
 function Router() {
@@ -109,9 +106,6 @@ function Router() {
         <Route path="/deviations" component={Deviations} />
         <Route path="/mobile/checklist" component={MobileChecklistPage} />
         <Route path="/mobile/deviation" component={MobileDeviationPage} />
-        <Route path="/profile" component={Profile} />
-        <Route path="/more" component={More} />
-        <Route path="/about" component={About} />
         <Route component={NotFound} />
       </Switch>
     </>
