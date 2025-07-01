@@ -30,6 +30,7 @@ import UserMenu from "@/components/UserMenu";
 import { renderIcon } from "@/lib/icon-utils";
 import { useAuth } from "@/hooks/useAuth";
 import LanguageSelector from "@/components/LanguageSelector";
+import QuickAccess from "@/components/QuickAccess";
 import logoSvg from "@/lib/logo.svg?url";
 
 // Mobile User Section Component - embedded directly in mobile menu with collapsible functionality
@@ -414,7 +415,8 @@ export default function Navigation() {
         />
       )}
       
-
+      {/* Quick Access Menu */}
+      <QuickAccess onChecklistSelect={openModal} />
     </>
   );
 }

@@ -11,10 +11,12 @@ import { useLocation } from "wouter";
 
 interface QuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
+  setChecklistSelectionOpen: (val: boolean) => void;
 }
 
 function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   const [isDeviationModalOpen, setIsDeviationModalOpen] = useState(false);
+  
   const [, setLocation] = useLocation();
   
   // Check if user has access to checklists module
@@ -65,7 +67,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       icon: <Home className="h-6 w-6" />,
       label: "Hem",
       onClick: () => setLocation("/"),
-      active: window.location.pathname === "/"
+      active: typeof window !== 'undefined' && window.location.pathname === "/"
     }
   ];
   
@@ -76,7 +78,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       icon: <ClipboardList className="h-6 w-6" />,
       label: "Kontroller",
       onClick: () => setLocation("/checklists"),
-      active: window.location.pathname === "/checklists"
+      active: typeof window !== 'undefined' && window.location.pathname === "/checklists"
     });
   }
   
@@ -91,6 +93,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       active: false
     });
   }
+
   
   // Add deviation button if available
   if (hasDeviationButton) {
@@ -103,15 +106,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
     });
   }
   
-  // Add more button
-  allButtons.push({
-    id: 'more',
-    icon: <MoreHorizontal className="h-6 w-6" />,
-    label: "Mer",
-    onClick: () => setLocation("/menu"),
-    active: false
-  });
-
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-inset-bottom">
       <div className="max-w-md mx-auto px-4 py-3">
@@ -150,3 +145,4 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
 }
 
 export default QuickAccess;
+

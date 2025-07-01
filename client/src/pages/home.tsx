@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
-import QuickAccess from "@/components/QuickAccess";
 import { ClipboardList, AlertTriangle, BarChart3, Plus, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import FormModal from "@/components/FormModal";
@@ -198,8 +197,6 @@ export default function Home() {
         </>
       )}
 
-      {/* Quick Access Component at bottom */}
-      <QuickAccess onChecklistSelect={handleChecklistSelect} />
     </div>
   );
 }
