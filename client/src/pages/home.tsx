@@ -66,7 +66,7 @@ export default function Home() {
     if (isMobile) {
       setLocation(`/mobile/checklist?checklistId=${checklistId}`);
     } else {
-      // Set the checklist ID and open modal
+      setSelectedChecklistId(checklistId);
       setShowFormModal(true);
     }
   };
@@ -185,7 +185,11 @@ export default function Home() {
         <>
           <FormModal 
             isOpen={showFormModal} 
-            onClose={() => setShowFormModal(false)} 
+            preselectedChecklistId={selectedChecklistId || undefined}
+            onClose={() => {
+              setShowFormModal(false);
+              setSelectedChecklistId(null);
+            }} 
           />
           <DeviationModal 
             isOpen={showDeviationModal} 
