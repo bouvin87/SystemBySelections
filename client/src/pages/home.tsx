@@ -129,53 +129,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Quick Access Buttons - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3">
-        <div className="max-w-md mx-auto">
-          <div className="grid grid-cols-4 gap-3">
-            <button 
-              onClick={handleNewChecklist}
-              className="flex flex-col items-center p-3 rounded-2xl bg-green-50 hover:bg-green-100 transition-colors"
-            >
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                <Plus className="h-6 w-6 text-green-600" />
-              </div>
-              <span className="text-xs text-gray-700 font-medium">Ny kontroll</span>
-            </button>
-
-            <button 
-              onClick={handleNewDeviation}
-              className="flex flex-col items-center p-3 rounded-2xl bg-orange-50 hover:bg-orange-100 transition-colors"
-            >
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-2">
-                <AlertTriangle className="h-6 w-6 text-orange-600" />
-              </div>
-              <span className="text-xs text-gray-700 font-medium">Avvikelse</span>
-            </button>
-
-            <button 
-              onClick={() => setLocation("/deviations")}
-              className="flex flex-col items-center p-3 rounded-2xl bg-purple-50 hover:bg-purple-100 transition-colors"
-            >
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
-              </div>
-              <span className="text-xs text-gray-700 font-medium">Avvikelser</span>
-            </button>
-
-            <button 
-              onClick={() => setLocation("/checklists")}
-              className="flex flex-col items-center p-3 rounded-2xl bg-blue-50 hover:bg-blue-100 transition-colors"
-            >
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                <ClipboardList className="h-6 w-6 text-blue-600" />
-              </div>
-              <span className="text-xs text-gray-700 font-medium">Checklistor</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Modals - only show on desktop */}
       {!isMobile && (
         <>
