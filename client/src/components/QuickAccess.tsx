@@ -1,101 +1,148 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckSquare, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { renderIcon } from "@/lib/icon-utils";
+import { Home, ClipboardList, AlertTriangle, User, MoreHorizontal, Plus } from "lucide-react";
+import { useLocation } from "wouter";
 import DeviationModal from "@/components/DeviationModal";
-import type { Checklist } from "@shared/schema";
-import clsx from "clsx"; // eller classnames
-import IconActionButton from "./ui/actionbutton";
+import FormModal from "@/components/FormModal";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 interface QuickAccessProps {
   onChecklistSelect: (checklistId: number) => void;
 }
 
 function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
+  const [, setLocation] = useLocation();
+  const [location] = useLocation();
+  const { isMobile } = useDeviceType();
   const [isDeviationModalOpen, setIsDeviationModalOpen] = useState(false);
+  const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
   
-  // Check if user has access to checklists module
+  // Check if user has access to modules
   const { data: authData } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
   
+  const hasChecklistsModule = (authData as any)?.tenant?.modules?.includes("checklists") ?? false;
+  const hasDeviationsModule = (authData as any)?.tenant?.modules?.includes("deviations") ?? false;
 
-  
-  const hasChecklistsModule = authData?.tenant?.modules?.includes("checklists") ?? false;
-  const hasDeviationsModule = authData?.tenant?.modules?.includes("deviations") ?? false;
+  const handleNewChecklist = () => {
+    if (isMobile) {
+      setLocation("/mobile/checklist");
+    } else {
+      setIsChecklistModalOpen(true);
+    }
+  };
 
-  // Fetch checklistor that should be shown in menu (only if user has access)
-  const { data: menuChecklists = [] } = useQuery<Checklist[]>({
-    queryKey: ["/api/checklists/active", "menu"],
-    enabled: hasChecklistsModule,
-    queryFn: async () => {
-      const token = localStorage.getItem("authToken");
-      const headers: Record<string, string> = {};
+  const handleNewDeviation = () => {
+    if (isMobile) {
+      setLocation("/mobile/deviation");
+    } else {
+      setIsDeviationModalOpen(true);
+    }
+  };
 
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const result = await fetch("/api/checklists/active", { headers });
-      if (!result.ok) {
-        throw new Error(`Failed to fetch active checklists: ${result.status}`);
-      }
-      const activeChecklists = await result.json();
-      return activeChecklists.filter(
-        (checklist: Checklist) => checklist.showInMenu,
-      );
+  // Bottom navigation items
+  const navItems = [
+    {
+      icon: Home,
+      label: "Hem",
+      path: "/",
+      isActive: location === "/"
     },
-  });
+    {
+      icon: ClipboardList,
+      label: "Checklistor",
+      path: "/checklists",
+      isActive: location === "/checklists",
+      enabled: hasChecklistsModule
+    },
+    {
+      icon: AlertTriangle,
+      label: "Avvikelser", 
+      path: "/deviations",
+      isActive: location === "/deviations",
+      enabled: hasDeviationsModule
+    },
+    {
+      icon: User,
+      label: "Profil",
+      path: "/profile",
+      isActive: location === "/profile"
+    },
+    {
+      icon: MoreHorizontal,
+      label: "Mer",
+      path: "/more",
+      isActive: location === "/more"
+    }
+  ];
 
-  // Fetch deviation settings to check if create button should be shown
-  const { data: deviationSettings } = useQuery({
-    queryKey: ["/api/deviations/settings"],
-    enabled: hasDeviationsModule,
-  });
+  // Filter enabled items
+  const enabledItems = navItems.filter(item => item.enabled !== false);
 
-  // Don't render if no access to any modules or no items to show
-  const hasChecklistItems = hasChecklistsModule && menuChecklists.length > 0;
-  const hasDeviationButton = hasDeviationsModule && deviationSettings?.showCreateButtonInMenu;
-  
-  if (!hasChecklistItems && !hasDeviationButton) {
-    return null;
-  }
-  const numButtons =
-    (hasChecklistItems ? menuChecklists.length : 0) + (hasDeviationButton ? 1 : 0);
-  const numCols = Math.min(numButtons, 4); // max 4 kolumner
   return (
-    <div className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-center md:justify-start">
-          <div className={clsx(`grid gap-4 py-4`, `grid-cols-${numCols}`)}>
-            {hasChecklistItems && menuChecklists.map((checklist) => (
-              <IconActionButton
-                key={checklist.id}
-                label={checklist.name}
-                icon={renderIcon(checklist.icon, "h-5 w-5")}
-                onClick={() => onChecklistSelect(checklist.id)}
-              />
-            ))}
-
-            {hasDeviationButton && (
-              <IconActionButton
-                icon={<Plus className="w-5 h-5" />}
-                label="Ny avvikelse"
-                onClick={() => setIsDeviationModalOpen(true)}
-              />
-            )}
+    <>
+      {/* Bottom Navigation - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-around h-20 px-4">
+            {enabledItems.map((item, index) => {
+              const Icon = item.icon;
+              const isCenter = index === Math.floor(enabledItems.length / 2);
+              
+              if (isCenter) {
+                // Central action button (blue circle)
+                return (
+                  <div key={item.path} className="relative">
+                    <button
+                      onClick={hasChecklistsModule ? handleNewChecklist : handleNewDeviation}
+                      className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="h-6 w-6 text-white" />
+                    </button>
+                  </div>
+                );
+              }
+              
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => setLocation(item.path)}
+                  className={`flex flex-col items-center justify-center space-y-1 px-3 py-2 transition-colors ${
+                    item.isActive 
+                      ? "text-blue-600" 
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <div className={`p-1 ${item.isActive ? "bg-blue-50 rounded-lg" : ""}`}>
+                    <Icon className={`h-6 w-6 ${item.isActive ? "text-blue-600" : ""}`} />
+                  </div>
+                  <span className="text-xs font-medium">{item.label}</span>
+                  {item.isActive && (
+                    <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
       
-      {/* Deviation Modal */}
-      <DeviationModal 
-        isOpen={isDeviationModalOpen} 
-        onClose={() => setIsDeviationModalOpen(false)}
-      />
-    </div>
+      {/* Modals - only show on desktop */}
+      {!isMobile && (
+        <>
+          <DeviationModal 
+            isOpen={isDeviationModalOpen} 
+            onClose={() => setIsDeviationModalOpen(false)}
+          />
+          <FormModal
+            isOpen={isChecklistModalOpen}
+            onClose={() => setIsChecklistModalOpen(false)}
+          />
+        </>
+      )}
+    </>
   );
 }
 
