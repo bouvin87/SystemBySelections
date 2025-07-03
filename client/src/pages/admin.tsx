@@ -75,6 +75,10 @@ import type {
   InsertQuestion,
   User,
   CreateUserRequest,
+  Role,
+  InsertRole,
+  Department,
+  InsertDepartment,
 } from "@shared/schema";
 import { z } from "zod";
 import Navigation from "@/components/Navigation";
@@ -311,6 +315,11 @@ export default function Admin() {
     enabled: activeTab === "basic-data",
   });
 
+  const { data: roles = [] } = useQuery<Role[]>({
+    queryKey: ["/api/roles"],
+    enabled: activeTab === "basic-data",
+  });
+
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories", selectedChecklistId],
     enabled: selectedChecklistId !== null,
@@ -345,6 +354,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/work-stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
       setDialogOpen(false);
       setEditingItem(null);
       setSelectedIcon("");
@@ -366,7 +376,7 @@ export default function Admin() {
       data,
     }: {
       endpoint: string;
-      id: number;
+      id: number | string;
       data: any;
     }) => {
       return apiRequest("PATCH", `${endpoint}/${id}`, data);
@@ -398,7 +408,7 @@ export default function Admin() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ endpoint, id }: { endpoint: string; id: number }) => {
+    mutationFn: async ({ endpoint, id }: { endpoint: string; id: number | string }) => {
       return apiRequest("DELETE", `${endpoint}/${id}`);
     },
     onSuccess: (_, { endpoint }) => {
@@ -447,7 +457,7 @@ export default function Admin() {
     }
   };
 
-  const handleDelete = (endpoint: string, id: number) => {
+  const handleDelete = (endpoint: string, id: number | string) => {
     if (confirm(t("admin.confirmDelete"))) {
       deleteMutation.mutate({ endpoint, id });
     }
@@ -1480,7 +1490,7 @@ export default function Admin() {
               {/* Basic Data Tab */}
               <TabsContent value="basic-data">
                 <Tabs value={basicDataTab} onValueChange={setBasicDataTab}>
-                  <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-4">
+                  <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-5">
                     <TabsTrigger value="work-tasks">
                       {t("admin.workTasks")}
                     </TabsTrigger>
@@ -1492,6 +1502,9 @@ export default function Admin() {
                     </TabsTrigger>
                     <TabsTrigger value="departments">
                       Avdelningar
+                    </TabsTrigger>
+                    <TabsTrigger value="roles">
+                      Roller
                     </TabsTrigger>
                   </TabsList>
 
@@ -2066,6 +2079,124 @@ export default function Admin() {
                             <p>Inga avdelningar skapade än.</p>
                             <p className="text-sm mt-1">
                               Klicka på "Lägg till avdelning" för att komma igång.
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Roles Tab */}
+                  <TabsContent value="roles">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                      <h3 className="text-lg font-medium">Hantera roller</h3>
+                      <Dialog
+                        open={
+                          dialogOpen &&
+                          activeTab === "basic-data" &&
+                          basicDataTab === "roles"
+                        }
+                        onOpenChange={setDialogOpen}
+                      >
+                        <DialogTrigger asChild>
+                          <Button onClick={() => openDialog()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Lägg till roll
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {editingItem ? "Redigera roll" : "Lägg till roll"}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const formData = new FormData(e.currentTarget);
+                              const data = {
+                                name: formData.get("name") as string,
+                                description: formData.get("description") as string,
+                              };
+                              handleSubmit("/api/roles", data);
+                            }}
+                          >
+                            <div className="grid gap-4 py-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="name">Namn</Label>
+                                <Input
+                                  id="name"
+                                  name="name"
+                                  defaultValue={editingItem?.name || ""}
+                                  required
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="description">Beskrivning</Label>
+                                <Textarea
+                                  id="description"
+                                  name="description"
+                                  defaultValue={editingItem?.description || ""}
+                                  placeholder="Valfri beskrivning av rollen"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-end">
+                              <Button type="submit">
+                                <Save className="mr-2 h-4 w-4" />
+                                Spara
+                              </Button>
+                            </div>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {roles.map((role) => (
+                        <Card key={role.id} className="bg-card border border-border shadow rounded-2xl">
+                          <CardContent className="p-4">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                              <div className="flex-1">
+                                <h4 className="text-sm font-medium text-gray-900">
+                                  {role.name}
+                                </h4>
+                                {role.description && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {role.description}
+                                  </p>
+                                )}
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Skapad: {new Date(role.createdAt).toLocaleDateString('sv-SE')}
+                                </p>
+                              </div>
+                              <div className="flex space-x-2 self-end sm:self-center">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDialog(role)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleDelete("/api/roles", role.id)
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      {roles.length === 0 && (
+                        <Card>
+                          <CardContent className="p-8 text-center text-gray-500">
+                            <p>Inga roller skapade än.</p>
+                            <p className="text-sm mt-1">
+                              Klicka på "Lägg till roll" för att komma igång.
                             </p>
                           </CardContent>
                         </Card>
