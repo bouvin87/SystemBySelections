@@ -369,39 +369,42 @@ export default function Admin() {
     },
   });
 
-  const createUserRoleMutation = useMutation({
-    mutationFn: async ({ userId, roleId }: { userId: number; roleId: string }) => {
-      return apiRequest("POST", "/api/user-roles", { userId, roleId });
-    },
-    onSuccess: () => {
+  const updateUserRoles = async (userId: number, selectedRoles: string[]) => {
+    try {
+      // Get current user roles
+      const currentRoles = editingItem?.roles || [];
+      const currentRoleIds = currentRoles.map((ur: any) => ur.roleId);
+      
+      // Find roles to add
+      const rolesToAdd = selectedRoles.filter(roleId => !currentRoleIds.includes(roleId));
+      
+      // Find roles to remove
+      const rolesToRemove = currentRoleIds.filter((roleId: string) => !selectedRoles.includes(roleId));
+      
+      // Add new roles
+      for (const roleId of rolesToAdd) {
+        await apiRequest("POST", "/api/user-roles", { userId, roleId });
+      }
+      
+      // Remove old roles
+      for (const roleId of rolesToRemove) {
+        const userRole = currentRoles.find((ur: any) => ur.roleId === roleId);
+        if (userRole) {
+          await apiRequest("DELETE", `/api/user-roles/${userRole.id}`);
+        }
+      }
+      
+      // Refresh users list
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast({ title: "Framgång!", description: "Roll tilldelad till användaren." });
-    },
-    onError: () => {
+      toast({ title: "Framgång!", description: "Användarroller uppdaterade." });
+    } catch (error) {
       toast({
         title: "Fel",
-        description: "Kunde inte tilldela rollen.",
+        description: "Kunde inte uppdatera användarroller.",
         variant: "destructive",
       });
-    },
-  });
-
-  const deleteUserRoleMutation = useMutation({
-    mutationFn: async (userRoleId: number) => {
-      return apiRequest("DELETE", `/api/user-roles/${userRoleId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast({ title: "Framgång!", description: "Roll borttagen från användaren." });
-    },
-    onError: () => {
-      toast({
-        title: "Fel",
-        description: "Kunde inte ta bort rollen.",
-        variant: "destructive",
-      });
-    },
-  });
+    }
+  };
 
   const updateMutation = useMutation({
     mutationFn: async ({
@@ -551,9 +554,10 @@ export default function Admin() {
                         </DialogTitle>
                       </DialogHeader>
                       <form
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
+                          
                           const data: CreateUserRequest = {
                             email: formData.get("email") as string,
                             firstName: formData.get("firstName") as string,
@@ -562,7 +566,36 @@ export default function Admin() {
                             password: formData.get("password") as string,
                             isActive: formData.get("isActive") === "on",
                           };
-                          handleSubmit("/api/users", data);
+
+                          if (editingItem) {
+                            try {
+                              // When editing, handle role updates
+                              await apiRequest("PATCH", `/api/users/${editingItem.id}`, data);
+                              
+                              // Handle user roles
+                              const selectedRoles: string[] = [];
+                              roles.forEach((role: any) => {
+                                if (formData.get(`userRole-${role.id}`) === "on") {
+                                  selectedRoles.push(role.id);
+                                }
+                              });
+                              
+                              // Update user roles
+                              await updateUserRoles(editingItem.id, selectedRoles);
+                              
+                              // Close modal and refresh
+                              setEditingItem(null);
+                              setIsModalOpen(false);
+                            } catch (error) {
+                              toast({
+                                title: "Fel",
+                                description: "Kunde inte uppdatera användaren.",
+                                variant: "destructive",
+                              });
+                            }
+                          } else {
+                            handleSubmit("/api/users", data);
+                          }
                         }}
                         className="space-y-4"
                       >
@@ -627,34 +660,20 @@ export default function Admin() {
                         {/* User Roles Section */}
                         {editingItem && (
                           <div>
-                            <Label className="text-sm font-medium">Tilldelade roller</Label>
+                            <Label>Tilldelade roller</Label>
                             <div className="mt-2 space-y-2">
                               {roles.map((role: any) => (
                                 <div key={role.id} className="flex items-center space-x-2">
                                   <Checkbox
                                     id={`role-${role.id}`}
+                                    name={`userRole-${role.id}`}
                                     defaultChecked={editingItem?.roles?.some((ur: any) => ur.roleId === role.id)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        // Add role
-                                        createUserRoleMutation.mutate({
-                                          userId: editingItem.id,
-                                          roleId: role.id
-                                        });
-                                      } else {
-                                        // Remove role
-                                        const userRole = editingItem.roles?.find((ur: any) => ur.roleId === role.id);
-                                        if (userRole) {
-                                          deleteUserRoleMutation.mutate(userRole.id);
-                                        }
-                                      }
-                                    }}
                                   />
                                   <Label htmlFor={`role-${role.id}`} className="text-sm">
                                     {role.name}
                                     {role.description && (
                                       <span className="text-xs text-gray-500 ml-1">
-                                        ({role.description})
+                                        - {role.description}
                                       </span>
                                     )}
                                   </Label>
