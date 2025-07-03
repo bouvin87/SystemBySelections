@@ -560,8 +560,8 @@ export default function Admin() {
                           
                           const data: CreateUserRequest = {
                             email: formData.get("email") as string,
-                            firstName: formData.get("firstName") as string,
-                            lastName: formData.get("lastName") as string,
+                            firstName: (formData.get("firstName") as string) || undefined,
+                            lastName: (formData.get("lastName") as string) || undefined,
                             role: formData.get("role") as "admin" | "user",
                             password: formData.get("password") as string,
                             isActive: formData.get("isActive") === "on",
@@ -585,7 +585,7 @@ export default function Admin() {
                               
                               // Close modal and refresh
                               setEditingItem(null);
-                              setIsModalOpen(false);
+                              setDialogOpen(false);
                             } catch (error) {
                               toast({
                                 title: "Fel",
@@ -657,32 +657,52 @@ export default function Admin() {
                           )}
                         </div>
                         
-                        {/* User Roles Section */}
+                        {/* User Roles Section - Multi-Select */}
                         {editingItem && (
                           <div>
                             <Label>Tilldelade roller</Label>
-                            <div className="mt-2 space-y-2">
-                              {roles.map((role: any) => (
-                                <div key={role.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`role-${role.id}`}
-                                    name={`userRole-${role.id}`}
-                                    defaultChecked={editingItem?.roles?.some((ur: any) => ur.roleId === role.id)}
-                                  />
-                                  <Label htmlFor={`role-${role.id}`} className="text-sm">
-                                    {role.name}
-                                    {role.description && (
-                                      <span className="text-xs text-gray-500 ml-1">
-                                        - {role.description}
-                                      </span>
-                                    )}
-                                  </Label>
+                            <div className="mt-2 border rounded-md p-3 bg-background">
+                              <div className="text-sm text-muted-foreground mb-2">
+                                Markera de roller som användaren ska ha:
+                              </div>
+                              <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {roles.map((role: any) => (
+                                  <div key={role.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`role-${role.id}`}
+                                      name={`userRole-${role.id}`}
+                                      defaultChecked={editingItem?.roles?.some((ur: any) => ur.roleId === role.id)}
+                                    />
+                                    <Label htmlFor={`role-${role.id}`} className="text-sm cursor-pointer">
+                                      {role.name}
+                                      {role.description && (
+                                        <span className="text-xs text-muted-foreground ml-1">
+                                          - {role.description}
+                                        </span>
+                                      )}
+                                    </Label>
+                                  </div>
+                                ))}
+                                {roles.length === 0 && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Inga roller tillgängliga. Skapa roller först under Roller-fliken.
+                                  </p>
+                                )}
+                              </div>
+                              {editingItem?.roles && editingItem.roles.length > 0 && (
+                                <div className="mt-3 pt-2 border-t">
+                                  <div className="text-xs text-muted-foreground mb-1">Nuvarande roller:</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {editingItem.roles.map((userRole: any) => {
+                                      const role = roles.find((r: any) => r.id === userRole.roleId);
+                                      return role ? (
+                                        <Badge key={userRole.id} variant="secondary" className="text-xs">
+                                          {role.name}
+                                        </Badge>
+                                      ) : null;
+                                    })}
+                                  </div>
                                 </div>
-                              ))}
-                              {roles.length === 0 && (
-                                <p className="text-sm text-gray-500">
-                                  Inga roller tillgängliga. Skapa roller först under Roller-fliken.
-                                </p>
                               )}
                             </div>
                           </div>
