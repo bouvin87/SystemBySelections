@@ -319,7 +319,7 @@ export default function Admin() {
 
   const { data: roles = [] } = useQuery<Role[]>({
     queryKey: ["/api/roles"],
-    enabled: activeTab === "basic-data",
+    enabled: activeTab === "basic-data" || activeTab === "users",
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
