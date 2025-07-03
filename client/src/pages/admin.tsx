@@ -217,11 +217,21 @@ export default function Admin() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [selectedWorkTaskIds, setSelectedWorkTaskIds] = useState<number[]>([]);
-  const [selectedUserRoles, setSelectedUserRoles] = useState<number[]>([]);
+  const [selectedUserRoles, setSelectedUserRoles] = useState<string[]>([]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
+
+  // Load existing user roles when editing
+  useEffect(() => {
+    if (editingItem?.roles) {
+      const roleIds = editingItem.roles.map((ur: any) => ur.roleId);
+      setSelectedUserRoles(roleIds);
+    } else {
+      setSelectedUserRoles([]);
+    }
+  }, [editingItem]);
 
   // Fetch user data to check module access
   const { data: authData } = useQuery({
@@ -582,16 +592,8 @@ export default function Admin() {
                               // When editing, handle role updates
                               await apiRequest("PATCH", `/api/users/${editingItem.id}`, data);
                               
-                              // Handle user roles
-                              const selectedRoles: string[] = [];
-                              roles.forEach((role: any) => {
-                                if (formData.get(`userRole-${role.id}`) === "on") {
-                                  selectedRoles.push(role.id);
-                                }
-                              });
-                              
-                              // Update user roles
-                              await updateUserRoles(editingItem.id, selectedRoles);
+                              // Update user roles using the selected roles from dropdown
+                              await updateUserRoles(editingItem.id, selectedUserRoles);
                               
                               // Close modal and refresh
                               setEditingItem(null);
@@ -674,9 +676,8 @@ export default function Admin() {
                             <Select
                               value=""
                               onValueChange={(value) => {
-                                const roleId = parseInt(value);
-                                if (!isNaN(roleId) && !selectedUserRoles.includes(roleId)) {
-                                  setSelectedUserRoles((prev) => [...prev, roleId]);
+                                if (!selectedUserRoles.includes(value)) {
+                                  setSelectedUserRoles((prev) => [...prev, value]);
                                 }
                               }}
                             >
