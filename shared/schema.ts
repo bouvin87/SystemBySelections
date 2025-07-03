@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, unique, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, varchar, unique, pgEnum, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -24,6 +24,25 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   isActive: boolean("is_active").notNull().default(true),
   lockRole: boolean("lock_role").notNull().default(false), // When true, user cannot change their role
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// === ROLE MANAGEMENT ===
+
+// Roles - Multi-tenant aware
+export const roles = pgTable("roles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User-Role relationship table
+export const userHasRoles = pgTable("user_has_roles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  roleId: uuid("role_id").references(() => roles.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -488,6 +507,26 @@ export const deviationAttachmentsRelations = relations(deviationAttachments, ({ 
   }),
 }));
 
+// Role relations
+export const rolesRelations = relations(roles, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [roles.tenantId],
+    references: [tenants.id],
+  }),
+  userHasRoles: many(userHasRoles),
+}));
+
+export const userHasRolesRelations = relations(userHasRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [userHasRoles.userId],
+    references: [users.id],
+  }),
+  role: one(roles, {
+    fields: [userHasRoles.roleId],
+    references: [roles.id],
+  }),
+}));
+
 // Deviation types
 export type DeviationType = typeof deviationTypes.$inferSelect;
 export type InsertDeviationType = z.infer<typeof insertDeviationTypeSchema>;
@@ -573,6 +612,23 @@ export const insertDeviationStatusSchema = createInsertSchema(deviationStatuses)
 export type InsertDeviationPriority = z.infer<typeof insertDeviationPrioritySchema>;
 export type InsertDeviationStatus = z.infer<typeof insertDeviationStatusSchema>;
 
+// Role schemas
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserHasRoleSchema = createInsertSchema(userHasRoles).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Role types
+export type Role = typeof roles.$inferSelect;
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type UserHasRole = typeof userHasRoles.$inferSelect;
+export type InsertUserHasRole = z.infer<typeof insertUserHasRoleSchema>;
+
 // === SYSTEM ANNOUNCEMENTS ===
 export const systemAnnouncements = pgTable('system_announcements', {
   id: serial('id').primaryKey(),
@@ -586,6 +642,8 @@ export const systemAnnouncements = pgTable('system_announcements', {
 
 export type InsertSystemAnnouncement = typeof systemAnnouncements.$inferInsert;
 export type SystemAnnouncement = typeof systemAnnouncements.$inferSelect;
+
+
 
 // Auth types
 export type LoginRequest = z.infer<typeof loginSchema>;

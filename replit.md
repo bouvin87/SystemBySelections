@@ -122,6 +122,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 3, 2025**: Implemented comprehensive role management system
+  - Added `roles` table with tenant-scoped role definitions (id, tenant_id, name, description)
+  - Added `user_has_roles` junction table for many-to-many user-role relationships
+  - Created complete CRUD API endpoints for role management (/api/roles)
+  - Added user-role relationship endpoints (/api/users/:id/roles, /api/user-roles)
+  - Implemented storage layer with tenant isolation and proper foreign key relationships
+  - All operations are admin-restricted and tenant-scoped for security
+  - Support for multiple roles per user within tenant boundaries
+
 - **July 1, 2025**: Restored stable Tailwind configuration
   - Reverted Tailwind config to use hardcoded color values for better stability
   - Maintained original color palette that works well with existing components

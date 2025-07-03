@@ -17,7 +17,8 @@ import {
   insertWorkTaskSchema, insertWorkStationSchema, insertShiftSchema,
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
   insertUserSchema, insertChecklistResponseSchema, insertDeviationTypeSchema,
-  insertCustomFieldSchema, insertCustomFieldTypeMappingSchema
+  insertCustomFieldSchema, insertCustomFieldTypeMappingSchema,
+  insertRoleSchema, insertUserHasRoleSchema
 } from "@shared/schema";
 import { uploadMultiple } from "./middleware/upload";
 import path from "path";
@@ -490,6 +491,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete user error:', error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // === ROLE MANAGEMENT API ===
+  // Get all roles for the tenant
+  app.get('/api/roles', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const roles = await storage.getRoles(req.tenantId);
+      res.json(roles);
+    } catch (error) {
+      console.error('Error fetching roles:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get a specific role
+  app.get('/api/roles/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const role = await storage.getRole(req.params.id, req.tenantId);
+      if (!role) {
+        return res.status(404).json({ message: 'Role not found' });
+      }
+      res.json(role);
+    } catch (error) {
+      console.error('Error fetching role:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Create a new role (admin only)
+  app.post('/api/roles', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      const validatedData = insertRoleSchema.parse({
+        ...req.body,
+        tenantId: req.tenantId
+      });
+
+      const role = await storage.createRole(validatedData);
+      res.status(201).json(role);
+    } catch (error) {
+      console.error('Error creating role:', error);
+      res.status(400).json({ message: 'Invalid role data' });
+    }
+  });
+
+  // Update a role (admin only)
+  app.patch('/api/roles/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      const validatedData = insertRoleSchema.partial().parse(req.body);
+      const role = await storage.updateRole(req.params.id, validatedData, req.tenantId);
+      res.json(role);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      res.status(400).json({ message: 'Invalid role data' });
+    }
+  });
+
+  // Delete a role (admin only)
+  app.delete('/api/roles/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+
+      await storage.deleteRole(req.params.id, req.tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // === USER-ROLE RELATIONSHIP API ===
+  // Get roles for a specific user
+  app.get('/api/users/:userId/roles', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const userId = parseInt(req.params.userId);
+      const userRoles = await storage.getUserRoles(userId, req.tenantId);
+      res.json(userRoles);
+    } catch (error) {
+      console.error('Error fetching user roles:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get users for a specific role
+  app.get('/api/roles/:roleId/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.tenantId) {
+        return res.status(403).json({ message: 'Tenant ID required' });
+      }
+      const roleUsers = await storage.getRoleUsers(req.params.roleId, req.tenantId);
+      res.json(roleUsers);
+    } catch (error) {
+      console.error('Error fetching role users:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Assign a role to a user (admin only)
+  app.post('/api/user-roles', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const validatedData = insertUserHasRoleSchema.parse(req.body);
+      const userRole = await storage.assignRoleToUser(validatedData);
+      res.status(201).json(userRole);
+    } catch (error) {
+      console.error('Error assigning role to user:', error);
+      res.status(400).json({ message: 'Invalid user-role data' });
+    }
+  });
+
+  // Remove a role from a user (admin only)
+  app.delete('/api/user-roles/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      await storage.removeRoleFromUser(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error removing role from user:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 

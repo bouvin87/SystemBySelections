@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
 import { Link } from "wouter";
-import { ListChecks, BarChart } from "lucide-react";
+import { ListChecks, BarChart, ArrowLeft } from "lucide-react";
 import { renderIcon } from "@/lib/icon-utils";
 import { useTranslation } from "react-i18next";
 import type { Checklist } from "@shared/schema";
+import { Button } from "@/components/ui/button";
 
 export default function Checklists() {
   const { t } = useTranslation();
@@ -17,20 +18,32 @@ export default function Checklists() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-[theme(spacing.20)]">
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      <main className="max-w-md mx-auto px-4 pt-6 pb-32 space-y-6">
-        {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <ListChecks className="h-8 w-8 text-primary" />
-            {t("common.checklists")}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {t("dashboard.selectDashboard")}
-          </p>
+      {/* Menyrad */}
+      <div className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  {t("common.back")}
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {t("common.checklists")}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {t("dashboard.selectDashboard")}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-
+      </div>
+      <main className="max-w-md mx-auto px-4 pt-6 pb-32 space-y-6">
         {dashboardChecklists.length > 0 ? (
           <div className="modern-card-grid">
             {dashboardChecklists.map((checklist, index) => (

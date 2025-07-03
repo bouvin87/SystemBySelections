@@ -3,6 +3,7 @@ import {
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
   systemAnnouncements, customFields, customFieldTypeMappings, customFieldValues,
+  roles, userHasRoles,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -22,7 +23,9 @@ import {
   type SystemAnnouncement, type InsertSystemAnnouncement,
   type CustomField, type InsertCustomField,
   type CustomFieldTypeMapping, type InsertCustomFieldTypeMapping,
-  type CustomFieldValue, type InsertCustomFieldValue
+  type CustomFieldValue, type InsertCustomFieldValue,
+  type Role, type InsertRole,
+  type UserHasRole, type InsertUserHasRole
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -45,6 +48,21 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
+
+  // === ROLE MANAGEMENT ===
+  // Roles (tenant-scoped)
+  getRoles(tenantId: number): Promise<Role[]>;
+  getRole(id: string, tenantId: number): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: string, role: Partial<InsertRole>, tenantId: number): Promise<Role>;
+  deleteRole(id: string, tenantId: number): Promise<void>;
+
+  // User-Role relationships (tenant-scoped)
+  getUserRoles(userId: number, tenantId: number): Promise<UserHasRole[]>;
+  getRoleUsers(roleId: string, tenantId: number): Promise<UserHasRole[]>;
+  getUserHasRole(id: string): Promise<UserHasRole | undefined>;
+  assignRoleToUser(userRole: InsertUserHasRole): Promise<UserHasRole>;
+  removeRoleFromUser(id: string): Promise<void>;
 
   // === MODULE: CHECKLISTS ===
   // Work Tasks (tenant-scoped)
@@ -1552,6 +1570,93 @@ export class DatabaseStorage implements IStorage {
         eq(customFieldValues.deviationId, deviationId),
         eq(customFieldValues.customFieldId, customFieldId)
       ));
+  }
+
+  // === ROLE MANAGEMENT ===
+  async getRoles(tenantId: number): Promise<Role[]> {
+    return await db.select()
+      .from(roles)
+      .where(eq(roles.tenantId, tenantId))
+      .orderBy(asc(roles.name));
+  }
+
+  async getRole(id: string, tenantId: number): Promise<Role | undefined> {
+    const [role] = await db.select()
+      .from(roles)
+      .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)));
+    return role || undefined;
+  }
+
+  async createRole(role: InsertRole): Promise<Role> {
+    const [newRole] = await db.insert(roles)
+      .values(role)
+      .returning();
+    return newRole;
+  }
+
+  async updateRole(id: string, role: Partial<InsertRole>, tenantId: number): Promise<Role> {
+    const [updatedRole] = await db.update(roles)
+      .set(role)
+      .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)))
+      .returning();
+    return updatedRole;
+  }
+
+  async deleteRole(id: string, tenantId: number): Promise<void> {
+    await db.delete(roles)
+      .where(and(eq(roles.id, id), eq(roles.tenantId, tenantId)));
+  }
+
+  // === USER-ROLE RELATIONSHIPS ===
+  async getUserRoles(userId: number, tenantId: number): Promise<UserHasRole[]> {
+    return await db.select({
+      id: userHasRoles.id,
+      userId: userHasRoles.userId,
+      roleId: userHasRoles.roleId,
+      createdAt: userHasRoles.createdAt,
+    })
+      .from(userHasRoles)
+      .innerJoin(roles, eq(userHasRoles.roleId, roles.id))
+      .where(and(
+        eq(userHasRoles.userId, userId),
+        eq(roles.tenantId, tenantId)
+      ))
+      .orderBy(asc(userHasRoles.createdAt));
+  }
+
+  async getRoleUsers(roleId: string, tenantId: number): Promise<UserHasRole[]> {
+    return await db.select({
+      id: userHasRoles.id,
+      userId: userHasRoles.userId,
+      roleId: userHasRoles.roleId,
+      createdAt: userHasRoles.createdAt,
+    })
+      .from(userHasRoles)
+      .innerJoin(roles, eq(userHasRoles.roleId, roles.id))
+      .where(and(
+        eq(userHasRoles.roleId, roleId),
+        eq(roles.tenantId, tenantId)
+      ))
+      .orderBy(asc(userHasRoles.createdAt));
+  }
+
+  async getUserHasRole(id: string): Promise<UserHasRole | undefined> {
+    const [userRole] = await db.select()
+      .from(userHasRoles)
+      .where(eq(userHasRoles.id, id));
+    return userRole || undefined;
+  }
+
+  async assignRoleToUser(userRole: InsertUserHasRole): Promise<UserHasRole> {
+    const [newUserRole] = await db.insert(userHasRoles)
+      .values(userRole)
+      .returning();
+    return newUserRole;
+  }
+
+  async removeRoleFromUser(id: string): Promise<void> {
+    await db.delete(userHasRoles)
+      .where(eq(userHasRoles.id, id));
   }
 }
 

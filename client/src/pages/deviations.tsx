@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Plus, TrendingUp, Filter, X, Calendar } from "lucide-react";
+import { Plus, TrendingUp, Filter, X, Calendar, ArrowLeft } from "lucide-react";
 import DeviationModal from "@/components/DeviationModal";
 import {
   PieChart,
@@ -120,6 +120,9 @@ export default function DeviationsPage() {
   const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ["/api/departments"],
   });
+
+  const [showFilters, setShowFilters] = useState(false); 
+
 
   // Fetch custom field values for all deviations
   const { data: customFieldValuesMap = {} } = useQuery<Record<number, any[]>>({
@@ -308,17 +311,48 @@ export default function DeviationsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground pb-[theme(spacing.20)]">
       <Navigation />
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Avvikelser</h1>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Skapa avvikelse
-          </Button>
-        </div>
+      {/* Header Row likt ChecklistDashboard */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            {/* Vänstersida: Tillbaka + Titel */}
+            <div className="flex items-center space-x-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Tillbaka
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Avvikelser</h1>
+                <p className="text-sm text-muted-foreground">
+                  Översikt över rapporterade avvikelser
+                </p>
+              </div>
+            </div>
 
+            {/* Högersida: Ny + Filter */}
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setIsCreateModalOpen(true)} variant="default">
+                <Plus className="h-4 w-4 mr-2" />
+                Ny avvikelse
+              </Button>
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant={showFilters ? "default" : "outline"}
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Filters */}
+        {showFilters && (
         <Card className="bg-card text-foreground rounded-xl shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -607,7 +641,8 @@ export default function DeviationsPage() {
             </div>
           </CardContent>
         </Card>
-
+        )}
+        
         {/* Chart Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Department Chart */}
@@ -644,14 +679,14 @@ export default function DeviationsPage() {
                 </span>
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 grid grid-cols-2 gap-1 text-xs">
                 {getDepartmentChartData().map((item) => (
-                  <div key={item.name} className="flex items-center text-xs">
+                  <div key={item.name} className="flex items-center">
                     <div
                       className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span>
+                    <span className="truncate">
                       {item.name} - {item.value}
                     </span>
                   </div>
@@ -685,6 +720,7 @@ export default function DeviationsPage() {
                       ))}
                     </Pie>
                     <Tooltip />
+
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -694,14 +730,14 @@ export default function DeviationsPage() {
                 </span>
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 grid grid-cols-2 gap-1 text-xs">
                 {getTypeChartData().map((item) => (
-                  <div key={item.name} className="flex items-center text-xs">
+                  <div key={item.name} className="flex items-center">
                     <div
                       className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span>
+                    <span className="truncate">
                       {item.name} - {item.value}
                     </span>
                   </div>
@@ -744,14 +780,15 @@ export default function DeviationsPage() {
                 </span>
                 <p className="text-sm text-gray-500">Totalt</p>
               </div>
-              <div className="mt-2 space-y-1">
+             
+              <div className="mt-2 grid grid-cols-2 gap-1 text-xs">
                 {getStatusChartData().map((item) => (
-                  <div key={item.name} className="flex items-center text-xs">
+                  <div key={item.name} className="flex items-center">
                     <div
                       className="w-3 h-3 rounded-full mr-2"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span>
+                    <span className="truncate">
                       {item.name} - {item.value}
                     </span>
                   </div>

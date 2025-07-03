@@ -16,9 +16,9 @@ const config: Config = {
           subtle: "#F3F4F6",
         },
         popover: {
-          DEFAULT: "#F9FAFB", // eller vit: "#ffffff"
+          DEFAULT: "#F9FAFB",
           foreground: "#1E293B",
-          background: "#ffffff", // <-- se till att denna finns
+          background: "#ffffff", 
         },
         card: {
           DEFAULT: "#FFFFFF",

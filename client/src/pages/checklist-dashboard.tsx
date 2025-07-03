@@ -92,8 +92,9 @@ function parseUrlFilters(search: string) {
 
 // Utility function to update URL with current filters
 function updateUrlWithFilters(filters: any, checklistId: string) {
-  const params = new URLSearchParams();
+  const currentParams = new URLSearchParams(window.location.search);
 
+  // Behåll befintliga parametrar (t.ex. hideStats/hideCards)
   Object.entries(filters).forEach(([key, value]) => {
     if (
       value &&
@@ -101,17 +102,20 @@ function updateUrlWithFilters(filters: any, checklistId: string) {
       value.trim() !== "" &&
       value !== "all"
     ) {
-      params.set(key, value as string);
+      currentParams.set(key, value as string);
+    } else {
+      currentParams.delete(key);
     }
   });
 
-  const queryString = params.toString();
+  const queryString = currentParams.toString();
   const basePath = `/checklist/${checklistId}/dashboard`;
   const newPath = queryString ? `${basePath}?${queryString}` : basePath;
 
-  // Update URL without navigation
+  // Uppdatera URL utan att navigera
   window.history.replaceState({}, "", newPath);
 }
+
 
 export default function ChecklistDashboard({
   checklistId,
@@ -119,6 +123,10 @@ export default function ChecklistDashboard({
   const { t } = useTranslation();
   const [location] = useLocation();
   const id = parseInt(checklistId);
+
+  const queryParams = new URLSearchParams(window.location.search);
+  const hideStats = queryParams.get("hideStats") === "true";
+  const hideCards = queryParams.get("hideCards") === "true";
 
   // Initialize filters from URL parameters
   const [filters, setFilters] = useState(() => {
@@ -254,7 +262,7 @@ export default function ChecklistDashboard({
               <Link href="/">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t("dashboard.back")}
+                  {t("common.back")}
                 </Button>
               </Link>
               <div>
@@ -472,6 +480,7 @@ export default function ChecklistDashboard({
           {/* Main content */}
           <div className="flex-1 space-y-6">
             {/* Statistics Overview - Modern Style */}
+            {!hideStats && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="modern-stats-card bg-pastel-blue">
                 <div className="flex items-center justify-between">
@@ -516,10 +525,10 @@ export default function ChecklistDashboard({
                 </div>
               </div>
             </div>
-
+        )}
 
             {/* Dashboard Question Cards */}
-            {dashboardQuestions.length > 0 ? (
+            {!hideCards && ( dashboardQuestions.length > 0 ? (
               <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -552,6 +561,7 @@ export default function ChecklistDashboard({
                   </p>
                 </CardContent>
               </Card>
+              )    
             )}
 
             {/* Recent Responses Table */}

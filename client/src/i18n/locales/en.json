@@ -61,7 +61,6 @@
     "dashboardNotEnabled": "Dashboard not enabled",
     "dashboardNotEnabledDescription": "This checklist does not have dashboard functionality enabled.",
     "backToHome": "Back to home",
-    "back": "Back",
     "filterOptions": "Filter options",
     "searchOperator": "Search name",
     "searchOperatorPlaceholder": "Search by name...",
@@ -171,7 +170,8 @@
     "shift": "Shift",
     "checklist": "Checklist",
     "checklists": "Checklists",
-    "view": "View"
+    "view": "View",
+    "back": "Back"
   },
   "deviations": {
     "logs": {

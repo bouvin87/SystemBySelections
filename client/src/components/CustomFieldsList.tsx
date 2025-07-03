@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Settings } from 'lucide-react';
-import { CustomFieldModal } from './CustomFieldModal';
+import { CustomFieldModal } from './CustomFieldModal'; // Behåll din import
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import type { CustomField, DeviationType } from '@shared/schema';
@@ -16,19 +16,20 @@ interface CustomFieldsListProps {
 export function CustomFieldsList({ className }: CustomFieldsListProps) {
   const [selectedField, setSelectedField] = useState<CustomField | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: customFields = [], isLoading: fieldsLoading } = useQuery({
+  // ----- INGA ÄNDRINGAR I DATAHÄMTNING -----
+  const { data: customFields = [], isLoading: fieldsLoading } = useQuery<CustomField[]>({
     queryKey: ['/api/custom-fields'],
   });
 
-  const { data: deviationTypes = [], isLoading: typesLoading } = useQuery({
+  const { data: deviationTypes = [], isLoading: typesLoading } = useQuery<DeviationType[]>({
     queryKey: ['/api/deviations/types'],
-    queryFn: () => fetch('/api/deviations/types').then(res => res.json()),
   });
 
+  // ----- INGA ÄNDRINGAR I FUNKTIONER -----
   const handleEdit = (field: CustomField) => {
     setSelectedField(field);
     setIsModalOpen(true);
@@ -43,23 +44,21 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
     if (!confirm(`Är du säker på att du vill ta bort extrafältet "${field.name}"?`)) {
       return;
     }
-
     try {
       await apiRequest({
         endpoint: `/api/custom-fields/${field.id}`,
         method: 'DELETE',
       });
-
       queryClient.invalidateQueries({ queryKey: ['/api/custom-fields'] });
       toast({
         title: 'Extrafält borttaget',
-        description: `Fältet "${field.name}" har tagits bort framgångsrikt.`,
+        description: `Fältet "${field.name}" har tagits bort.`,
       });
     } catch (error) {
       console.error('Error deleting custom field:', error);
       toast({
         title: 'Fel',
-        description: 'Det gick inte att ta bort extrafältet. Försök igen.',
+        description: 'Det gick inte att ta bort extrafältet.',
         variant: 'destructive',
       });
     }
@@ -69,20 +68,19 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
     const labels: Record<string, string> = {
       text: 'Text',
       number: 'Nummer',
-      checkbox: 'Checkbox',
+      checkbox: 'Kryssruta',
       date: 'Datum',
-      select: 'Val'
+      select: 'Dropdown'
     };
     return labels[type] || type;
   };
+  // ------------------------------------
 
   if (fieldsLoading || typesLoading) {
     return (
       <div className={className}>
         <Card>
-          <CardContent className="p-6">
-            <div className="text-center">Laddar extrafält...</div>
-          </CardContent>
+          <CardContent className="p-6 text-center">Laddar extrafält...</CardContent>
         </Card>
       </div>
     );
@@ -92,12 +90,13 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
     <div className={className}>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          {/* FIX 1: Rubriken är nu responsiv */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Extrafält för avvikelser
             </CardTitle>
-            <Button onClick={handleCreate} size="sm">
+            <Button onClick={handleCreate} size="sm" className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nytt fält
             </Button>
@@ -108,63 +107,37 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
             <div className="text-center py-8 text-gray-500">
               <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">Inga extrafält definierade</p>
-              <p className="text-sm">Skapa ditt första extrafält för att komma igång.</p>
-              <Button onClick={handleCreate} className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Skapa extrafält
-              </Button>
+              <p className="text-sm">Klicka på knappen för att skapa ditt första extrafält.</p>
             </div>
           ) : (
             <div className="grid gap-4">
+              {/* FIX 2: Hela list-elementet är omgjort för att matcha de andra flikarna */}
               {(Array.isArray(customFields) ? customFields : [])
-                .sort((a: CustomField, b: CustomField) => a.order - b.order)
-                .map((field: CustomField) => (
-                  <div
-                    key={field.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium">{field.name}</h3>
-                        <Badge variant="secondary">
-                          {getFieldTypeLabel(field.fieldType)}
-                        </Badge>
-                        {field.isRequired && (
-                          <Badge variant="destructive" className="text-xs">
-                            Obligatorisk
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      {field.options && field.options.length > 0 && (
-                        <div className="text-sm text-gray-600 mb-2">
-                          Alternativ: {field.options.join(', ')}
+                .sort((a, b) => a.order - b.order)
+                .map((field) => (
+                  <Card key={field.id} className="bg-card border border-border shadow-sm rounded-xl">
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        {/* Vänster sida: Information */}
+                        <div>
+                          <div className="font-medium">{field.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {`Typ: ${getFieldTypeLabel(field.fieldType)}`} • {field.isRequired ? 'Obligatorisk' : 'Valfri'} • {`Ordning: ${field.order}`}
+                          </div>
                         </div>
-                      )}
-                      
-                      <div className="text-sm text-gray-500">
-                        Ordning: {field.order}
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(field)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(field)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                        {/* Höger sida: Knappar */}
+                        <div className="flex space-x-2 self-end sm:self-center">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(field)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(field)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
             </div>
           )}

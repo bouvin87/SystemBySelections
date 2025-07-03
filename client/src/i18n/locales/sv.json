@@ -61,7 +61,6 @@
     "dashboardNotEnabled": "Dashboard inte aktiverad",
     "dashboardNotEnabledDescription": "Denna checklista har inte aktiverad dashboard-funktion.",
     "backToHome": "Tillbaka till startsidan",
-    "back": "Tillbaka",
     "filterOptions": "Filter alternativ",
     "searchOperator": "Sök namn",
     "searchOperatorPlaceholder": "Sök på namn...",
@@ -171,7 +170,8 @@
     "shift": "Skift",
     "checklist": "Checklista",
     "checklists": "Checklistor",
-    "view": "Visa"
+    "view": "Visa",
+    "back": "Tillbaka"
   },
   "deviations": {
     "logs": {

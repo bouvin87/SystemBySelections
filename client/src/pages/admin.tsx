@@ -454,9 +454,9 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground pb-20">
       <Navigation />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:max-w-6xl">
         <Card>
           <CardHeader>
             <CardTitle>{t("admin.title")}</CardTitle>
@@ -464,7 +464,7 @@ export default function Admin() {
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList
-                className={`grid w-full ${hasChecklistsModule && hasDeviationsModule ? "grid-cols-5" : hasChecklistsModule || hasDeviationsModule ? "grid-cols-4" : "grid-cols-3"}`}
+                className="flex h-auto flex-wrap"
               >
                 <TabsTrigger value="settings">
                   {t("admin.settings")}
@@ -486,7 +486,7 @@ export default function Admin() {
 
               {/* Users Tab */}
               <TabsContent value="users">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                   <h3 className="text-lg font-medium">Hantera användare</h3>
                   <Dialog
                     open={dialogOpen && activeTab === "users"}
@@ -612,7 +612,7 @@ export default function Admin() {
                 </div>
 
                 <div className="border rounded-lg">
-                  <Table>
+                  <Table >
                     <TableHeader>
                       <TableRow>
                         <TableHead>Namn</TableHead>
@@ -662,7 +662,7 @@ export default function Admin() {
                               : "-"}
                           </TableCell>
                           <TableCell>
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2 self-end sm:self-center">
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -703,7 +703,7 @@ export default function Admin() {
               {/* Checklists Tab */}
               {hasChecklistsModule && (
                 <TabsContent value="checklists">
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <h3 className="text-lg font-medium">
                       {t("admin.manage")} {t("admin.checklists").toLowerCase()}
                     </h3>
@@ -1009,9 +1009,9 @@ export default function Admin() {
 
                   <div className="space-y-4">
                     {checklists.map((checklist) => (
-                      <Card key={checklist.id}>
+                      <Card key={checklist.id} className="bg-card border border-border shadow rounded-2xl">
                         <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 {renderIcon(
@@ -1048,7 +1048,7 @@ export default function Admin() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2 self-end sm:self-center">
                               <Link href={`/checklist-editor/${checklist.id}`}>
                                 <Button variant="outline" size="sm">
                                   <Settings className="mr-1 h-3 w-3" />
@@ -1084,14 +1084,14 @@ export default function Admin() {
                       open={true}
                       onOpenChange={() => setSelectedChecklistId(null)}
                     >
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogContent className="sm:max-w-3xl bg-background text-foreground rounded-2xl shadow border border-border">
                         <DialogHeader>
                           <DialogTitle>
                             Hantera kategorier och frågor
                           </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-6">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <h3 className="text-lg font-medium">Kategorier</h3>
                             <Button
                               onClick={() => {
@@ -1106,9 +1106,9 @@ export default function Admin() {
 
                           <div className="space-y-4">
                             {categories.map((category) => (
-                              <Card key={category.id}>
+                              <Card key={category.id} className="bg-card border border-border shadow rounded-2xl">
                                 <CardContent className="p-4">
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                     <div className="flex-1">
                                       <div className="flex items-center gap-2">
                                         {renderIcon(
@@ -1125,7 +1125,7 @@ export default function Admin() {
                                         </p>
                                       )}
                                     </div>
-                                    <div className="flex space-x-2">
+                                    <div className="flex space-x-2 self-end sm:self-center">
                                       <Button
                                         variant="outline"
                                         size="sm"
@@ -1265,12 +1265,12 @@ export default function Admin() {
                       open={true}
                       onOpenChange={() => setSelectedCategoryId(null)}
                     >
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                      <DialogContent className="sm:max-w-3xl bg-background text-foreground rounded-2xl shadow border border-border">
                         <DialogHeader>
                           <DialogTitle>Hantera frågor</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-6">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <h3 className="text-lg font-medium">Frågor</h3>
                             <Button
                               onClick={() => {
@@ -1285,9 +1285,9 @@ export default function Admin() {
 
                           <div className="space-y-4">
                             {questions.map((question) => (
-                              <Card key={question.id}>
+                              <Card key={question.id} className="bg-card border border-border shadow rounded-2xl">
                                 <CardContent className="p-4">
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                     <div className="flex-1">
                                       <h4 className="text-sm font-medium">
                                         {question.text}
@@ -1304,7 +1304,7 @@ export default function Admin() {
                                         </Badge>
                                       )}
                                     </div>
-                                    <div className="flex space-x-2">
+                                    <div className="flex space-x-2 self-end sm:self-center">
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -1480,7 +1480,7 @@ export default function Admin() {
               {/* Basic Data Tab */}
               <TabsContent value="basic-data">
                 <Tabs value={basicDataTab} onValueChange={setBasicDataTab}>
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-4">
                     <TabsTrigger value="work-tasks">
                       {t("admin.workTasks")}
                     </TabsTrigger>
@@ -1497,7 +1497,7 @@ export default function Admin() {
 
                   {/* Work Tasks Tab */}
                   <TabsContent value="work-tasks">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                       <h3 className="text-lg font-medium">
                         {t("admin.manage")} {t("admin.workTasks").toLowerCase()}
                       </h3>
@@ -1572,9 +1572,9 @@ export default function Admin() {
 
                     <div className="space-y-4">
                       {workTasks.map((task) => (
-                        <Card key={task.id}>
+                        <Card key={task.id} className="bg-card border border-border shadow rounded-2xl">
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-gray-900">
                                   {task.name}
@@ -1587,7 +1587,7 @@ export default function Admin() {
                                   )}
                                 </div>
                               </div>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 self-end sm:self-center">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -1614,7 +1614,7 @@ export default function Admin() {
 
                   {/* Work Stations Tab */}
                   <TabsContent value="work-stations">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                       <h3 className="text-lg font-medium">
                         {t("admin.manage")}{" "}
                         {t("admin.workStations").toLowerCase()}
@@ -1700,9 +1700,9 @@ export default function Admin() {
                     </div>
                     <div className="space-y-4">
                       {workStations.map((station) => (
-                        <Card key={station.id}>
+                        <Card key={station.id} className="bg-card border border-border shadow rounded-2xl">
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-gray-900">
                                   {station.name}
@@ -1714,7 +1714,7 @@ export default function Admin() {
                                   )?.name || t("common.unknown")}
                                 </p>
                               </div>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 self-end sm:self-center">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -1744,7 +1744,7 @@ export default function Admin() {
 
                   {/* Shifts Tab */}
                   <TabsContent value="shifts">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                       <h3 className="text-lg font-medium">
                         {t("admin.manage")} {t("admin.shifts").toLowerCase()}
                       </h3>
@@ -1797,7 +1797,7 @@ export default function Admin() {
                                 required
                               />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <Label htmlFor="startTime">
                                   {t("admin.startTime")}
@@ -1844,9 +1844,9 @@ export default function Admin() {
 
                     <div className="space-y-4">
                       {shifts.map((shift) => (
-                        <Card key={shift.id}>
+                        <Card key={shift.id} className="bg-card border border-border shadow rounded-2xl">
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
                                 <h4 className="text-sm font-medium text-gray-900">
                                   {shift.name}
@@ -1864,7 +1864,7 @@ export default function Admin() {
                                   </Badge>
                                 </div>
                               </div>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 self-end sm:self-center">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -1891,7 +1891,7 @@ export default function Admin() {
 
                   {/* Departments Tab */}
                   <TabsContent value="departments">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                       <h3 className="text-lg font-medium">
                         Hantera avdelningar
                       </h3>
@@ -2005,9 +2005,9 @@ export default function Admin() {
 
                     <div className="space-y-4">
                       {departments.map((department) => (
-                        <Card key={department.id}>
+                        <Card key={department.id} className="bg-card border border-border shadow rounded-2xl">
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex items-center space-x-3 flex-1">
                                 <div
                                   className="w-4 h-4 rounded-full"
@@ -2038,7 +2038,7 @@ export default function Admin() {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 self-end sm:self-center">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -2080,7 +2080,7 @@ export default function Admin() {
                 <TabsContent value="deviations">
                   <div className="space-y-6">
                     <Tabs defaultValue="settings" className="w-full">
-                      <TabsList className="grid w-full grid-cols-5">
+                      <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
                         <TabsTrigger value="settings">
                           Grundinställningar
                         </TabsTrigger>
@@ -2095,7 +2095,7 @@ export default function Admin() {
                       </TabsContent>
 
                       <TabsContent value="types" className="space-y-6">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                               Avvikelsetyper
@@ -2213,37 +2213,22 @@ export default function Admin() {
 
                         <div className="grid gap-4">
                           {deviationTypes.map((type: any) => (
-                            <Card key={type.id}>
+                            <Card key={type.id} className="bg-card border border-border shadow rounded-2xl">
                               <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                   <div className="flex items-center space-x-3">
                                     <div
                                       className="w-4 h-4 rounded-full"
                                       style={{ backgroundColor: type.color }}
                                     />
                                     <div>
-                                      <h4 className="text-sm font-medium">
-                                        {type.name}
-                                      </h4>
-                                      {type.description && (
-                                        <p className="text-sm text-gray-600 mt-1">
-                                          {type.description}
-                                        </p>
-                                      )}
-                                      <div className="mt-2">
-                                        <Badge
-                                          variant={
-                                            type.isActive
-                                              ? "default"
-                                              : "secondary"
-                                          }
-                                        >
-                                          {type.isActive ? "Aktiv" : "Inaktiv"}
-                                        </Badge>
+                                      <div className="font-medium">{type.name}</div>
+                                      <div className="text-sm text-muted-foreground">
+                                        {type.isActive ? 'Aktiv' : 'Inaktiv'}
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex space-x-2">
+                                  <div className="flex space-x-2 self-end sm:self-center">
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -2459,7 +2444,7 @@ function DeviationPrioritiesManagement() {
                     <FormItem>
                       <FormLabel>Namn</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="t.ex. Hög" />
+                        <Input {...field} placeholder="t.ex. Hög" className="rounded-md border-border focus-visible:ring-primary"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2472,7 +2457,7 @@ function DeviationPrioritiesManagement() {
                     <FormItem>
                       <FormLabel>Färg</FormLabel>
                       <FormControl>
-                        <Input type="color" {...field} />
+                        <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2489,7 +2474,7 @@ function DeviationPrioritiesManagement() {
                           type="number" 
                           {...field} 
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
-                        />
+                          className="rounded-md border-border focus-visible:ring-primary"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2529,9 +2514,9 @@ function DeviationPrioritiesManagement() {
 
       <div className="grid gap-4">
         {priorities.map((priority: any) => (
-          <Card key={priority.id}>
+          <Card key={priority.id} className="bg-card border border-border shadow rounded-2xl">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
                   <div 
                     className="w-4 h-4 rounded"
@@ -2544,12 +2529,12 @@ function DeviationPrioritiesManagement() {
                     </div>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(priority)}>
+                <div className="flex space-x-2 self-end sm:self-center">
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(priority)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     size="sm" 
                     onClick={() => handleDelete(priority.id)}
                   >
@@ -2577,7 +2562,7 @@ function DeviationPrioritiesManagement() {
                   <FormItem>
                     <FormLabel>Namn</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="t.ex. Hög" />
+                      <Input {...field} placeholder="t.ex. Hög" className="rounded-md border-border focus-visible:ring-primary"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2590,7 +2575,7 @@ function DeviationPrioritiesManagement() {
                   <FormItem>
                     <FormLabel>Färg</FormLabel>
                     <FormControl>
-                      <Input type="color" {...field} />
+                      <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2607,7 +2592,7 @@ function DeviationPrioritiesManagement() {
                         type="number" 
                         {...field} 
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
-                      />
+                        className="rounded-md border-border focus-visible:ring-primary"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2789,7 +2774,7 @@ function DeviationStatusesManagement() {
                     <FormItem>
                       <FormLabel>Namn</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="t.ex. Pågående" />
+                        <Input {...field} placeholder="t.ex. Pågående" className="rounded-md border-border focus-visible:ring-primary"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2802,7 +2787,7 @@ function DeviationStatusesManagement() {
                     <FormItem>
                       <FormLabel>Färg</FormLabel>
                       <FormControl>
-                        <Input type="color" {...field} />
+                        <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2819,7 +2804,7 @@ function DeviationStatusesManagement() {
                           type="number" 
                           {...field} 
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
-                        />
+                          className="rounded-md border-border focus-visible:ring-primary"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2899,9 +2884,9 @@ function DeviationStatusesManagement() {
 
       <div className="grid gap-4">
         {statuses.map((status: any) => (
-          <Card key={status.id}>
+          <Card key={status.id} className="bg-card border border-border shadow rounded-2xl">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
                   <div 
                     className="w-4 h-4 rounded"
@@ -2919,12 +2904,12 @@ function DeviationStatusesManagement() {
                     </div>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(status)}>
+                <div className="flex space-x-2 self-end sm:self-center">
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(status)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
-                    variant="outline" 
+                    variant="ghost" 
                     size="sm" 
                     onClick={() => handleDelete(status.id)}
                     disabled={status.isDefault}
@@ -2953,7 +2938,7 @@ function DeviationStatusesManagement() {
                   <FormItem>
                     <FormLabel>Namn</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="t.ex. Pågående" />
+                      <Input {...field} placeholder="t.ex. Pågående" className="rounded-md border-border focus-visible:ring-primary"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2966,7 +2951,7 @@ function DeviationStatusesManagement() {
                   <FormItem>
                     <FormLabel>Färg</FormLabel>
                     <FormControl>
-                      <Input type="color" {...field} />
+                      <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2979,7 +2964,7 @@ function DeviationStatusesManagement() {
                   <FormItem>
                     <FormLabel>Ordning</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input className="rounded-md border-border focus-visible:ring-primary"
                         type="number" 
                         {...field} 
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 

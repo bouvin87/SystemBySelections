@@ -914,12 +914,12 @@ export default function FormModal({
         </DialogHeader>
 
         {/* Progress Bar */}
-        <div className="p-2 bg-gray-50 border-b border-gray-200">
+        <div className="p-2  border-b border-border">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-foreground">
               {t('form.step')} {currentStep - 1} {t('form.of')} {totalSteps}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               {Math.round(progress)}% {t('form.complete')}
             </span>
             
