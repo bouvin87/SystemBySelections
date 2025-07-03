@@ -42,6 +42,7 @@ import {
   ClipboardList,
   Database,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -216,6 +217,7 @@ export default function Admin() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [selectedWorkTaskIds, setSelectedWorkTaskIds] = useState<number[]>([]);
+  const [selectedUserRoles, setSelectedUserRoles] = useState<number[]>([]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isLoading } = useAuth();
@@ -476,6 +478,14 @@ export default function Admin() {
     setEditingItem(item);
     setSelectedIcon(item?.icon || "");
     setSelectedWorkTaskIds([]); // Reset first, will be loaded by useEffect
+    
+    // Load existing user roles if editing a user
+    if (item?.roles) {
+      setSelectedUserRoles(item.roles.map((ur: any) => ur.roleId));
+    } else {
+      setSelectedUserRoles([]);
+    }
+    
     setDialogOpen(true);
 
     // Force refetch of work tasks if editing an item
@@ -657,54 +667,70 @@ export default function Admin() {
                           )}
                         </div>
                         
-                        {/* User Roles Section - Multi-Select */}
+                        {/* User Roles Section - Dropdown Multi-Select */}
                         {editingItem && (
                           <div>
                             <Label>Tilldelade roller</Label>
-                            <div className="mt-2 border rounded-md p-3 bg-background">
-                              <div className="text-sm text-muted-foreground mb-2">
-                                Markera de roller som användaren ska ha:
-                              </div>
-                              <div className="space-y-2 max-h-40 overflow-y-auto">
-                                {roles.map((role: any) => (
-                                  <div key={role.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`role-${role.id}`}
-                                      name={`userRole-${role.id}`}
-                                      defaultChecked={editingItem?.roles?.some((ur: any) => ur.roleId === role.id)}
-                                    />
-                                    <Label htmlFor={`role-${role.id}`} className="text-sm cursor-pointer">
+                            <Select
+                              value=""
+                              onValueChange={(value) => {
+                                const roleId = parseInt(value);
+                                if (!isNaN(roleId) && !selectedUserRoles.includes(roleId)) {
+                                  setSelectedUserRoles((prev) => [...prev, roleId]);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Välj roller" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {roles
+                                  .filter((role: any) => !selectedUserRoles.includes(role.id))
+                                  .map((role: any) => (
+                                    <SelectItem key={role.id} value={role.id}>
                                       {role.name}
                                       {role.description && (
                                         <span className="text-xs text-muted-foreground ml-1">
                                           - {role.description}
                                         </span>
                                       )}
-                                    </Label>
-                                  </div>
-                                ))}
-                                {roles.length === 0 && (
-                                  <p className="text-sm text-muted-foreground">
-                                    Inga roller tillgängliga. Skapa roller först under Roller-fliken.
-                                  </p>
+                                    </SelectItem>
+                                  ))}
+                                {roles.filter((role: any) => !selectedUserRoles.includes(role.id)).length === 0 && (
+                                  <SelectItem value="no-options" disabled>
+                                    Alla roller är redan valda
+                                  </SelectItem>
                                 )}
+                              </SelectContent>
+                            </Select>
+                            {selectedUserRoles.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {selectedUserRoles.map((roleId) => {
+                                  const role = roles.find((r: any) => r.id === roleId);
+                                  return role ? (
+                                    <div
+                                      key={roleId}
+                                      className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                                    >
+                                      {role.name}
+                                      <X
+                                        className="h-3 w-3 cursor-pointer"
+                                        onClick={() =>
+                                          setSelectedUserRoles((prev) =>
+                                            prev.filter((id) => id !== roleId)
+                                          )
+                                        }
+                                      />
+                                    </div>
+                                  ) : null;
+                                })}
                               </div>
-                              {editingItem?.roles && editingItem.roles.length > 0 && (
-                                <div className="mt-3 pt-2 border-t">
-                                  <div className="text-xs text-muted-foreground mb-1">Nuvarande roller:</div>
-                                  <div className="flex flex-wrap gap-1">
-                                    {editingItem.roles.map((userRole: any) => {
-                                      const role = roles.find((r: any) => r.id === userRole.roleId);
-                                      return role ? (
-                                        <Badge key={userRole.id} variant="secondary" className="text-xs">
-                                          {role.name}
-                                        </Badge>
-                                      ) : null;
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            )}
+                            {roles.length === 0 && (
+                              <p className="text-sm text-muted-foreground mt-2">
+                                Inga roller tillgängliga. Skapa roller först under Roller-fliken.
+                              </p>
+                            )}
                           </div>
                         )}
                         
