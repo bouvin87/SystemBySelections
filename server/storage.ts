@@ -266,7 +266,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(tenantId: number): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.tenantId, tenantId));
+    const usersData = await db.select().from(users).where(eq(users.tenantId, tenantId));
+    
+    // Fetch roles for each user
+    const usersWithRoles = await Promise.all(
+      usersData.map(async (user) => {
+        const userRoles = await this.getUserRoles(user.id, tenantId);
+        return {
+          ...user,
+          roles: userRoles
+        };
+      })
+    );
+    
+    return usersWithRoles;
   }
 
   async getUser(id: number): Promise<User | undefined> {

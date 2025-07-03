@@ -369,6 +369,40 @@ export default function Admin() {
     },
   });
 
+  const createUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, roleId }: { userId: number; roleId: string }) => {
+      return apiRequest("POST", "/api/user-roles", { userId, roleId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: "Framgång!", description: "Roll tilldelad till användaren." });
+    },
+    onError: () => {
+      toast({
+        title: "Fel",
+        description: "Kunde inte tilldela rollen.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserRoleMutation = useMutation({
+    mutationFn: async (userRoleId: number) => {
+      return apiRequest("DELETE", `/api/user-roles/${userRoleId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: "Framgång!", description: "Roll borttagen från användaren." });
+    },
+    onError: () => {
+      toast({
+        title: "Fel",
+        description: "Kunde inte ta bort rollen.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: async ({
       endpoint,
@@ -561,7 +595,7 @@ export default function Admin() {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="role">Roll</Label>
+                          <Label htmlFor="role">Användar roll</Label>
                           <Select
                             name="role"
                             defaultValue={editingItem?.role || "user"}
@@ -574,7 +608,7 @@ export default function Admin() {
                                   : ""
                               }
                             >
-                              <SelectValue placeholder="Välj roll" />
+                              <SelectValue placeholder="Välj användar roll" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="user">Användare</SelectItem>
@@ -589,6 +623,52 @@ export default function Admin() {
                             </p>
                           )}
                         </div>
+                        
+                        {/* User Roles Section */}
+                        {editingItem && (
+                          <div>
+                            <Label className="text-sm font-medium">Tilldelade roller</Label>
+                            <div className="mt-2 space-y-2">
+                              {roles.map((role: any) => (
+                                <div key={role.id} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`role-${role.id}`}
+                                    defaultChecked={editingItem?.roles?.some((ur: any) => ur.roleId === role.id)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        // Add role
+                                        createUserRoleMutation.mutate({
+                                          userId: editingItem.id,
+                                          roleId: role.id
+                                        });
+                                      } else {
+                                        // Remove role
+                                        const userRole = editingItem.roles?.find((ur: any) => ur.roleId === role.id);
+                                        if (userRole) {
+                                          deleteUserRoleMutation.mutate(userRole.id);
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <Label htmlFor={`role-${role.id}`} className="text-sm">
+                                    {role.name}
+                                    {role.description && (
+                                      <span className="text-xs text-gray-500 ml-1">
+                                        ({role.description})
+                                      </span>
+                                    )}
+                                  </Label>
+                                </div>
+                              ))}
+                              {roles.length === 0 && (
+                                <p className="text-sm text-gray-500">
+                                  Inga roller tillgängliga. Skapa roller först under Roller-fliken.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
                         <div>
                           <div className="flex items-center space-x-2">
                             <Checkbox
