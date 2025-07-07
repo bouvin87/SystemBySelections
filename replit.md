@@ -122,6 +122,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 7, 2025**: Implemented UserHasDepartment relationship system
+  - Added `user_has_departments` table with UUID primary key
+  - Created foreign key relationships to users and departments tables
+  - Built complete CRUD API endpoints (/api/user-departments, /api/users/:id/departments, /api/departments/:id/users)
+  - Added storage layer methods with tenant isolation and proper validation
+  - All operations are admin-restricted and support many-to-many user-department relationships
+  - Endpoints include creation, deletion, and querying of user-department assignments
+
 - **July 3, 2025**: Implemented comprehensive role management system
   - Added `roles` table with tenant-scoped role definitions (id, tenant_id, name, description)
   - Added `user_has_roles` junction table for many-to-many user-role relationships

@@ -3,7 +3,7 @@ import {
   checklistWorkTasks, checklistResponses, adminSettings, questionWorkTasks,
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
   systemAnnouncements, customFields, customFieldTypeMappings, customFieldValues,
-  roles, userHasRoles,
+  roles, userHasRoles, userHasDepartments,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -25,7 +25,8 @@ import {
   type CustomFieldTypeMapping, type InsertCustomFieldTypeMapping,
   type CustomFieldValue, type InsertCustomFieldValue,
   type Role, type InsertRole,
-  type UserHasRole, type InsertUserHasRole
+  type UserHasRole, type InsertUserHasRole,
+  type UserHasDepartment, type InsertUserHasDepartment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -63,6 +64,13 @@ export interface IStorage {
   getUserHasRole(id: string): Promise<UserHasRole | undefined>;
   assignRoleToUser(userRole: InsertUserHasRole): Promise<UserHasRole>;
   removeRoleFromUser(id: string): Promise<void>;
+
+  // User-Department relationships (tenant-scoped)
+  getUserDepartments(userId: number, tenantId: number): Promise<UserHasDepartment[]>;
+  getDepartmentUsers(departmentId: number, tenantId: number): Promise<UserHasDepartment[]>;
+  getUserHasDepartment(id: string): Promise<UserHasDepartment | undefined>;
+  assignDepartmentToUser(userDepartment: InsertUserHasDepartment): Promise<UserHasDepartment>;
+  removeDepartmentFromUser(id: string): Promise<void>;
 
   // === MODULE: CHECKLISTS ===
   // Work Tasks (tenant-scoped)
@@ -1670,6 +1678,60 @@ export class DatabaseStorage implements IStorage {
   async removeRoleFromUser(id: string): Promise<void> {
     await db.delete(userHasRoles)
       .where(eq(userHasRoles.id, id));
+  }
+
+  // === USER-DEPARTMENT RELATIONSHIPS ===
+  async getUserDepartments(userId: number, tenantId: number): Promise<UserHasDepartment[]> {
+    return await db.select({
+      id: userHasDepartments.id,
+      userId: userHasDepartments.userId,
+      departmentId: userHasDepartments.departmentId,
+      createdAt: userHasDepartments.createdAt,
+    })
+    .from(userHasDepartments)
+    .innerJoin(users, eq(userHasDepartments.userId, users.id))
+    .innerJoin(departments, eq(userHasDepartments.departmentId, departments.id))
+    .where(and(
+      eq(userHasDepartments.userId, userId),
+      eq(users.tenantId, tenantId),
+      eq(departments.tenantId, tenantId)
+    ));
+  }
+
+  async getDepartmentUsers(departmentId: number, tenantId: number): Promise<UserHasDepartment[]> {
+    return await db.select({
+      id: userHasDepartments.id,
+      userId: userHasDepartments.userId,
+      departmentId: userHasDepartments.departmentId,
+      createdAt: userHasDepartments.createdAt,
+    })
+    .from(userHasDepartments)
+    .innerJoin(users, eq(userHasDepartments.userId, users.id))
+    .innerJoin(departments, eq(userHasDepartments.departmentId, departments.id))
+    .where(and(
+      eq(userHasDepartments.departmentId, departmentId),
+      eq(users.tenantId, tenantId),
+      eq(departments.tenantId, tenantId)
+    ));
+  }
+
+  async getUserHasDepartment(id: string): Promise<UserHasDepartment | undefined> {
+    const [userDepartment] = await db.select()
+      .from(userHasDepartments)
+      .where(eq(userHasDepartments.id, id));
+    return userDepartment || undefined;
+  }
+
+  async assignDepartmentToUser(userDepartment: InsertUserHasDepartment): Promise<UserHasDepartment> {
+    const [newUserDepartment] = await db.insert(userHasDepartments)
+      .values(userDepartment)
+      .returning();
+    return newUserDepartment;
+  }
+
+  async removeDepartmentFromUser(id: string): Promise<void> {
+    await db.delete(userHasDepartments)
+      .where(eq(userHasDepartments.id, id));
   }
 }
 

@@ -89,6 +89,14 @@ export const departments = pgTable("departments", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// User-Department relationship table
+export const userHasDepartments = pgTable("user_has_departments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  departmentId: integer("department_id").references(() => departments.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Checklists (tenant-scoped)
 export const checklists = pgTable("checklists", {
   id: serial("id").primaryKey(),
@@ -527,6 +535,17 @@ export const userHasRolesRelations = relations(userHasRoles, ({ one }) => ({
   }),
 }));
 
+export const userHasDepartmentsRelations = relations(userHasDepartments, ({ one }) => ({
+  user: one(users, {
+    fields: [userHasDepartments.userId],
+    references: [users.id],
+  }),
+  department: one(departments, {
+    fields: [userHasDepartments.departmentId],
+    references: [departments.id],
+  }),
+}));
+
 // Deviation types
 export type DeviationType = typeof deviationTypes.$inferSelect;
 export type InsertDeviationType = z.infer<typeof insertDeviationTypeSchema>;
@@ -623,11 +642,18 @@ export const insertUserHasRoleSchema = createInsertSchema(userHasRoles).omit({
   createdAt: true,
 });
 
+export const insertUserHasDepartmentSchema = createInsertSchema(userHasDepartments).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Role types
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
 export type UserHasRole = typeof userHasRoles.$inferSelect;
 export type InsertUserHasRole = z.infer<typeof insertUserHasRoleSchema>;
+export type UserHasDepartment = typeof userHasDepartments.$inferSelect;
+export type InsertUserHasDepartment = z.infer<typeof insertUserHasDepartmentSchema>;
 
 // === SYSTEM ANNOUNCEMENTS ===
 export const systemAnnouncements = pgTable('system_announcements', {

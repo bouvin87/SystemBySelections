@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Card,
@@ -83,6 +91,13 @@ import type {
 } from "@shared/schema";
 import { z } from "zod";
 import Navigation from "@/components/Navigation";
+import ChecklistDialog from "@/components/AdminDialogs/CheckListDialog";
+import WorkTaskDialog from "@/components/AdminDialogs/WorkTaskDialog";
+import WorkStationDialog from "@/components/AdminDialogs/WorkStationDialog";
+import ShiftDialog from "@/components/AdminDialogs/ShiftDialog";
+import DepartmentDialog from "@/components/AdminDialogs/DepartmentDialog";
+import RoleDialog from "@/components/AdminDialogs/RoleDialog";
+import { error } from "console";
 
 // Deviation Settings Component
 function DeviationSettingsTab() {
@@ -386,18 +401,22 @@ export default function Admin() {
       // Get current user roles
       const currentRoles = editingItem?.roles || [];
       const currentRoleIds = currentRoles.map((ur: any) => ur.roleId);
-      
+
       // Find roles to add
-      const rolesToAdd = selectedRoles.filter(roleId => !currentRoleIds.includes(roleId));
-      
+      const rolesToAdd = selectedRoles.filter(
+        (roleId) => !currentRoleIds.includes(roleId),
+      );
+
       // Find roles to remove
-      const rolesToRemove = currentRoleIds.filter((roleId: string) => !selectedRoles.includes(roleId));
-      
+      const rolesToRemove = currentRoleIds.filter(
+        (roleId: string) => !selectedRoles.includes(roleId),
+      );
+
       // Add new roles
       for (const roleId of rolesToAdd) {
         await apiRequest("POST", "/api/user-roles", { userId, roleId });
       }
-      
+
       // Remove old roles
       for (const roleId of rolesToRemove) {
         const userRole = currentRoles.find((ur: any) => ur.roleId === roleId);
@@ -405,10 +424,9 @@ export default function Admin() {
           await apiRequest("DELETE", `/api/user-roles/${userRole.id}`);
         }
       }
-      
+
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast({ title: "Framgång!", description: "Användarroller uppdaterade." });
     } catch (error) {
       toast({
         title: "Fel",
@@ -457,7 +475,13 @@ export default function Admin() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ endpoint, id }: { endpoint: string; id: number | string }) => {
+    mutationFn: async ({
+      endpoint,
+      id,
+    }: {
+      endpoint: string;
+      id: number | string;
+    }) => {
       return apiRequest("DELETE", `${endpoint}/${id}`);
     },
     onSuccess: (_, { endpoint }) => {
@@ -475,12 +499,26 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/deviations/types"] });
       toast({ title: "Borttaget!", description: "Objektet har tagits bort." });
     },
-    onError: () => {
-      toast({
-        title: "Fel",
-        description: "Kunde inte ta bort objektet.",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      const message = error.message;
+
+      if (message.includes("Rollen är kopplad till en eller flera användare och kan inte tas bort")) {
+        toast({
+          title: "Fel",
+          description: "Denna roll används av en eller flera användare och kan därför inte tas bort.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fel",
+          description: "Kunde inte ta bort objektet."+ message,
+          variant: "destructive",
+        });
+      }
+
+      console.error("Error deleting role:", error);
+
+      
     },
   });
 
@@ -488,14 +526,14 @@ export default function Admin() {
     setEditingItem(item);
     setSelectedIcon(item?.icon || "");
     setSelectedWorkTaskIds([]); // Reset first, will be loaded by useEffect
-    
+
     // Load existing user roles if editing a user
     if (item?.roles) {
       setSelectedUserRoles(item.roles.map((ur: any) => ur.roleId));
     } else {
       setSelectedUserRoles([]);
     }
-    
+
     setDialogOpen(true);
 
     // Force refetch of work tasks if editing an item
@@ -519,6 +557,67 @@ export default function Admin() {
       deleteMutation.mutate({ endpoint, id });
     }
   };
+  const handleChecklistSubmit = async (formData: FormData) => {
+    const rawWorkTaskIds = formData.get("workTaskIds") as string | null;
+    const parsedWorkTaskIds = rawWorkTaskIds ? JSON.parse(rawWorkTaskIds) : [];
+    const data = {
+      name: formData.get("name") as string,
+      description: (formData.get("description") as string) || undefined,
+      icon: (formData.get("icon") as string) || undefined,
+      includeWorkTasks: parsedWorkTaskIds.length > 0,
+      includeWorkStations: formData.get("includeWorkStations") === "on",
+      includeShifts: formData.get("includeShifts") === "on",
+      isActive: formData.get("isActive") === "on",
+      showInMenu: formData.get("showInMenu") === "on",
+      hasDashboard: formData.get("hasDashboard") === "on",
+      order: parseInt(formData.get("order") as string) || 0,
+      workTaskIds: parsedWorkTaskIds,
+    };
+
+    try {
+      let checklistId;
+
+      if (editingItem) {
+        await apiRequest("PATCH", `/api/checklists/${editingItem.id}`, data);
+        checklistId = editingItem.id;
+      } else {
+        const response = await apiRequest("POST", "/api/checklists", data);
+        const result = await response.json();
+        checklistId = result.id;
+      }
+
+      if (checklistId && selectedWorkTaskIds.length > 0) {
+        await apiRequest("DELETE", `/api/checklists/${checklistId}/work-tasks`);
+        for (const workTaskId of selectedWorkTaskIds) {
+          await apiRequest(
+            "POST",
+            `/api/checklists/${checklistId}/work-tasks`,
+            {
+              workTaskId,
+            },
+          );
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+
+      toast({
+        title: editingItem ? "Checklista uppdaterad" : "Checklista skapad",
+        description: "Checklistan har sparats framgångsrikt.",
+      });
+
+      setDialogOpen(false);
+      setEditingItem(null);
+      setSelectedIcon("");
+      setSelectedWorkTaskIds([]);
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Kunde inte spara checklistan. Försök igen.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
@@ -530,9 +629,7 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList
-                className="flex h-auto flex-wrap"
-              >
+              <TabsList className="flex h-auto flex-wrap">
                 <TabsTrigger value="settings">
                   {t("admin.settings")}
                 </TabsTrigger>
@@ -577,12 +674,21 @@ export default function Admin() {
                         onSubmit={async (e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
-                          
+                          const roleValue = formData.get("role");
+                          const role =
+                            editingItem?.lockRole && editingItem?.role
+                              ? editingItem.role
+                              : roleValue === "admin" || roleValue === "user"
+                                ? roleValue
+                                : "user";
                           const data: CreateUserRequest = {
                             email: formData.get("email") as string,
-                            firstName: (formData.get("firstName") as string) || undefined,
-                            lastName: (formData.get("lastName") as string) || undefined,
-                            role: formData.get("role") as "admin" | "user",
+                            firstName:
+                              (formData.get("firstName") as string) ||
+                              undefined,
+                            lastName:
+                              (formData.get("lastName") as string) || undefined,
+                            role: role,
                             password: formData.get("password") as string,
                             isActive: formData.get("isActive") === "on",
                           };
@@ -590,14 +696,25 @@ export default function Admin() {
                           if (editingItem) {
                             try {
                               // When editing, handle role updates
-                              await apiRequest("PATCH", `/api/users/${editingItem.id}`, data);
-                              
+                              await apiRequest(
+                                "PATCH",
+                                `/api/users/${editingItem.id}`,
+                                data,
+                              );
+
                               // Update user roles using the selected roles from dropdown
-                              await updateUserRoles(editingItem.id, selectedUserRoles);
-                              
+                              await updateUserRoles(
+                                editingItem.id,
+                                selectedUserRoles,
+                              );
+
                               // Close modal and refresh
                               setEditingItem(null);
                               setDialogOpen(false);
+                              toast({
+                                title: "Framgång!",
+                                description: "Användare uppdaterad.",
+                              });
                             } catch (error) {
                               toast({
                                 title: "Fel",
@@ -668,7 +785,7 @@ export default function Admin() {
                             </p>
                           )}
                         </div>
-                        
+
                         {/* User Roles Section - Dropdown Multi-Select */}
                         {editingItem && (
                           <div>
@@ -677,7 +794,10 @@ export default function Admin() {
                               value=""
                               onValueChange={(value) => {
                                 if (!selectedUserRoles.includes(value)) {
-                                  setSelectedUserRoles((prev) => [...prev, value]);
+                                  setSelectedUserRoles((prev) => [
+                                    ...prev,
+                                    value,
+                                  ]);
                                 }
                               }}
                             >
@@ -686,7 +806,10 @@ export default function Admin() {
                               </SelectTrigger>
                               <SelectContent>
                                 {roles
-                                  .filter((role: any) => !selectedUserRoles.includes(role.id))
+                                  .filter(
+                                    (role: any) =>
+                                      !selectedUserRoles.includes(role.id),
+                                  )
                                   .map((role: any) => (
                                     <SelectItem key={role.id} value={role.id}>
                                       {role.name}
@@ -697,7 +820,10 @@ export default function Admin() {
                                       )}
                                     </SelectItem>
                                   ))}
-                                {roles.filter((role: any) => !selectedUserRoles.includes(role.id)).length === 0 && (
+                                {roles.filter(
+                                  (role: any) =>
+                                    !selectedUserRoles.includes(role.id),
+                                ).length === 0 && (
                                   <SelectItem value="no-options" disabled>
                                     Alla roller är redan valda
                                   </SelectItem>
@@ -707,7 +833,9 @@ export default function Admin() {
                             {selectedUserRoles.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-1">
                                 {selectedUserRoles.map((roleId) => {
-                                  const role = roles.find((r: any) => r.id === roleId);
+                                  const role = roles.find(
+                                    (r: any) => r.id === roleId,
+                                  );
                                   return role ? (
                                     <div
                                       key={roleId}
@@ -718,7 +846,7 @@ export default function Admin() {
                                         className="h-3 w-3 cursor-pointer"
                                         onClick={() =>
                                           setSelectedUserRoles((prev) =>
-                                            prev.filter((id) => id !== roleId)
+                                            prev.filter((id) => id !== roleId),
                                           )
                                         }
                                       />
@@ -729,12 +857,13 @@ export default function Admin() {
                             )}
                             {roles.length === 0 && (
                               <p className="text-sm text-muted-foreground mt-2">
-                                Inga roller tillgängliga. Skapa roller först under Roller-fliken.
+                                Inga roller tillgängliga. Skapa roller först
+                                under Roller-fliken.
                               </p>
                             )}
                           </div>
                         )}
-                        
+
                         <div>
                           <div className="flex items-center space-x-2">
                             <Checkbox
@@ -742,7 +871,10 @@ export default function Admin() {
                               name="isActive"
                               defaultChecked={editingItem?.isActive ?? true}
                             />
-                            <Label htmlFor="isActive" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            <Label
+                              htmlFor="isActive"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
                               Användaren är aktiv
                             </Label>
                           </div>
@@ -768,7 +900,7 @@ export default function Admin() {
                 </div>
 
                 <div className="border rounded-lg">
-                  <Table >
+                  <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Namn</TableHead>
@@ -802,9 +934,7 @@ export default function Admin() {
                           <TableCell>
                             <Badge
                               variant={
-                                userItem.isActive
-                                  ? "default"
-                                  : "destructive"
+                                userItem.isActive ? "default" : "destructive"
                               }
                             >
                               {userItem.isActive ? "Aktiv" : "Inaktiv"}
@@ -863,309 +993,29 @@ export default function Admin() {
                     <h3 className="text-lg font-medium">
                       {t("admin.manage")} {t("admin.checklists").toLowerCase()}
                     </h3>
-                    <Dialog
+                    <Button onClick={() => openDialog()}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t("admin.add")} {t("admin.checklist").toLowerCase()}
+                    </Button>
+                    <ChecklistDialog
                       open={dialogOpen && activeTab === "checklists"}
-                      onOpenChange={setDialogOpen}
-                    >
-                      <DialogTrigger asChild>
-                        <Button onClick={() => openDialog()}>
-                          <Plus className="mr-2 h-4 w-4" />
-                          {t("admin.add")} {t("admin.checklist").toLowerCase()}
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>
-                            {editingItem
-                              ? t("admin.edit") +
-                                " " +
-                                t("admin.checklists").toLowerCase()
-                              : t("admin.add") +
-                                " " +
-                                t("admin.checklists").toLowerCase()}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <form
-                          onSubmit={async (e) => {
-                            e.preventDefault();
-                            const formData = new FormData(e.currentTarget);
-                            const data = {
-                              name: formData.get("name") as string,
-                              description:
-                                (formData.get("description") as string) ||
-                                undefined,
-                              icon: selectedIcon || undefined,
-                              includeWorkTasks: selectedWorkTaskIds.length > 0,
-                              includeWorkStations:
-                                formData.get("includeWorkStations") === "on",
-                              includeShifts:
-                                formData.get("includeShifts") === "on",
-                              isActive: formData.get("isActive") === "on",
-                              showInMenu: formData.get("showInMenu") === "on",
-                              hasDashboard:
-                                formData.get("hasDashboard") === "on",
-                              order:
-                                parseInt(formData.get("order") as string) || 0,
-                              workTaskIds: selectedWorkTaskIds,
-                            };
-
-                            try {
-                              let checklistId;
-                              if (editingItem) {
-                                // Update existing checklist
-                                const response = await apiRequest(
-                                  "PATCH",
-                                  `/api/checklists/${editingItem.id}`,
-                                  data,
-                                );
-                                checklistId = editingItem.id;
-                              } else {
-                                // Create new checklist
-                                const response = await apiRequest(
-                                  "POST",
-                                  "/api/checklists",
-                                  data,
-                                );
-                                const result = await response.json();
-                                checklistId = result.id;
-                              }
-
-                              // Update work task relationships
-                              if (
-                                checklistId &&
-                                selectedWorkTaskIds.length > 0
-                              ) {
-                                // First, clear existing relationships
-                                await apiRequest(
-                                  "DELETE",
-                                  `/api/checklists/${checklistId}/work-tasks`,
-                                );
-
-                                // Then create new relationships
-                                for (const workTaskId of selectedWorkTaskIds) {
-                                  await apiRequest(
-                                    "POST",
-                                    `/api/checklists/${checklistId}/work-tasks`,
-                                    {
-                                      workTaskId: workTaskId,
-                                    },
-                                  );
-                                }
-                              }
-
-                              // Invalidate queries and close dialog
-                              queryClient.invalidateQueries({
-                                queryKey: ["/api/checklists"],
-                              });
-                              toast({
-                                title: editingItem
-                                  ? "Checklista uppdaterad"
-                                  : "Checklista skapad",
-                                description:
-                                  "Checklistan har sparats framgångsrikt.",
-                              });
-                              setDialogOpen(false);
-                              setEditingItem(null);
-                              setSelectedIcon("");
-                              setSelectedWorkTaskIds([]);
-                            } catch (error) {
-                              toast({
-                                title: "Fel",
-                                description:
-                                  "Kunde inte spara checklistan. Försök igen.",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                          className="space-y-4"
-                        >
-                          <div>
-                            <Label htmlFor="name">{t("admin.name")}</Label>
-                            <Input
-                              id="name"
-                              name="name"
-                              defaultValue={editingItem?.name || ""}
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="description">
-                              {t("admin.description")}
-                            </Label>
-                            <Textarea
-                              id="description"
-                              name="description"
-                              defaultValue={editingItem?.description || ""}
-                            />
-                          </div>
-                          <IconPicker
-                            value={selectedIcon}
-                            onChange={setSelectedIcon}
-                            placeholder={t("admin.selectIcon")}
-                          />
-                          <div>
-                            <Label htmlFor="order">{t("admin.order")}</Label>
-                            <Input
-                              id="order"
-                              name="order"
-                              type="number"
-                              defaultValue={editingItem?.order || 0}
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-base font-medium">
-                              Välj arbetsmoment
-                            </Label>
-                            <div className="mt-2">
-                              <Select
-                                value=""
-                                onValueChange={(value) => {
-                                  const workTaskId = parseInt(value);
-                                  if (
-                                    !selectedWorkTaskIds.includes(workTaskId)
-                                  ) {
-                                    setSelectedWorkTaskIds([
-                                      ...selectedWorkTaskIds,
-                                      workTaskId,
-                                    ]);
-                                  }
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Välj arbetsmoment att lägga till..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {workTasks
-                                    .filter(
-                                      (workTask) =>
-                                        !selectedWorkTaskIds.includes(
-                                          workTask.id,
-                                        ),
-                                    )
-                                    .map((workTask) => (
-                                      <SelectItem
-                                        key={workTask.id}
-                                        value={workTask.id.toString()}
-                                      >
-                                        {workTask.name}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-
-                              {/* Visa valda arbetsmoment som badges */}
-                              {selectedWorkTaskIds.length > 0 && (
-                                <div className="mt-3 space-y-2">
-                                  <Label className="text-sm font-medium text-gray-700">
-                                    Valda arbetsmoment:
-                                  </Label>
-                                  <div className="flex flex-wrap gap-2">
-                                    {selectedWorkTaskIds.map((workTaskId) => {
-                                      const workTask = workTasks.find(
-                                        (wt) => wt.id === workTaskId,
-                                      );
-                                      return workTask ? (
-                                        <Badge
-                                          key={workTaskId}
-                                          variant="secondary"
-                                          className="flex items-center gap-1 px-2 py-1"
-                                        >
-                                          {workTask.name}
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setSelectedWorkTaskIds(
-                                                selectedWorkTaskIds.filter(
-                                                  (id) => id !== workTaskId,
-                                                ),
-                                              );
-                                            }}
-                                            className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
-                                          >
-                                            ×
-                                          </button>
-                                        </Badge>
-                                      ) : null;
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-
-                              {workTasks.length === 0 && (
-                                <p className="text-sm text-gray-500 mt-2">
-                                  Inga arbetsmoment tillgängliga
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="includeWorkStations"
-                              name="includeWorkStations"
-                              defaultChecked={
-                                editingItem?.includeWorkStations ?? true
-                              }
-                            />
-                            <Label htmlFor="includeWorkStations">
-                              {t("admin.includeWorkStations")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="includeShifts"
-                              name="includeShifts"
-                              defaultChecked={
-                                editingItem?.includeShifts ?? true
-                              }
-                            />
-                            <Label htmlFor="includeShifts">
-                              {t("admin.includeShifts")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="isActive"
-                              name="isActive"
-                              defaultChecked={editingItem?.isActive ?? true}
-                            />
-                            <Label htmlFor="isActive">
-                              {t("admin.active")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="showInMenu"
-                              name="showInMenu"
-                              defaultChecked={editingItem?.showInMenu ?? false}
-                            />
-                            <Label htmlFor="showInMenu">
-                              {t("admin.showInMenu")}
-                            </Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="hasDashboard"
-                              name="hasDashboard"
-                              defaultChecked={
-                                editingItem?.hasDashboard ?? false
-                              }
-                            />
-                            <Label htmlFor="hasDashboard">
-                              {t("admin.hasDashboard")}
-                            </Label>
-                          </div>
-                          <Button type="submit" className="w-full">
-                            <Save className="mr-2 h-4 w-4" />
-                            {t("admin.save")}
-                          </Button>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
+                      onClose={() => setDialogOpen(false)}
+                      editingItem={editingItem}
+                      selectedIcon={selectedIcon}
+                      setSelectedIcon={setSelectedIcon}
+                      selectedWorkTaskIds={selectedWorkTaskIds}
+                      setSelectedWorkTaskIds={setSelectedWorkTaskIds}
+                      workTasks={workTasks}
+                      handleSubmit={handleChecklistSubmit}
+                    />
                   </div>
 
                   <div className="space-y-4">
                     {checklists.map((checklist) => (
-                      <Card key={checklist.id} className="bg-card border border-border shadow rounded-2xl">
+                      <Card
+                        key={checklist.id}
+                        className="bg-card border border-border shadow rounded-2xl"
+                      >
                         <CardContent className="p-4">
                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div className="flex-1">
@@ -1233,403 +1083,6 @@ export default function Admin() {
                       </Card>
                     ))}
                   </div>
-
-                  {/* Category Management Modal */}
-                  {selectedChecklistId && (
-                    <Dialog
-                      open={true}
-                      onOpenChange={() => setSelectedChecklistId(null)}
-                    >
-                      <DialogContent className="sm:max-w-3xl bg-background text-foreground rounded-2xl shadow border border-border">
-                        <DialogHeader>
-                          <DialogTitle>
-                            Hantera kategorier och frågor
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                            <h3 className="text-lg font-medium">Kategorier</h3>
-                            <Button
-                              onClick={() => {
-                                setEditingCategory(null);
-                                setCategoryDialogOpen(true);
-                              }}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Ny kategori
-                            </Button>
-                          </div>
-
-                          <div className="space-y-4">
-                            {categories.map((category) => (
-                              <Card key={category.id} className="bg-card border border-border shadow rounded-2xl">
-                                <CardContent className="p-4">
-                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        {renderIcon(
-                                          category.icon,
-                                          "h-4 w-4 text-gray-600",
-                                        )}
-                                        <h4 className="text-sm font-medium">
-                                          {category.name}
-                                        </h4>
-                                      </div>
-                                      {category.description && (
-                                        <p className="text-sm text-gray-600 mt-1">
-                                          {category.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="flex space-x-2 self-end sm:self-center">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                          setSelectedCategoryId(category.id)
-                                        }
-                                      >
-                                        Hantera frågor
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                          setEditingCategory(category);
-                                          setCategoryDialogOpen(true);
-                                        }}
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleDelete(
-                                            "/api/categories",
-                                            category.id,
-                                          )
-                                        }
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-
-                  {/* Category Create/Edit Dialog */}
-                  <Dialog
-                    open={categoryDialogOpen}
-                    onOpenChange={setCategoryDialogOpen}
-                  >
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingCategory
-                            ? "Redigera kategori"
-                            : "Skapa kategori"}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const data = {
-                            name: formData.get("name") as string,
-                            description: formData.get("description") as string,
-                            checklistId: selectedChecklistId!,
-                            order:
-                              parseInt(formData.get("order") as string) || 0,
-                            isActive: formData.get("isActive") === "on",
-                            icon: selectedIcon || editingCategory?.icon || null,
-                          };
-
-                          if (editingCategory) {
-                            updateMutation.mutate({
-                              endpoint: `/api/categories/${editingCategory.id}`,
-                              data,
-                            });
-                          } else {
-                            createMutation.mutate({
-                              endpoint: "/api/categories",
-                              data,
-                            });
-                          }
-                          setCategoryDialogOpen(false);
-                          setEditingCategory(null);
-                          setSelectedIcon("");
-                        }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <Label htmlFor="name">Namn</Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            defaultValue={editingCategory?.name || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="description">Beskrivning</Label>
-                          <Textarea
-                            id="description"
-                            name="description"
-                            defaultValue={editingCategory?.description || ""}
-                          />
-                        </div>
-                        <IconPicker
-                          value={selectedIcon || editingCategory?.icon || ""}
-                          onChange={setSelectedIcon}
-                          placeholder="Välj ikon"
-                        />
-                        <div>
-                          <Label htmlFor="order">Ordning</Label>
-                          <Input
-                            id="order"
-                            name="order"
-                            type="number"
-                            defaultValue={editingCategory?.order || 0}
-                          />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="isActive"
-                            name="isActive"
-                            defaultChecked={editingCategory?.isActive ?? true}
-                          />
-                          <Label htmlFor="isActive">Aktiv</Label>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Spara
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-
-                  {/* Question Management Modal */}
-                  {selectedCategoryId && (
-                    <Dialog
-                      open={true}
-                      onOpenChange={() => setSelectedCategoryId(null)}
-                    >
-                      <DialogContent className="sm:max-w-3xl bg-background text-foreground rounded-2xl shadow border border-border">
-                        <DialogHeader>
-                          <DialogTitle>Hantera frågor</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-6">
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                            <h3 className="text-lg font-medium">Frågor</h3>
-                            <Button
-                              onClick={() => {
-                                setEditingQuestion(null);
-                                setQuestionDialogOpen(true);
-                              }}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Ny fråga
-                            </Button>
-                          </div>
-
-                          <div className="space-y-4">
-                            {questions.map((question) => (
-                              <Card key={question.id} className="bg-card border border-border shadow rounded-2xl">
-                                <CardContent className="p-4">
-                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                                    <div className="flex-1">
-                                      <h4 className="text-sm font-medium">
-                                        {question.text}
-                                      </h4>
-                                      <p className="text-sm text-gray-600">
-                                        Typ: {question.type}
-                                      </p>
-                                      {question.isRequired && (
-                                        <Badge
-                                          variant="outline"
-                                          className="mt-1"
-                                        >
-                                          Obligatorisk
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <div className="flex space-x-2 self-end sm:self-center">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                          setEditingQuestion(question);
-                                          setQuestionDialogOpen(true);
-                                        }}
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleDelete(
-                                            "/api/questions",
-                                            question.id,
-                                          )
-                                        }
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  )}
-
-                  {/* Question Create/Edit Dialog */}
-                  <Dialog
-                    open={questionDialogOpen}
-                    onOpenChange={setQuestionDialogOpen}
-                  >
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingQuestion ? "Redigera fråga" : "Skapa fråga"}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const data = {
-                            text: formData.get("text") as string,
-                            type: formData.get("type") as string,
-                            categoryId: selectedCategoryId!,
-                            order:
-                              parseInt(formData.get("order") as string) || 0,
-                            isRequired: formData.get("isRequired") === "on",
-                            showInDashboard:
-                              formData.get("showInDashboard") === "on",
-                            hideInView: formData.get("hideInView") === "on",
-                            dashboardDisplayType:
-                              (formData.get(
-                                "dashboardDisplayType",
-                              ) as string) || null,
-                          };
-
-                          if (editingQuestion) {
-                            updateMutation.mutate({
-                              endpoint: `/api/questions/${editingQuestion.id}`,
-                              data,
-                            });
-                          } else {
-                            createMutation.mutate({
-                              endpoint: "/api/questions",
-                              data,
-                            });
-                          }
-                          setQuestionDialogOpen(false);
-                          setEditingQuestion(null);
-                        }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <Label htmlFor="text">Frågetext</Label>
-                          <Input
-                            id="text"
-                            name="text"
-                            defaultValue={editingQuestion?.text || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="type">Typ</Label>
-                          <select
-                            id="type"
-                            name="type"
-                            className="w-full p-2 border rounded"
-                            defaultValue={editingQuestion?.type || "text"}
-                            required
-                          >
-                            <option value="text">Text</option>
-                            <option value="check">Kryssruta</option>
-                            <option value="ja_nej">Ja/Nej</option>
-                            <option value="number">Nummer</option>
-                          </select>
-                        </div>
-                        <div>
-                          <Label htmlFor="order">Ordning</Label>
-                          <Input
-                            id="order"
-                            name="order"
-                            type="number"
-                            defaultValue={editingQuestion?.order || 0}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="dashboardDisplayType">
-                            Dashboard visningstyp
-                          </Label>
-                          <select
-                            id="dashboardDisplayType"
-                            name="dashboardDisplayType"
-                            className="w-full p-2 border rounded"
-                            defaultValue={
-                              editingQuestion?.dashboardDisplayType || ""
-                            }
-                          >
-                            <option value="">Standard</option>
-                            <option value="chart">Diagram</option>
-                            <option value="metric">Mätetal</option>
-                          </select>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="isRequired"
-                            name="isRequired"
-                            defaultChecked={
-                              editingQuestion?.isRequired ?? false
-                            }
-                          />
-                          <Label htmlFor="isRequired">Obligatorisk</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="showInDashboard"
-                            name="showInDashboard"
-                            defaultChecked={
-                              editingQuestion?.showInDashboard ?? false
-                            }
-                          />
-                          <Label htmlFor="showInDashboard">
-                            Visa i dashboard
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="hideInView"
-                            name="hideInView"
-                            defaultChecked={
-                              editingQuestion?.hideInView ?? false
-                            }
-                          />
-                          <Label htmlFor="hideInView">Dölj i vy</Label>
-                        </div>
-                        <Button type="submit" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Spara
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
                 </TabsContent>
               )}
 
@@ -1646,12 +1099,8 @@ export default function Admin() {
                     <TabsTrigger value="shifts">
                       {t("admin.shifts")}
                     </TabsTrigger>
-                    <TabsTrigger value="departments">
-                      Avdelningar
-                    </TabsTrigger>
-                    <TabsTrigger value="roles">
-                      Roller
-                    </TabsTrigger>
+                    <TabsTrigger value="departments">Avdelningar</TabsTrigger>
+                    <TabsTrigger value="roles">Roller</TabsTrigger>
                   </TabsList>
 
                   {/* Work Tasks Tab */}
@@ -1660,78 +1109,30 @@ export default function Admin() {
                       <h3 className="text-lg font-medium">
                         {t("admin.manage")} {t("admin.workTasks").toLowerCase()}
                       </h3>
-                      <Dialog
+                      <Button onClick={() => openDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("admin.add")} {t("admin.workTask").toLowerCase()}
+                      </Button>
+                      <WorkTaskDialog
                         open={
                           dialogOpen &&
                           activeTab === "basic-data" &&
                           basicDataTab === "work-tasks"
                         }
-                        onOpenChange={setDialogOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button onClick={() => openDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t("admin.add")} {t("admin.workTask").toLowerCase()}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {editingItem
-                                ? t("admin.edit") +
-                                  " " +
-                                  t("admin.workTask").toLowerCase()
-                                : t("admin.add") +
-                                  " " +
-                                  t("admin.workTask").toLowerCase()}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              const data: InsertWorkTask = {
-                                name: formData.get("name") as string,
-                                hasStations:
-                                  formData.get("hasStations") === "on",
-                              };
-                              handleSubmit("/api/work-tasks", data);
-                            }}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <Label htmlFor="name">{t("admin.name")}</Label>
-                              <Input
-                                id="name"
-                                name="name"
-                                defaultValue={editingItem?.name || ""}
-                                required
-                              />
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch
-                                id="hasStations"
-                                name="hasStations"
-                                defaultChecked={
-                                  editingItem?.hasStations ?? false
-                                }
-                              />
-                              <Label htmlFor="hasStations">
-                                {t("admin.hasStations")}
-                              </Label>
-                            </div>
-                            <Button type="submit" className="w-full">
-                              <Save className="mr-2 h-4 w-4" />
-                              {t("admin.save")}
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                        onClose={() => setDialogOpen(false)}
+                        editingItem={editingItem}
+                        handleSubmit={(data) => {
+                          handleSubmit("/api/work-tasks", data);
+                        }}
+                      />
                     </div>
 
                     <div className="space-y-4">
                       {workTasks.map((task) => (
-                        <Card key={task.id} className="bg-card border border-border shadow rounded-2xl">
+                        <Card
+                          key={task.id}
+                          className="bg-card border border-border shadow rounded-2xl"
+                        >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
@@ -1778,88 +1179,30 @@ export default function Admin() {
                         {t("admin.manage")}{" "}
                         {t("admin.workStations").toLowerCase()}
                       </h3>
-                      <Dialog
+                      <Button onClick={() => openDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("admin.add")} {t("admin.workStation").toLowerCase()}
+                      </Button>
+                      <WorkStationDialog
                         open={
                           dialogOpen &&
                           activeTab === "basic-data" &&
                           basicDataTab === "work-stations"
                         }
-                        onOpenChange={setDialogOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button onClick={() => openDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t("admin.add")}{" "}
-                            {t("admin.workStation").toLowerCase()}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {editingItem
-                                ? t("admin.edit") +
-                                  " " +
-                                  t("admin.workStation").toLowerCase()
-                                : t("admin.add") +
-                                  " " +
-                                  t("admin.workStation").toLowerCase()}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              const data: InsertWorkStation = {
-                                name: formData.get("name") as string,
-                                workTaskId: parseInt(
-                                  formData.get("workTaskId") as string,
-                                ),
-                              };
-                              handleSubmit("/api/work-stations", data);
-                            }}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <Label htmlFor="name">{t("admin.name")}</Label>
-                              <Input
-                                id="name"
-                                name="name"
-                                defaultValue={editingItem?.name || ""}
-                                required
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="workTaskId">
-                                {t("admin.workTask")}
-                              </Label>
-                              <select
-                                id="workTaskId"
-                                name="workTaskId"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                defaultValue={editingItem?.workTaskId || ""}
-                                required
-                              >
-                                <option value="">
-                                  {t("admin.selectWorkTask")}
-                                </option>
-                                {workTasks.map((task) => (
-                                  <option key={task.id} value={task.id}>
-                                    {task.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <Button type="submit" className="w-full">
-                              <Save className="mr-2 h-4 w-4" />
-                              {t("admin.save")}
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                        onClose={() => setDialogOpen(false)}
+                        editingItem={editingItem}
+                        workTasks={workTasks}
+                        handleSubmit={(data) =>
+                          handleSubmit("/api/work-stations", data)
+                        }
+                      />
                     </div>
                     <div className="space-y-4">
                       {workStations.map((station) => (
-                        <Card key={station.id} className="bg-card border border-border shadow rounded-2xl">
+                        <Card
+                          key={station.id}
+                          className="bg-card border border-border shadow rounded-2xl"
+                        >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
@@ -1907,103 +1250,30 @@ export default function Admin() {
                       <h3 className="text-lg font-medium">
                         {t("admin.manage")} {t("admin.shifts").toLowerCase()}
                       </h3>
-                      <Dialog
+                      <Button onClick={() => openDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t("admin.add")} {t("admin.shift").toLowerCase()}
+                      </Button>
+                      <ShiftDialog
                         open={
                           dialogOpen &&
                           activeTab === "basic-data" &&
                           basicDataTab === "shifts"
                         }
-                        onOpenChange={setDialogOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button onClick={() => openDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t("admin.add")} {t("admin.shift").toLowerCase()}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {editingItem
-                                ? t("admin.edit") +
-                                  " " +
-                                  t("admin.shift").toLowerCase()
-                                : t("admin.add") +
-                                  " " +
-                                  t("admin.shift").toLowerCase()}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              const data: InsertShift = {
-                                name: formData.get("name") as string,
-                                startTime: formData.get("startTime") as string,
-                                endTime: formData.get("endTime") as string,
-                                isActive: formData.get("isActive") === "on",
-                              };
-                              handleSubmit("/api/shifts", data);
-                            }}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <Label htmlFor="name">{t("admin.name")}</Label>
-                              <Input
-                                id="name"
-                                name="name"
-                                defaultValue={editingItem?.name || ""}
-                                required
-                              />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div>
-                                <Label htmlFor="startTime">
-                                  {t("admin.startTime")}
-                                </Label>
-                                <Input
-                                  id="startTime"
-                                  name="startTime"
-                                  type="time"
-                                  defaultValue={editingItem?.startTime || ""}
-                                  required
-                                />
-                              </div>
-                              <div>
-                                <Label htmlFor="endTime">
-                                  {t("admin.endTime")}
-                                </Label>
-                                <Input
-                                  id="endTime"
-                                  name="endTime"
-                                  type="time"
-                                  defaultValue={editingItem?.endTime || ""}
-                                  required
-                                />
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch
-                                id="isActive"
-                                name="isActive"
-                                defaultChecked={editingItem?.isActive ?? true}
-                              />
-                              <Label htmlFor="isActive">
-                                {t("admin.active")}
-                              </Label>
-                            </div>
-                            <Button type="submit" className="w-full">
-                              <Save className="mr-2 h-4 w-4" />
-                              {t("admin.save")}
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                        onClose={() => setDialogOpen(false)}
+                        editingItem={editingItem}
+                        handleSubmit={(data) =>
+                          handleSubmit("/api/shifts", data)
+                        }
+                      />
                     </div>
 
                     <div className="space-y-4">
                       {shifts.map((shift) => (
-                        <Card key={shift.id} className="bg-card border border-border shadow rounded-2xl">
+                        <Card
+                          key={shift.id}
+                          className="bg-card border border-border shadow rounded-2xl"
+                        >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
@@ -2054,117 +1324,31 @@ export default function Admin() {
                       <h3 className="text-lg font-medium">
                         Hantera avdelningar
                       </h3>
-                      <Dialog
+                      <Button onClick={() => openDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Lägg till avdelning
+                      </Button>
+                      <DepartmentDialog
                         open={
                           dialogOpen &&
                           activeTab === "basic-data" &&
                           basicDataTab === "departments"
                         }
-                        onOpenChange={setDialogOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button onClick={() => openDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Lägg till avdelning
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {editingItem
-                                ? "Redigera avdelning"
-                                : "Lägg till avdelning"}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              const responsibleUserIdValue = formData.get("responsibleUserId") as string;
-                              const data: InsertDepartment = {
-                                name: formData.get("name") as string,
-                                description: formData.get("description") as string || undefined,
-                                color: (formData.get("color") as string) || "#3b82f6",
-                                isActive: formData.get("isActive") === "on",
-                                order: parseInt(formData.get("order") as string) || 0,
-                                responsibleUserId: responsibleUserIdValue && responsibleUserIdValue !== "0" ? parseInt(responsibleUserIdValue) : undefined,
-                              };
-                              console.log("Sending department data:", data);
-                              handleSubmit("/api/departments", data);
-                            }}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <Label htmlFor="name">Namn</Label>
-                              <Input
-                                id="name"
-                                name="name"
-                                defaultValue={editingItem?.name || ""}
-                                required
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="description">Beskrivning</Label>
-                              <Textarea
-                                id="description"
-                                name="description"
-                                defaultValue={editingItem?.description || ""}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="color">Färg</Label>
-                              <Input
-                                id="color"
-                                name="color"
-                                type="color"
-                                defaultValue={editingItem?.color || "#3b82f6"}
-                              />
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Switch
-                                id="isActive"
-                                name="isActive"
-                                defaultChecked={editingItem?.isActive ?? true}
-                              />
-                              <Label htmlFor="isActive">Aktiv</Label>
-                            </div>
-                            <div>
-                              <Label htmlFor="order">Ordning</Label>
-                              <Input
-                                id="order"
-                                name="order"
-                                type="number"
-                                defaultValue={editingItem?.order || 0}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="responsibleUserId">Ansvarig användare</Label>
-                              <select
-                                id="responsibleUserId"
-                                name="responsibleUserId"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                defaultValue={editingItem?.responsibleUserId?.toString() || "0"}
-                              >
-                                <option value="0">Ingen vald</option>
-                                {users.filter(user => user.isActive).map((user) => (
-                                  <option key={user.id} value={user.id.toString()}>
-                                    {user.firstName} {user.lastName} ({user.email})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <Button type="submit" className="w-full">
-                              <Save className="mr-2 h-4 w-4" />
-                              Spara
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                        onClose={() => setDialogOpen(false)}
+                        editingItem={editingItem}
+                        users={users}
+                        handleSubmit={(data) =>
+                          handleSubmit("/api/departments", data)
+                        }
+                      />
                     </div>
 
                     <div className="space-y-4">
                       {departments.map((department) => (
-                        <Card key={department.id} className="bg-card border border-border shadow rounded-2xl">
+                        <Card
+                          key={department.id}
+                          className="bg-card border border-border shadow rounded-2xl"
+                        >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex items-center space-x-3 flex-1">
@@ -2184,14 +1368,32 @@ export default function Admin() {
                                   <div className="mt-2 space-y-1">
                                     <Badge
                                       variant={
-                                        department.isActive ? "default" : "secondary"
+                                        department.isActive
+                                          ? "default"
+                                          : "secondary"
                                       }
                                     >
-                                      {department.isActive ? "Aktiv" : "Inaktiv"}
+                                      {department.isActive
+                                        ? "Aktiv"
+                                        : "Inaktiv"}
                                     </Badge>
                                     {department.responsibleUserId && (
                                       <p className="text-xs text-gray-500">
-                                        Ansvarig: {users.find(u => u.id === department.responsibleUserId)?.firstName} {users.find(u => u.id === department.responsibleUserId)?.lastName}
+                                        Ansvarig:{" "}
+                                        {
+                                          users.find(
+                                            (u) =>
+                                              u.id ===
+                                              department.responsibleUserId,
+                                          )?.firstName
+                                        }{" "}
+                                        {
+                                          users.find(
+                                            (u) =>
+                                              u.id ===
+                                              department.responsibleUserId,
+                                          )?.lastName
+                                        }
                                       </p>
                                     )}
                                   </div>
@@ -2209,7 +1411,10 @@ export default function Admin() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() =>
-                                    handleDelete("/api/departments", department.id)
+                                    handleDelete(
+                                      "/api/departments",
+                                      department.id,
+                                    )
                                   }
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -2224,7 +1429,8 @@ export default function Admin() {
                           <CardContent className="p-8 text-center text-gray-500">
                             <p>Inga avdelningar skapade än.</p>
                             <p className="text-sm mt-1">
-                              Klicka på "Lägg till avdelning" för att komma igång.
+                              Klicka på "Lägg till avdelning" för att komma
+                              igång.
                             </p>
                           </CardContent>
                         </Card>
@@ -2236,86 +1442,48 @@ export default function Admin() {
                   <TabsContent value="roles">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                       <h3 className="text-lg font-medium">Hantera roller</h3>
-                      <Dialog
+                      <Button onClick={() => openDialog()}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Lägg till roll
+                      </Button>
+                      <RoleDialog
                         open={
                           dialogOpen &&
                           activeTab === "basic-data" &&
                           basicDataTab === "roles"
                         }
-                        onOpenChange={setDialogOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button onClick={() => openDialog()}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Lägg till roll
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>
-                              {editingItem ? "Redigera roll" : "Lägg till roll"}
-                            </DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              const data = {
-                                name: formData.get("name") as string,
-                                description: formData.get("description") as string,
-                              };
-                              handleSubmit("/api/roles", data);
-                            }}
-                          >
-                            <div className="grid gap-4 py-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="name">Namn</Label>
-                                <Input
-                                  id="name"
-                                  name="name"
-                                  defaultValue={editingItem?.name || ""}
-                                  required
-                                />
-                              </div>
-                              <div className="grid gap-2">
-                                <Label htmlFor="description">Beskrivning</Label>
-                                <Textarea
-                                  id="description"
-                                  name="description"
-                                  defaultValue={editingItem?.description || ""}
-                                  placeholder="Valfri beskrivning av rollen"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex justify-end">
-                              <Button type="submit">
-                                <Save className="mr-2 h-4 w-4" />
-                                Spara
-                              </Button>
-                            </div>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                        onClose={() => setDialogOpen(false)}
+                        editingItem={editingItem}
+                        handleSubmit={(data) =>
+                          handleSubmit("/api/roles", data)
+                        }
+                      />
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {roles.map((role) => (
-                        <Card key={role.id} className="bg-card border border-border shadow rounded-2xl">
+                        <Card
+                          key={role.id}
+                          className="bg-card text-foreground border border-border rounded-2xl shadow-sm transition hover:shadow-md"
+                        >
                           <CardContent className="p-4">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                              <div className="flex-1">
-                                <h4 className="text-sm font-medium text-gray-900">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <h4 className="text-sm font-medium">
                                   {role.name}
                                 </h4>
                                 {role.description && (
-                                  <p className="text-sm text-gray-600 mt-1">
+                                  <p className="text-sm text-muted-foreground">
                                     {role.description}
                                   </p>
                                 )}
-                                <p className="text-xs text-gray-500 mt-2">
-                                  Skapad: {new Date(role.createdAt).toLocaleDateString('sv-SE')}
+                                <p className="text-xs text-muted-foreground">
+                                  Skapad:{" "}
+                                  {new Date(role.createdAt).toLocaleDateString(
+                                    "sv-SE",
+                                  )}
                                 </p>
                               </div>
-                              <div className="flex space-x-2 self-end sm:self-center">
+                              <div className="flex gap-2 self-end sm:self-center">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -2337,12 +1505,14 @@ export default function Admin() {
                           </CardContent>
                         </Card>
                       ))}
+
                       {roles.length === 0 && (
-                        <Card>
-                          <CardContent className="p-8 text-center text-gray-500">
+                        <Card className="bg-card text-muted-foreground border border-border rounded-2xl shadow-sm text-center">
+                          <CardContent className="p-8">
                             <p>Inga roller skapade än.</p>
                             <p className="text-sm mt-1">
-                              Klicka på "Lägg till roll" för att komma igång.
+                              Klicka på &quot;Lägg till roll&quot; för att komma
+                              igång.
                             </p>
                           </CardContent>
                         </Card>
@@ -2362,9 +1532,13 @@ export default function Admin() {
                           Grundinställningar
                         </TabsTrigger>
                         <TabsTrigger value="types">Avvikelsetyper</TabsTrigger>
-                        <TabsTrigger value="priorities">Prioriteter</TabsTrigger>
+                        <TabsTrigger value="priorities">
+                          Prioriteter
+                        </TabsTrigger>
                         <TabsTrigger value="statuses">Statusar</TabsTrigger>
-                        <TabsTrigger value="custom-fields">Extrafält</TabsTrigger>
+                        <TabsTrigger value="custom-fields">
+                          Extrafält
+                        </TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="settings" className="space-y-6">
@@ -2372,16 +1546,11 @@ export default function Admin() {
                       </TabsContent>
 
                       <TabsContent value="types" className="space-y-6">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              Avvikelsetyper
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Hantera anpassade avvikelsetyper för din
-                              organisation
-                            </p>
-                          </div>
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Avvikelsetyper
+                          </h3>
+                          <div></div>
                           <Dialog
                             open={dialogOpen && activeTab === "deviations"}
                             onOpenChange={setDialogOpen}
@@ -2490,7 +1659,10 @@ export default function Admin() {
 
                         <div className="grid gap-4">
                           {deviationTypes.map((type: any) => (
-                            <Card key={type.id} className="bg-card border border-border shadow rounded-2xl">
+                            <Card
+                              key={type.id}
+                              className="bg-card border border-border shadow rounded-2xl"
+                            >
                               <CardContent className="p-4">
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                   <div className="flex items-center space-x-3">
@@ -2499,9 +1671,11 @@ export default function Admin() {
                                       style={{ backgroundColor: type.color }}
                                     />
                                     <div>
-                                      <div className="font-medium">{type.name}</div>
+                                      <div className="font-medium">
+                                        {type.name}
+                                      </div>
                                       <div className="text-sm text-muted-foreground">
-                                        {type.isActive ? 'Aktiv' : 'Inaktiv'}
+                                        {type.isActive ? "Aktiv" : "Inaktiv"}
                                       </div>
                                     </div>
                                   </div>
@@ -2591,41 +1765,54 @@ export default function Admin() {
 
 // Deviation Priorities Management Component
 function DeviationPrioritiesManagement() {
-  const { data: priorities = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/deviations/priorities'],
+  const {
+    data: priorities = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["/api/deviations/priorities"],
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest({
-      endpoint: '/api/deviations/priorities',
-      method: 'POST',
-      data,
-    }),
+    mutationFn: (data: any) =>
+      apiRequest({
+        endpoint: "/api/deviations/priorities",
+        method: "POST",
+        data,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deviations/priorities'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/deviations/priorities"],
+      });
       refetch();
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest({
-      endpoint: `/api/deviations/priorities/${id}`,
-      method: 'PATCH',
-      data,
-    }),
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      apiRequest({
+        endpoint: `/api/deviations/priorities/${id}`,
+        method: "PATCH",
+        data,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deviations/priorities'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/deviations/priorities"],
+      });
       refetch();
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest({
-      endpoint: `/api/deviations/priorities/${id}`,
-      method: 'DELETE',
-    }),
+    mutationFn: (id: number) =>
+      apiRequest({
+        endpoint: `/api/deviations/priorities/${id}`,
+        method: "DELETE",
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deviations/priorities'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/deviations/priorities"],
+      });
       refetch();
     },
   });
@@ -2634,12 +1821,14 @@ function DeviationPrioritiesManagement() {
   const [editingPriority, setEditingPriority] = useState<any>(null);
 
   const createForm = useForm({
-    resolver: zodResolver(z.object({
-      name: z.string().min(1, "Namn krävs"),
-      color: z.string().min(1, "Färg krävs"),
-      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
-      isActive: z.boolean(),
-    })),
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(1, "Namn krävs"),
+        color: z.string().min(1, "Färg krävs"),
+        order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+        isActive: z.boolean(),
+      }),
+    ),
     defaultValues: {
       name: "",
       color: "#ef4444",
@@ -2649,12 +1838,14 @@ function DeviationPrioritiesManagement() {
   });
 
   const editForm = useForm({
-    resolver: zodResolver(z.object({
-      name: z.string().min(1, "Namn krävs"),
-      color: z.string().min(1, "Färg krävs"),
-      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
-      isActive: z.boolean(),
-    })),
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(1, "Namn krävs"),
+        color: z.string().min(1, "Färg krävs"),
+        order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+        isActive: z.boolean(),
+      }),
+    ),
     defaultValues: {
       name: "",
       color: "#ef4444",
@@ -2713,7 +1904,10 @@ function DeviationPrioritiesManagement() {
               <DialogTitle>Skapa ny prioritet</DialogTitle>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+              <form
+                onSubmit={createForm.handleSubmit(onCreateSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={createForm.control}
                   name="name"
@@ -2721,7 +1915,11 @@ function DeviationPrioritiesManagement() {
                     <FormItem>
                       <FormLabel>Namn</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="t.ex. Hög" className="rounded-md border-border focus-visible:ring-primary"/>
+                        <Input
+                          {...field}
+                          placeholder="t.ex. Hög"
+                          className="rounded-md border-border focus-visible:ring-primary"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2734,7 +1932,11 @@ function DeviationPrioritiesManagement() {
                     <FormItem>
                       <FormLabel>Färg</FormLabel>
                       <FormControl>
-                        <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
+                        <Input
+                          type="color"
+                          {...field}
+                          className="rounded-md border-border focus-visible:ring-primary"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2747,11 +1949,14 @@ function DeviationPrioritiesManagement() {
                     <FormItem>
                       <FormLabel>Ordning</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
-                          className="rounded-md border-border focus-visible:ring-primary"/>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
+                          className="rounded-md border-border focus-visible:ring-primary"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2778,7 +1983,11 @@ function DeviationPrioritiesManagement() {
                   )}
                 />
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                  >
                     Avbryt
                   </Button>
                   <Button type="submit">Skapa</Button>
@@ -2791,28 +2000,36 @@ function DeviationPrioritiesManagement() {
 
       <div className="grid gap-4">
         {priorities.map((priority: any) => (
-          <Card key={priority.id} className="bg-card border border-border shadow rounded-2xl">
+          <Card
+            key={priority.id}
+            className="bg-card border border-border shadow rounded-2xl"
+          >
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-4 h-4 rounded"
                     style={{ backgroundColor: priority.color }}
                   />
                   <div>
                     <div className="font-medium">{priority.name}</div>
                     <div className="text-sm text-muted-foreground">
-                      Ordning: {priority.order} • {priority.isActive ? 'Aktiv' : 'Inaktiv'}
+                      Ordning: {priority.order} •{" "}
+                      {priority.isActive ? "Aktiv" : "Inaktiv"}
                     </div>
                   </div>
                 </div>
                 <div className="flex space-x-2 self-end sm:self-center">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(priority)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(priority)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(priority.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -2825,13 +2042,19 @@ function DeviationPrioritiesManagement() {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editingPriority} onOpenChange={() => setEditingPriority(null)}>
+      <Dialog
+        open={!!editingPriority}
+        onOpenChange={() => setEditingPriority(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Redigera prioritet</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+            <form
+              onSubmit={editForm.handleSubmit(onEditSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={editForm.control}
                 name="name"
@@ -2839,7 +2062,11 @@ function DeviationPrioritiesManagement() {
                   <FormItem>
                     <FormLabel>Namn</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="t.ex. Hög" className="rounded-md border-border focus-visible:ring-primary"/>
+                      <Input
+                        {...field}
+                        placeholder="t.ex. Hög"
+                        className="rounded-md border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2852,7 +2079,11 @@ function DeviationPrioritiesManagement() {
                   <FormItem>
                     <FormLabel>Färg</FormLabel>
                     <FormControl>
-                      <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
+                      <Input
+                        type="color"
+                        {...field}
+                        className="rounded-md border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2865,11 +2096,14 @@ function DeviationPrioritiesManagement() {
                   <FormItem>
                     <FormLabel>Ordning</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
-                        className="rounded-md border-border focus-visible:ring-primary"/>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
+                        className="rounded-md border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2896,7 +2130,11 @@ function DeviationPrioritiesManagement() {
                 )}
               />
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setEditingPriority(null)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingPriority(null)}
+                >
                   Avbryt
                 </Button>
                 <Button type="submit">Spara</Button>
@@ -2909,43 +2147,50 @@ function DeviationPrioritiesManagement() {
   );
 }
 
-// Deviation Statuses Management Component  
+// Deviation Statuses Management Component
 function DeviationStatusesManagement() {
-  const { data: statuses = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/deviations/statuses'],
+  const {
+    data: statuses = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["/api/deviations/statuses"],
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest({
-      endpoint: '/api/deviations/statuses',
-      method: 'POST',
-      data,
-    }),
+    mutationFn: (data: any) =>
+      apiRequest({
+        endpoint: "/api/deviations/statuses",
+        method: "POST",
+        data,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deviations/statuses'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations/statuses"] });
       refetch();
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest({
-      endpoint: `/api/deviations/statuses/${id}`,
-      method: 'PATCH',
-      data,
-    }),
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      apiRequest({
+        endpoint: `/api/deviations/statuses/${id}`,
+        method: "PATCH",
+        data,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deviations/statuses'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations/statuses"] });
       refetch();
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest({
-      endpoint: `/api/deviations/statuses/${id}`,
-      method: 'DELETE',
-    }),
+    mutationFn: (id: number) =>
+      apiRequest({
+        endpoint: `/api/deviations/statuses/${id}`,
+        method: "DELETE",
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/deviations/statuses'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deviations/statuses"] });
       refetch();
     },
   });
@@ -2954,14 +2199,16 @@ function DeviationStatusesManagement() {
   const [editingStatus, setEditingStatus] = useState<any>(null);
 
   const createForm = useForm({
-    resolver: zodResolver(z.object({
-      name: z.string().min(1, "Namn krävs"),
-      color: z.string().min(1, "Färg krävs"),
-      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
-      isActive: z.boolean(),
-      isDefault: z.boolean(),
-      isCompleted: z.boolean(),
-    })),
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(1, "Namn krävs"),
+        color: z.string().min(1, "Färg krävs"),
+        order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+        isActive: z.boolean(),
+        isDefault: z.boolean(),
+        isCompleted: z.boolean(),
+      }),
+    ),
     defaultValues: {
       name: "",
       color: "#3b82f6",
@@ -2973,14 +2220,16 @@ function DeviationStatusesManagement() {
   });
 
   const editForm = useForm({
-    resolver: zodResolver(z.object({
-      name: z.string().min(1, "Namn krävs"),
-      color: z.string().min(1, "Färg krävs"),
-      order: z.number().min(0, "Ordning måste vara 0 eller högre"),
-      isActive: z.boolean(),
-      isDefault: z.boolean(),
-      isCompleted: z.boolean(),
-    })),
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(1, "Namn krävs"),
+        color: z.string().min(1, "Färg krävs"),
+        order: z.number().min(0, "Ordning måste vara 0 eller högre"),
+        isActive: z.boolean(),
+        isDefault: z.boolean(),
+        isCompleted: z.boolean(),
+      }),
+    ),
     defaultValues: {
       name: "",
       color: "#3b82f6",
@@ -3043,7 +2292,10 @@ function DeviationStatusesManagement() {
               <DialogTitle>Skapa ny status</DialogTitle>
             </DialogHeader>
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
+              <form
+                onSubmit={createForm.handleSubmit(onCreateSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={createForm.control}
                   name="name"
@@ -3051,7 +2303,11 @@ function DeviationStatusesManagement() {
                     <FormItem>
                       <FormLabel>Namn</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="t.ex. Pågående" className="rounded-md border-border focus-visible:ring-primary"/>
+                        <Input
+                          {...field}
+                          placeholder="t.ex. Pågående"
+                          className="rounded-md border-border focus-visible:ring-primary"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -3064,7 +2320,11 @@ function DeviationStatusesManagement() {
                     <FormItem>
                       <FormLabel>Färg</FormLabel>
                       <FormControl>
-                        <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
+                        <Input
+                          type="color"
+                          {...field}
+                          className="rounded-md border-border focus-visible:ring-primary"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -3077,11 +2337,14 @@ function DeviationStatusesManagement() {
                     <FormItem>
                       <FormLabel>Ordning</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
-                          className="rounded-md border-border focus-visible:ring-primary"/>
+                        <Input
+                          type="number"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
+                          className="rounded-md border-border focus-visible:ring-primary"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -3113,7 +2376,9 @@ function DeviationStatusesManagement() {
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Standardstatus</FormLabel>
+                        <FormLabel className="text-base">
+                          Standardstatus
+                        </FormLabel>
                         <FormDescription>
                           Använd denna status som standard för nya avvikelser
                         </FormDescription>
@@ -3135,7 +2400,8 @@ function DeviationStatusesManagement() {
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Är avslutad</FormLabel>
                         <FormDescription>
-                          Markera avvikelser med denna status som avslutade/klara
+                          Markera avvikelser med denna status som
+                          avslutade/klara
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -3148,7 +2414,11 @@ function DeviationStatusesManagement() {
                   )}
                 />
                 <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateDialogOpen(false)}
+                  >
                     Avbryt
                   </Button>
                   <Button type="submit">Skapa</Button>
@@ -3161,11 +2431,14 @@ function DeviationStatusesManagement() {
 
       <div className="grid gap-4">
         {statuses.map((status: any) => (
-          <Card key={status.id} className="bg-card border border-border shadow rounded-2xl">
+          <Card
+            key={status.id}
+            className="bg-card border border-border shadow rounded-2xl"
+          >
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center space-x-3">
-                  <div 
+                  <div
                     className="w-4 h-4 rounded"
                     style={{ backgroundColor: status.color }}
                   />
@@ -3177,17 +2450,24 @@ function DeviationStatusesManagement() {
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Ordning: {status.order} • {status.isActive ? 'Aktiv' : 'Inaktiv'} • {status.isDefault ? 'Standard' : 'Inte standard'} • {status.isCompleted ? 'Avslutad' : 'Pågående'}
+                      Ordning: {status.order} •{" "}
+                      {status.isActive ? "Aktiv" : "Inaktiv"} •{" "}
+                      {status.isDefault ? "Standard" : "Inte standard"} •{" "}
+                      {status.isCompleted ? "Avslutad" : "Pågående"}
                     </div>
                   </div>
                 </div>
                 <div className="flex space-x-2 self-end sm:self-center">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(status)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(status)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(status.id)}
                     disabled={status.isDefault}
                   >
@@ -3201,13 +2481,19 @@ function DeviationStatusesManagement() {
       </div>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editingStatus} onOpenChange={() => setEditingStatus(null)}>
+      <Dialog
+        open={!!editingStatus}
+        onOpenChange={() => setEditingStatus(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Redigera status</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+            <form
+              onSubmit={editForm.handleSubmit(onEditSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={editForm.control}
                 name="name"
@@ -3215,7 +2501,11 @@ function DeviationStatusesManagement() {
                   <FormItem>
                     <FormLabel>Namn</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="t.ex. Pågående" className="rounded-md border-border focus-visible:ring-primary"/>
+                      <Input
+                        {...field}
+                        placeholder="t.ex. Pågående"
+                        className="rounded-md border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -3228,7 +2518,11 @@ function DeviationStatusesManagement() {
                   <FormItem>
                     <FormLabel>Färg</FormLabel>
                     <FormControl>
-                      <Input type="color" {...field} className="rounded-md border-border focus-visible:ring-primary"/>
+                      <Input
+                        type="color"
+                        {...field}
+                        className="rounded-md border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -3241,10 +2535,13 @@ function DeviationStatusesManagement() {
                   <FormItem>
                     <FormLabel>Ordning</FormLabel>
                     <FormControl>
-                      <Input className="rounded-md border-border focus-visible:ring-primary"
-                        type="number" 
-                        {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} 
+                      <Input
+                        className="rounded-md border-border focus-visible:ring-primary"
+                        type="number"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -3277,7 +2574,9 @@ function DeviationStatusesManagement() {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Standardstatus</FormLabel>
+                      <FormLabel className="text-base">
+                        Standardstatus
+                      </FormLabel>
                       <FormDescription>
                         Använd denna status som standard för nya avvikelser
                       </FormDescription>
@@ -3312,7 +2611,11 @@ function DeviationStatusesManagement() {
                 )}
               />
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setEditingStatus(null)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingStatus(null)}
+                >
                   Avbryt
                 </Button>
                 <Button type="submit">Spara</Button>

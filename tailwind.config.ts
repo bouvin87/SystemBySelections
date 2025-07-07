@@ -60,6 +60,7 @@ const config: Config = {
           DEFAULT: "#E5E7EB",
           foreground: "#6B7280",
         },
+        destructive: "#ef4444", "destructive-foreground": "#fff", 
 
         border: "#E5E7EB",
         input: "#E5E7EB",

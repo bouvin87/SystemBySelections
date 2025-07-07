@@ -18,6 +18,7 @@ import {
   insertChecklistSchema, insertCategorySchema, insertQuestionSchema,
   insertUserSchema, insertChecklistResponseSchema, insertDeviationTypeSchema,
   insertCustomFieldSchema, insertCustomFieldTypeMappingSchema,
+  insertUserHasDepartmentSchema,
   insertRoleSchema, insertUserHasRoleSchema
 } from "@shared/schema";
 import { uploadMultiple } from "./middleware/upload";
@@ -580,8 +581,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.deleteRole(req.params.id, req.tenantId);
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting role:', error);
+      // Specific PostgreSQL foreign key constraint violation
+      if (error?.code === '23503') {
+        return res.status(400).json({
+          message: 'Rollen är kopplad till en eller flera användare och kan inte tas bort.',
+          code: error.code,
+        });
+      }
       res.status(500).json({ message: 'Internal server error' });
     }
   });
@@ -643,6 +651,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       console.error('Error removing role from user:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // === USER-DEPARTMENT RELATIONSHIPS API ===
+  // Get user's departments
+  app.get('/api/users/:userId/departments', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const userDepartments = await storage.getUserDepartments(userId, req.tenantId!);
+      res.json(userDepartments);
+    } catch (error) {
+      console.error('Error fetching user departments:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get department's users
+  app.get('/api/departments/:departmentId/users', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const departmentId = parseInt(req.params.departmentId);
+      const departmentUsers = await storage.getDepartmentUsers(departmentId, req.tenantId!);
+      res.json(departmentUsers);
+    } catch (error) {
+      console.error('Error fetching department users:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Assign department to user (admin only)
+  app.post('/api/user-departments', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const validatedData = insertUserHasDepartmentSchema.parse(req.body);
+      const userDepartment = await storage.assignDepartmentToUser(validatedData);
+      res.status(201).json(userDepartment);
+    } catch (error) {
+      console.error('Error assigning department to user:', error);
+      res.status(400).json({ message: 'Invalid user-department data' });
+    }
+  });
+
+  // Remove department from user (admin only)
+  app.delete('/api/user-departments/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      await storage.removeDepartmentFromUser(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error removing department from user:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get specific user-department relationship
+  app.get('/api/user-departments/:id', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+      if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const userDepartment = await storage.getUserHasDepartment(req.params.id);
+      if (!userDepartment) {
+        return res.status(404).json({ message: 'User-department relationship not found' });
+      }
+      res.json(userDepartment);
+    } catch (error) {
+      console.error('Error fetching user-department relationship:', error);
       res.status(500).json({ message: 'Internal server error' });
     }
   });
