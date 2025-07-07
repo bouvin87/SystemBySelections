@@ -98,6 +98,7 @@ import ShiftDialog from "@/components/AdminDialogs/ShiftDialog";
 import DepartmentDialog from "@/components/AdminDialogs/DepartmentDialog";
 import RoleDialog from "@/components/AdminDialogs/RoleDialog";
 import { error } from "console";
+import UserDialog from "@/components/AdminDialogs/UserDialog";
 
 // Deviation Settings Component
 function DeviationSettingsTab() {
@@ -233,6 +234,9 @@ export default function Admin() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [selectedWorkTaskIds, setSelectedWorkTaskIds] = useState<number[]>([]);
   const [selectedUserRoles, setSelectedUserRoles] = useState<string[]>([]);
+  const [selectedUserDepartments, setSelectedUserDepartments] = useState<
+    string[]
+  >([]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const { user, isLoading } = useAuth();
@@ -339,7 +343,7 @@ export default function Admin() {
 
   const { data: departments = [] } = useQuery<Department[]>({
     queryKey: ["/api/departments"],
-    enabled: activeTab === "basic-data",
+    enabled: activeTab === "basic-data" || activeTab === "users",
   });
 
   const { data: roles = [] } = useQuery<Role[]>({
@@ -382,6 +386,7 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/shifts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+
       setDialogOpen(false);
       setEditingItem(null);
       setSelectedIcon("");
@@ -431,6 +436,59 @@ export default function Admin() {
       toast({
         title: "Fel",
         description: "Kunde inte uppdatera användarroller.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateUserDepartments = async (
+    userId: number,
+    selectedDepartments: string[],
+  ) => {
+    try {
+      // Get current user departments
+      const currentDepartments = editingItem?.departments || [];
+      const currentDepartmentIds = currentDepartments.map(
+        (ur: any) => ur.departmentId.toString(),
+      );
+
+      // Find departments to add
+      const departmentsToAdd = selectedDepartments.filter(
+        (departmentId) => !currentDepartmentIds.includes(departmentId),
+      );
+
+      // Find departments to remove
+      const departmentsToRemove = currentDepartmentIds.filter(
+        (departmentId: string) => !selectedDepartments.includes(departmentId),
+      );
+
+      // Add new departments
+      for (const departmentId of departmentsToAdd) {
+        await apiRequest("POST", "/api/user-departments", {
+          userId,
+          departmentId: parseInt(departmentId),
+        });
+      }
+
+      // Remove old departments
+      for (const departmentId of departmentsToRemove) {
+        const userDepartment = currentDepartments.find(
+          (ur: any) => ur.departmentId === departmentId,
+        );
+        if (userDepartment) {
+          await apiRequest(
+            "DELETE",
+            `/api/user-departments/${userDepartment.id}`,
+          );
+        }
+      }
+
+      // Refresh users list
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    } catch (error) {
+      toast({
+        title: "Fel",
+        description: "Kunde inte uppdatera avdelningar.",
         variant: "destructive",
       });
     }
@@ -502,23 +560,26 @@ export default function Admin() {
     onError: (error: any) => {
       const message = error.message;
 
-      if (message.includes("Rollen är kopplad till en eller flera användare och kan inte tas bort")) {
+      if (
+        message.includes(
+          "Rollen är kopplad till en eller flera användare och kan inte tas bort",
+        )
+      ) {
         toast({
           title: "Fel",
-          description: "Denna roll används av en eller flera användare och kan därför inte tas bort.",
+          description:
+            "Denna roll används av en eller flera användare och kan därför inte tas bort.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Fel",
-          description: "Kunde inte ta bort objektet."+ message,
+          description: "Kunde inte ta bort objektet." + message,
           variant: "destructive",
         });
       }
 
       console.error("Error deleting role:", error);
-
-      
     },
   });
 
@@ -532,6 +593,13 @@ export default function Admin() {
       setSelectedUserRoles(item.roles.map((ur: any) => ur.roleId));
     } else {
       setSelectedUserRoles([]);
+    }
+
+    // Load existing user departments if editing a user
+    if (item?.departments) {
+      setSelectedUserDepartments(item.departments.map((ud: any) => ud.departmentId.toString()));
+    } else {
+      setSelectedUserDepartments([]);
     }
 
     setDialogOpen(true);
@@ -652,251 +720,23 @@ export default function Admin() {
               <TabsContent value="users">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                   <h3 className="text-lg font-medium">Hantera användare</h3>
-                  <Dialog
+                  <UserDialog
                     open={dialogOpen && activeTab === "users"}
                     onOpenChange={setDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openDialog()}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Lägg till användare
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingItem
-                            ? "Redigera användare"
-                            : "Lägg till användare"}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          const formData = new FormData(e.currentTarget);
-                          const roleValue = formData.get("role");
-                          const role =
-                            editingItem?.lockRole && editingItem?.role
-                              ? editingItem.role
-                              : roleValue === "admin" || roleValue === "user"
-                                ? roleValue
-                                : "user";
-                          const data: CreateUserRequest = {
-                            email: formData.get("email") as string,
-                            firstName:
-                              (formData.get("firstName") as string) ||
-                              undefined,
-                            lastName:
-                              (formData.get("lastName") as string) || undefined,
-                            role: role,
-                            password: formData.get("password") as string,
-                            isActive: formData.get("isActive") === "on",
-                          };
-
-                          if (editingItem) {
-                            try {
-                              // When editing, handle role updates
-                              await apiRequest(
-                                "PATCH",
-                                `/api/users/${editingItem.id}`,
-                                data,
-                              );
-
-                              // Update user roles using the selected roles from dropdown
-                              await updateUserRoles(
-                                editingItem.id,
-                                selectedUserRoles,
-                              );
-
-                              // Close modal and refresh
-                              setEditingItem(null);
-                              setDialogOpen(false);
-                              toast({
-                                title: "Framgång!",
-                                description: "Användare uppdaterad.",
-                              });
-                            } catch (error) {
-                              toast({
-                                title: "Fel",
-                                description: "Kunde inte uppdatera användaren.",
-                                variant: "destructive",
-                              });
-                            }
-                          } else {
-                            handleSubmit("/api/users", data);
-                          }
-                        }}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <Label htmlFor="email">E-post</Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            defaultValue={editingItem?.email || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="firstName">Förnamn</Label>
-                          <Input
-                            id="firstName"
-                            name="firstName"
-                            defaultValue={editingItem?.firstName || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="lastName">Efternamn</Label>
-                          <Input
-                            id="lastName"
-                            name="lastName"
-                            defaultValue={editingItem?.lastName || ""}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="role">Användar roll</Label>
-                          <Select
-                            name="role"
-                            defaultValue={editingItem?.role || "user"}
-                            disabled={editingItem?.lockRole}
-                          >
-                            <SelectTrigger
-                              className={
-                                editingItem?.lockRole
-                                  ? "opacity-50 cursor-not-allowed"
-                                  : ""
-                              }
-                            >
-                              <SelectValue placeholder="Välj användar roll" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">Användare</SelectItem>
-                              <SelectItem value="admin">
-                                Administratör
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {editingItem?.lockRole && (
-                            <p className="text-xs text-red-600 mt-1">
-                              Rollen är låst och kan inte ändras
-                            </p>
-                          )}
-                        </div>
-
-                        {/* User Roles Section - Dropdown Multi-Select */}
-                        {editingItem && (
-                          <div>
-                            <Label>Tilldelade roller</Label>
-                            <Select
-                              value=""
-                              onValueChange={(value) => {
-                                if (!selectedUserRoles.includes(value)) {
-                                  setSelectedUserRoles((prev) => [
-                                    ...prev,
-                                    value,
-                                  ]);
-                                }
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Välj roller" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {roles
-                                  .filter(
-                                    (role: any) =>
-                                      !selectedUserRoles.includes(role.id),
-                                  )
-                                  .map((role: any) => (
-                                    <SelectItem key={role.id} value={role.id}>
-                                      {role.name}
-                                      {role.description && (
-                                        <span className="text-xs text-muted-foreground ml-1">
-                                          - {role.description}
-                                        </span>
-                                      )}
-                                    </SelectItem>
-                                  ))}
-                                {roles.filter(
-                                  (role: any) =>
-                                    !selectedUserRoles.includes(role.id),
-                                ).length === 0 && (
-                                  <SelectItem value="no-options" disabled>
-                                    Alla roller är redan valda
-                                  </SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
-                            {selectedUserRoles.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {selectedUserRoles.map((roleId) => {
-                                  const role = roles.find(
-                                    (r: any) => r.id === roleId,
-                                  );
-                                  return role ? (
-                                    <div
-                                      key={roleId}
-                                      className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
-                                    >
-                                      {role.name}
-                                      <X
-                                        className="h-3 w-3 cursor-pointer"
-                                        onClick={() =>
-                                          setSelectedUserRoles((prev) =>
-                                            prev.filter((id) => id !== roleId),
-                                          )
-                                        }
-                                      />
-                                    </div>
-                                  ) : null;
-                                })}
-                              </div>
-                            )}
-                            {roles.length === 0 && (
-                              <p className="text-sm text-muted-foreground mt-2">
-                                Inga roller tillgängliga. Skapa roller först
-                                under Roller-fliken.
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="isActive"
-                              name="isActive"
-                              defaultChecked={editingItem?.isActive ?? true}
-                            />
-                            <Label
-                              htmlFor="isActive"
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Användaren är aktiv
-                            </Label>
-                          </div>
-                        </div>
-                        {!editingItem && (
-                          <div>
-                            <Label htmlFor="password">Lösenord</Label>
-                            <Input
-                              id="password"
-                              name="password"
-                              type="password"
-                              required
-                            />
-                          </div>
-                        )}
-                        <Button type="submit" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Spara
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
+                    openDialog={() => openDialog()}
+                    editingItem={editingItem}
+                    setEditingItem={setEditingItem}
+                    setDialogOpen={setDialogOpen}
+                    handleSubmit={handleSubmit}
+                    updateUserRoles={updateUserRoles}
+                    updateUserDepartments={updateUserDepartments}
+                    roles={roles}
+                    departments={departments}
+                    selectedUserRoles={selectedUserRoles}
+                    setSelectedUserRoles={setSelectedUserRoles}
+                    selectedUserDepartments={selectedUserDepartments}
+                    setSelectedUserDepartments={setSelectedUserDepartments}
+                  />
                 </div>
 
                 <div className="border rounded-lg">
