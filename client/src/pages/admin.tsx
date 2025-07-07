@@ -478,9 +478,11 @@ export default function Admin() {
       // Remove old departments
       for (const departmentId of departmentsToRemove) {
         const userDepartment = currentDepartments.find(
-          (ur: any) => ur.departmentId === departmentId,
+          (ur: any) => ur.departmentId.toString() === departmentId,
         );
+        console.log('Trying to remove department:', departmentId, 'Found userDepartment:', userDepartment);
         if (userDepartment) {
+          console.log('Deleting user-department:', userDepartment.id);
           await apiRequest(
             "DELETE",
             `/api/user-departments/${userDepartment.id}`,
