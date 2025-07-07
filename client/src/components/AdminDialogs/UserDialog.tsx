@@ -289,15 +289,15 @@ export default function UserDialog({
                   </SelectTrigger>
                   <SelectContent>
                     {departments
-                      .filter((r) => !selectedUserDepartments.includes(r.id))
+                      .filter((r) => !selectedUserDepartments.includes(r.id.toString()))
                       .map((r) => (
-                        <SelectItem key={r.id} value={r.id}>
+                        <SelectItem key={r.id} value={r.id.toString()}>
                           {r.name}
                           
                         </SelectItem>
                       ))}
                     {departments.filter(
-                      (r) => !selectedUserDepartments.includes(r.id),
+                      (r) => !selectedUserDepartments.includes(r.id.toString()),
                     ).length === 0 && (
                       <SelectItem value="no-options" disabled>
                         Alla avdelningar är redan valda
@@ -308,7 +308,7 @@ export default function UserDialog({
                 <div className="mt-2 flex flex-wrap gap-1">
                   {selectedUserDepartments.map((departmentId) => {
                     const department = departments.find(
-                      (r) => r.id === departmentId,
+                      (r) => r.id.toString() === departmentId,
                     );
                     return department ? (
                       <div
