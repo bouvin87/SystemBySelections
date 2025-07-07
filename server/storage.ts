@@ -281,6 +281,7 @@ export class DatabaseStorage implements IStorage {
       usersData.map(async (user) => {
         const userRoles = await this.getUserRoles(user.id, tenantId);
         const userDepartments = await this.getUserDepartments(user.id, tenantId);
+
         return {
           ...user,
           roles: userRoles,

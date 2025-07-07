@@ -597,8 +597,10 @@ export default function Admin() {
 
     // Load existing user departments if editing a user
     if (item?.departments) {
+      console.log('Loading user departments:', item.departments);
       setSelectedUserDepartments(item.departments.map((ud: any) => ud.departmentId.toString()));
     } else {
+      console.log('No departments found for user');
       setSelectedUserDepartments([]);
     }
 
