@@ -446,11 +446,13 @@ export default function Admin() {
     selectedDepartments: string[],
   ) => {
     try {
+      console.log('updateUserDepartments called with:', { userId, selectedDepartments });
       // Get current user departments
       const currentDepartments = editingItem?.departments || [];
       const currentDepartmentIds = currentDepartments.map(
         (ur: any) => ur.departmentId.toString(),
       );
+      console.log('Current department IDs:', currentDepartmentIds);
 
       // Find departments to add
       const departmentsToAdd = selectedDepartments.filter(
@@ -461,6 +463,9 @@ export default function Admin() {
       const departmentsToRemove = currentDepartmentIds.filter(
         (departmentId: string) => !selectedDepartments.includes(departmentId),
       );
+
+      console.log('Departments to add:', departmentsToAdd);
+      console.log('Departments to remove:', departmentsToRemove);
 
       // Add new departments
       for (const departmentId of departmentsToAdd) {
