@@ -166,16 +166,26 @@ function KanbanColumnComponent({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onCreateCard(column.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onCreateCard(column.id);
+              }}
               className="h-8 w-8 p-0"
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <Plus className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onEditColumn(column)}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onEditColumn(column);
+              }}
               className="h-8 w-8 p-0"
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -183,8 +193,13 @@ function KanbanColumnComponent({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onDeleteColumn(column.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onDeleteColumn(column.id);
+                }}
                 className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -483,7 +498,15 @@ export default function KanbanDetails() {
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/kanban")}>
+            <Button 
+              variant="ghost" 
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                navigate("/kanban");
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Tillbaka
             </Button>
@@ -495,7 +518,16 @@ export default function KanbanDetails() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="default" onClick={handleCreateColumn} className="rounded-xl">
+            <Button 
+              variant="default" 
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleCreateColumn();
+              }} 
+              className="rounded-xl"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Ny kolumn
             </Button>
