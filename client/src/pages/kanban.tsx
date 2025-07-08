@@ -76,15 +76,22 @@ function SortableItem({
       className="cursor-pointer hover:shadow-md transition-all duration-200 mb-2"
       ref={setNodeRef}
       style={style}
-      {...attributes}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => {
+        e.preventDefault();
         e.stopPropagation();
         onEdit(card);
       }}
     >
       <CardContent className="p-3">
         <div className="flex items-center gap-2 mb-2">
-          <div {...listeners} className="cursor-grab hover:cursor-grabbing">
+          <div 
+            {...listeners} 
+            {...attributes}
+            className="cursor-grab hover:cursor-grabbing"
+            onClick={(e) => e.stopPropagation()}
+          >
             <GripVertical className="h-3 w-3 text-muted-foreground" />
           </div>
           {getIcon(card.icon || "FileText")}
@@ -168,11 +175,19 @@ function DroppableContainer({
               <CardTitle className="text-base">{column.title}</CardTitle>
               <Badge variant="secondary">{items.length}</Badge>
             </div>
-            <div className="flex items-center gap-1">
+            <div 
+              className="flex items-center gap-1" 
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
               <Button
                 variant="ghost"
                 size="sm"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   onCreateCard(column.id);
                 }}
@@ -182,7 +197,10 @@ function DroppableContainer({
               <Button
                 variant="ghost"
                 size="sm"
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   onEditColumn(column);
                 }}
@@ -193,7 +211,10 @@ function DroppableContainer({
                 <Button
                   variant="ghost"
                   size="sm"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     onDeleteColumn(column.id);
                   }}
@@ -211,12 +232,20 @@ function DroppableContainer({
           )}
         </CardHeader>
         <CardContent className="min-h-[200px]">
-          <div className="mb-2">
+          <div 
+            className="mb-2" 
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <Button
               variant="ghost"
               size="sm"
               className="w-full text-muted-foreground hover:text-foreground"
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 onCreateCard(column.id);
               }}
