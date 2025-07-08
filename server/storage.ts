@@ -252,7 +252,7 @@ export interface IStorage {
   deleteKanbanBoard(id: string, tenantId: number): Promise<void>;
 
   // Kanban Columns (tenant-scoped through board)
-  getKanbanColumns(boardId: string, tenantId: number): Promise<KanbanColumn[]>;
+  getKanbanColumns(boardId: string, tenantId: number, userId?: number): Promise<KanbanColumn[]>;
   getKanbanColumn(id: string, tenantId: number): Promise<KanbanColumn | undefined>;
   createKanbanColumn(column: InsertKanbanColumn): Promise<KanbanColumn>;
   updateKanbanColumn(id: string, column: Partial<InsertKanbanColumn>, tenantId: number): Promise<KanbanColumn>;
@@ -1837,10 +1837,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Kanban Columns
-  async getKanbanColumns(boardId: string, tenantId: number): Promise<KanbanColumn[]> {
-    // Verify board belongs to tenant
-    const board = await this.getKanbanBoard(boardId, tenantId);
-    if (!board) throw new Error('Board not found');
+  async getKanbanColumns(boardId: string, tenantId: number, userId?: number): Promise<KanbanColumn[]> {
+    // Verify board belongs to tenant and user has access
+    const board = await this.getKanbanBoard(boardId, tenantId, userId);
+    if (!board) throw new Error('Board not found or access denied');
 
     return await db.select()
       .from(kanbanColumns)

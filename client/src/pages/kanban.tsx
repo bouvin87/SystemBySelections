@@ -4,13 +4,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MoreHorizontal, Settings } from "lucide-react";
+import { Plus, MoreHorizontal, Settings, Link, ArrowLeft } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanBoard, KanbanColumn, KanbanCard } from "@shared/schema";
 import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
 import { KanbanColumnModal } from "@/components/Kanban/KanbanColumnModal";
 import { KanbanCardModal } from "@/components/Kanban/KanbanCardModal";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 export default function KanbanPage() {
   const [selectedBoard, setSelectedBoard] = useState<KanbanBoard | null>(null);
@@ -33,7 +34,8 @@ export default function KanbanPage() {
   // Fetch columns for selected board
   const { data: columns = [], isLoading: columnsLoading } = useQuery({
     queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
-    queryFn: () => apiRequest("GET", `/api/kanban/boards/${selectedBoard?.id}/columns`),
+    queryFn: () =>
+      apiRequest("GET", `/api/kanban/boards/${selectedBoard?.id}/columns`),
     enabled: !!selectedBoard?.id,
   });
 
@@ -43,7 +45,7 @@ export default function KanbanPage() {
     queryFn: async () => {
       if (!columns.length) return [];
       const cardPromises = columns.map((column: KanbanColumn) =>
-        apiRequest("GET", `/api/kanban/columns/${column.id}/cards`)
+        apiRequest("GET", `/api/kanban/columns/${column.id}/cards`),
       );
       const cardArrays = await Promise.all(cardPromises);
       return cardArrays.flat();
@@ -73,7 +75,8 @@ export default function KanbanPage() {
   });
 
   const deleteBoardMutation = useMutation({
-    mutationFn: (id: string) => apiRequest("DELETE", `/api/kanban/boards/${id}`),
+    mutationFn: (id: string) =>
+      apiRequest("DELETE", `/api/kanban/boards/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards"] });
       setSelectedBoard(null);
@@ -84,8 +87,8 @@ export default function KanbanPage() {
   const createColumnMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/kanban/columns", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"] 
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
       });
       setShowColumnModal(false);
       toast({ title: "Kolumn skapad framgångsrikt" });
@@ -95,8 +98,8 @@ export default function KanbanPage() {
   const createCardMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/kanban/cards", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/kanban/cards", selectedBoard?.id] 
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards", selectedBoard?.id],
       });
       setShowCardModal(false);
       toast({ title: "Kort skapat framgångsrikt" });
@@ -110,7 +113,8 @@ export default function KanbanPage() {
   };
 
   const getCardsForColumn = (columnId: string) => {
-    return allCards.filter((card: KanbanCard) => card.columnId === columnId)
+    return allCards
+      .filter((card: KanbanCard) => card.columnId === columnId)
       .sort((a: KanbanCard, b: KanbanCard) => a.position - b.position);
   };
 
@@ -138,163 +142,228 @@ export default function KanbanPage() {
 
   if (boardsLoading) {
     return (
-      <div className="container mx-auto p-4">
+      <div className="min-h-screen bg-background text-foreground pb-20">
         <div className="text-center">Laddar tavlor...</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Kanban Tavlor</h1>
-          <p className="text-muted-foreground">
-            Organisera ditt arbete med anpassningsbara Kanban-tavlor
-          </p>
-        </div>
-        <Button onClick={handleCreateBoard} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Ny Tavla
-        </Button>
-      </div>
+    <div className="min-h-screen bg-background text-foreground pb-20">
+      <Navigation />
 
-      {/* Board Selection */}
+      {/* Header */}
       {!selectedBoard ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {boards.map((board: KanbanBoard) => (
-            <Card
-              key={board.id}
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setSelectedBoard(board)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {getIcon(board.icon || "ClipboardList")}
-                    <CardTitle className="text-lg">{board.name}</CardTitle>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditBoard(board);
-                    }}
-                  >
-                    <Settings className="h-4 w-4" />
+        <div className="bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Link href="/">
+                  <Button variant="ghost" size="sm">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Tillbaka
                   </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    Kanban Tavlor
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Organisera ditt arbete med anpassningsbara Kanban-tavlor
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {board.description || "Ingen beskrivning"}
-                </p>
-                <div className="flex items-center gap-2 mt-3">
-                  <Badge variant={board.isPublic ? "default" : "secondary"}>
-                    {board.isPublic ? "Offentlig" : "Privat"}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        /* Board View */
-        <div className="space-y-4">
-          {/* Board Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => setSelectedBoard(null)}>
-                ← Tillbaka till tavlor
-              </Button>
-              <div className="flex items-center gap-2">
-                {getIcon(selectedBoard.icon || "ClipboardList")}
-                <h2 className="text-2xl font-bold">{selectedBoard.name}</h2>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleCreateColumn}>
-                <Plus className="h-4 w-4 mr-2" />
-                Ny Kolumn
-              </Button>
-              <Button variant="outline" onClick={() => handleEditBoard(selectedBoard)}>
-                <Settings className="h-4 w-4" />
+              <Button
+                onClick={handleCreateBoard}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Ny Tavla
               </Button>
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              {/* Vänstersida: Tillbaka + titel + ikon */}
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedBoard(null)}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Tillbaka till tavlor
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="text-muted-foreground">
+                    {getIcon(selectedBoard.icon || "ClipboardList")}
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-foreground">
+                      {selectedBoard.name}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                      Hantera kolumner och kort
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-          {/* Columns */}
+              {/* Högersida: Åtgärdsknappar */}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleCreateColumn}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ny Kolumn
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleEditBoard(selectedBoard)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Board Selection */}
+      {!selectedBoard ? (
+        <main className="max-w-md mx-auto px-4 pt-6 pb-32 space-y-6">
+          {boards.length > 0 ? (
+            <div className="modern-card-grid">
+              {boards.map((board: KanbanBoard) => (
+                <div
+                  key={board.id}
+                  onClick={() => setSelectedBoard(board)}
+                  className="modern-action-card bg-pastel-blue text-left cursor-pointer"
+                >
+                  {getIcon(
+                    board.icon || "ClipboardList",
+                    "h-5 w-5 mb-2 text-primary",
+                  )}
+                  <p className="font-medium text-sm text-foreground">
+                    {board.name}
+                  </p>
+                  {board.description && (
+                    <p className="text-xs text-muted-foreground">
+                      {board.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-card rounded-2xl p-10 text-center border border-border">
+              <ClipboardList className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                Inga tavlor tillgängliga
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Skapa en ny tavla för att börja organisera ditt arbete visuellt.
+              </p>
+              <Button onClick={handleCreateBoard}>
+                <Plus className="mr-2 h-4 w-4" />
+                Ny Tavla
+              </Button>
+            </div>
+          )}
+        </main>
+      ) : (
+        /* Board View */
+        <div className="space-y-4">
+         {/* Columns */}
           {columnsLoading ? (
             <div className="text-center py-8">Laddar kolumner...</div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-4">
-              {Array.isArray(columns) && columns.map((column: KanbanColumn) => {
-                const columnCards = getCardsForColumn(column.id);
-                return (
-                  <div key={column.id} className="flex-shrink-0 w-80">
-                    <Card className="h-full">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {getIcon(column.icon || "List")}
-                            <CardTitle className="text-base">{column.title}</CardTitle>
-                            <Badge variant="secondary">{columnCards.length}</Badge>
+              {Array.isArray(columns) &&
+                columns.map((column: KanbanColumn) => {
+                  const columnCards = getCardsForColumn(column.id);
+                  return (
+                    <div key={column.id} className="flex-shrink-0 w-80">
+                      <Card className="h-full">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {getIcon(column.icon || "List")}
+                              <CardTitle className="text-base">
+                                {column.title}
+                              </CardTitle>
+                              <Badge variant="secondary">
+                                {columnCards.length}
+                              </Badge>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCreateCard(column.id)}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCreateCard(column.id)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        {column.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {column.description}
-                          </p>
-                        )}
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {columnCards.map((card: KanbanCard) => (
-                          <Card key={card.id} className="p-3 cursor-pointer hover:shadow-sm">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-2">
-                                {getIcon(card.icon || "FileText")}
-                                <span className="font-medium text-sm">{card.title}</span>
+                          {column.description && (
+                            <p className="text-sm text-muted-foreground">
+                              {column.description}
+                            </p>
+                          )}
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {columnCards.map((card: KanbanCard) => (
+                            <Card
+                              key={card.id}
+                              className="p-3 cursor-pointer hover:shadow-sm"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-2">
+                                  {getIcon(card.icon || "FileText")}
+                                  <span className="font-medium text-sm">
+                                    {card.title}
+                                  </span>
+                                </div>
+                                <Button variant="ghost" size="sm">
+                                  <MoreHorizontal className="h-3 w-3" />
+                                </Button>
                               </div>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            {card.description && (
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {card.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-1 mt-2">
-                              {card.labels?.map((label) => (
-                                <Badge key={label} variant="outline" className="text-xs">
-                                  {label}
-                                </Badge>
-                              ))}
-                              {card.priorityLevel && card.priorityLevel !== "medium" && (
-                                <Badge 
-                                  variant={card.priorityLevel === "high" || card.priorityLevel === "urgent" ? "destructive" : "default"}
-                                  className="text-xs"
-                                >
-                                  {card.priorityLevel}
-                                </Badge>
+                              {card.description && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {card.description}
+                                </p>
                               )}
-                            </div>
-                          </Card>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </div>
-                );
-              })}
+                              <div className="flex items-center gap-1 mt-2">
+                                {card.labels?.map((label) => (
+                                  <Badge
+                                    key={label}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {label}
+                                  </Badge>
+                                ))}
+                                {card.priorityLevel &&
+                                  card.priorityLevel !== "medium" && (
+                                    <Badge
+                                      variant={
+                                        card.priorityLevel === "high" ||
+                                        card.priorityLevel === "urgent"
+                                          ? "destructive"
+                                          : "default"
+                                      }
+                                      className="text-xs"
+                                    >
+                                      {card.priorityLevel}
+                                    </Badge>
+                                  )}
+                              </div>
+                            </Card>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>
@@ -312,10 +381,14 @@ export default function KanbanPage() {
             createBoardMutation.mutate(data);
           }
         }}
-        onDelete={editingBoard ? () => {
-          deleteBoardMutation.mutate(editingBoard.id);
-          setShowBoardModal(false);
-        } : undefined}
+        onDelete={
+          editingBoard
+            ? () => {
+                deleteBoardMutation.mutate(editingBoard.id);
+                setShowBoardModal(false);
+              }
+            : undefined
+        }
       />
 
       <KanbanColumnModal
