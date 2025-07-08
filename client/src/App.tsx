@@ -19,7 +19,8 @@ import Login from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import MobileChecklistPage from "@/pages/mobile-checklist";
 import MobileDeviationPage from "@/pages/mobile-deviation";
-import Kanban from "@/pages/kanban";
+import KanbanOverview from "@/pages/kanban-overview";
+import KanbanDetails from "@/pages/kanban-details";
 import { useState, useEffect } from "react";
 
 function Router() {
@@ -97,7 +98,8 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/checklists" component={Checklists} />
         <Route path="/admin" component={Admin} />
-        <Route path="/kanban" component={Kanban} />
+        <Route path="/kanban" component={KanbanOverview} />
+        <Route path="/kanban/:boardId" component={KanbanDetails} />
         <Route path="/checklist-editor/:id" component={ChecklistEditor} />
         <Route path="/checklist/:id/start" component={ChecklistStart} />
         <Route path="/checklist/:id/dashboard">
