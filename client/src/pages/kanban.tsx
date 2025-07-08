@@ -370,7 +370,7 @@ export default function KanbanPage() {
   });
 
   const updateCardMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: any }) => apiRequest("PUT", `/api/kanban/cards/${id}`, data),
+    mutationFn: ({ id, data }: { id: string, data: any }) => apiRequest("PATCH", `/api/kanban/cards/${id}`, data),
     onSuccess: () => {
       // Invalidate all card queries to refresh the data
       queryClient.invalidateQueries({

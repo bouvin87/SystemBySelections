@@ -2536,8 +2536,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
+        console.log("Updating kanban card:", id, "with data:", req.body);
         const validatedData = insertKanbanCardSchema.partial().parse(req.body);
+        console.log("Validated data:", validatedData);
         const card = await storage.updateKanbanCard(id, validatedData, req.tenantId!);
+        console.log("Updated card:", card);
         res.json(card);
       } catch (error) {
         console.error("Error updating kanban card:", error);
