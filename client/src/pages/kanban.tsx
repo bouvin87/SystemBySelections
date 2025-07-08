@@ -135,14 +135,16 @@ function DroppableColumn({
   onEdit,
   onDelete,
   cardCount,
-  canDelete 
+  canDelete,
+  isOver 
 }: { 
   column: KanbanColumn, 
   children: React.ReactNode,
   onEdit: (column: KanbanColumn) => void,
   onDelete: (columnId: string) => void,
   cardCount: number,
-  canDelete: boolean
+  canDelete: boolean,
+  isOver?: boolean
 }) {
   const { setNodeRef } = useDroppable({
     id: column.id,
@@ -155,7 +157,14 @@ function DroppableColumn({
 
   return (
     <div className="flex-shrink-0 w-80">
-      <Card className="h-full" ref={setNodeRef}>
+      <Card 
+        className={`h-full transition-all duration-200 ${
+          isOver 
+            ? "ring-2 ring-blue-500 ring-offset-2 bg-blue-50/50 dark:bg-blue-950/20 shadow-lg scale-[1.02]" 
+            : ""
+        }`} 
+        ref={setNodeRef}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -219,6 +228,7 @@ export default function KanbanPage() {
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<"card" | "column" | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -450,10 +460,16 @@ export default function KanbanPage() {
     }
   };
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    setOverId(over ? over.id as string : null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
     setActiveType(null);
+    setOverId(null);
 
     if (!over) return;
 
@@ -628,6 +644,7 @@ export default function KanbanPage() {
             <DndContext
               sensors={sensors}
               onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
               onDragEnd={handleDragEnd}
             >
               <div className="flex gap-4 overflow-x-auto pb-4">
@@ -642,6 +659,7 @@ export default function KanbanPage() {
                       onDelete={handleDeleteColumn}
                       cardCount={columnCards.length}
                       canDelete={selectedBoard?.ownerUserId === user?.id}
+                      isOver={overId === column.id && activeType === "card"}
                     >
                       <div className="mb-2">
                         <Button
