@@ -369,6 +369,18 @@ export default function KanbanPage() {
     },
   });
 
+  const updateCardMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => apiRequest("PUT", `/api/kanban/cards/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards", selectedBoard?.id],
+      });
+      setShowCardModal(false);
+      setEditingCard(null);
+      toast({ title: "Kort uppdaterat framgångsrikt" });
+    },
+  });
+
   // Move card mutation
   const moveCardMutation = useMutation({
     mutationFn: async ({ cardId, newColumnId, position }: { cardId: string, newColumnId: string, position: number }) => {
