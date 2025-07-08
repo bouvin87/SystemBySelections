@@ -1910,14 +1910,24 @@ export class DatabaseStorage implements IStorage {
 
   // Kanban Cards
   async getKanbanCards(columnId: string, tenantId: number): Promise<KanbanCard[]> {
-    return await db.select()
-      .from(kanbanCards)
-      .innerJoin(kanbanColumns, eq(kanbanCards.columnId, kanbanColumns.id))
+    // First verify the column belongs to a board owned by this tenant
+    const column = await db.select()
+      .from(kanbanColumns)
       .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
       .where(and(
-        eq(kanbanCards.columnId, columnId),
+        eq(kanbanColumns.id, columnId),
         eq(kanbanBoards.tenantId, tenantId)
       ))
+      .limit(1);
+    
+    if (!column.length) {
+      throw new Error('Column not found or access denied');
+    }
+
+    // Now get only the cards from that column
+    return await db.select()
+      .from(kanbanCards)
+      .where(eq(kanbanCards.columnId, columnId))
       .orderBy(asc(kanbanCards.position));
   }
 
