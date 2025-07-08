@@ -122,13 +122,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-- **July 8, 2025**: Completely rebuilt Kanban details page from scratch for optimal performance
-  - Recreated entire component with clean architecture following dnd-kit best practices
-  - Implemented instant drag-and-drop using closestCenter collision detection and clean PointerSensor
-  - Used verticalListSortingStrategy for cards and rectSortingStrategy for columns
-  - Removed all activation constraints for maximum responsiveness
-  - Fixed all import errors and component structure issues
-  - Complete rewrite delivers professional drag-and-drop experience
+- **July 8, 2025**: Implemented proper dnd-kit sortable multiple containers pattern
+  - Rebuilt Kanban details page using official dnd-kit multiple containers approach
+  - Implemented proper SortableContext per column with verticalListSortingStrategy
+  - Used closestCorners collision detection for better cross-column dragging
+  - Separated drag handling: handleDragOver for cross-column moves, handleDragEnd for same-column reordering
+  - Clean component structure with proper event handling and button interactions
+  - Professional drag-and-drop experience following dnd-kit documentation standards
 
 - **July 7, 2025**: Implemented UserHasDepartment relationship system
   - Added `user_has_departments` table with UUID primary key
