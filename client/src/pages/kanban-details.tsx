@@ -256,10 +256,7 @@ export default function KanbanDetails() {
 
   // Mutations
   const createColumnMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/kanban/boards/${boardId}/columns`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: any) => apiRequest("POST", `/api/kanban/boards/${boardId}/columns`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
       setShowColumnModal(false);
@@ -270,10 +267,7 @@ export default function KanbanDetails() {
 
   const updateColumnMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
-      apiRequest(`/api/kanban/columns/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("PATCH", `/api/kanban/columns/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
       setShowColumnModal(false);
@@ -283,9 +277,7 @@ export default function KanbanDetails() {
   });
 
   const deleteColumnMutation = useMutation({
-    mutationFn: (id: string) => apiRequest(`/api/kanban/columns/${id}`, {
-      method: "DELETE",
-    }),
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/kanban/columns/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
       toast({ description: "Kolumn borttagen" });
@@ -293,10 +285,7 @@ export default function KanbanDetails() {
   });
 
   const createCardMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/kanban/cards`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: any) => apiRequest("POST", `/api/kanban/cards`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
       setShowCardModal(false);
@@ -308,10 +297,7 @@ export default function KanbanDetails() {
 
   const updateCardMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
-      apiRequest(`/api/kanban/cards/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("PATCH", `/api/kanban/cards/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
       setShowCardModal(false);
@@ -323,7 +309,7 @@ export default function KanbanDetails() {
 
   const moveCardMutation = useMutation({
     mutationFn: ({ cardId, data }: { cardId: string; data: any }) =>
-      apiRequest(`/api/kanban/cards/${cardId}/move`, "POST", data),
+      apiRequest("POST", `/api/kanban/cards/${cardId}/move`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
     },
