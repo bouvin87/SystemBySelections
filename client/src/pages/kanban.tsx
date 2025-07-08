@@ -268,7 +268,7 @@ export default function KanbanPage() {
   console.log("Frontend: columns loading:", columnsLoading);
   console.log("Frontend: selected board:", selectedBoard);
 
-  // Fetch cards for all columns
+  // Fetch cards for all columns with forced refresh after moves
   const { data: allCards = [] } = useQuery({
     queryKey: ["/api/kanban/cards", selectedBoard?.id],
     queryFn: async () => {
@@ -286,8 +286,9 @@ export default function KanbanPage() {
       return flatCards;
     },
     enabled: !!selectedBoard?.id && columns.length > 0,
-    staleTime: 0,  // Force fresh data
-    cacheTime: 0,  // Don't cache
+    staleTime: 0,  // Always fetch fresh data
+    cacheTime: 1000 * 5,  // Cache for 5 seconds to prevent excessive requests
+    refetchOnWindowFocus: true,  // Refetch when window regains focus
   });
 
   // Mutations
@@ -394,12 +395,13 @@ export default function KanbanPage() {
       });
     },
     onSuccess: () => {
-      // Immediately invalidate all column queries for instant refresh
-      columns?.forEach(column => {
-        queryClient.invalidateQueries({
-          queryKey: ["/api/kanban/columns", column.id, "cards"],
-        });
+      // Force invalidation of card data to immediately refresh
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards", selectedBoard?.id],
       });
+      // Remove stale time temporarily to force immediate refetch
+      queryClient.setQueryData(["/api/kanban/cards", selectedBoard?.id], undefined);
+      
       toast({
         title: "Kort flyttat",
         description: "Kortet har flyttats till den nya kolumnen.",
