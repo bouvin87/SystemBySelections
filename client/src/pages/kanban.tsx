@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MoreHorizontal, Settings, Link, ArrowLeft } from "lucide-react";
+import { Plus, MoreHorizontal, Settings, Link, ArrowLeft, GripVertical } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanBoard, KanbanColumn, KanbanCard } from "@shared/schema";
 import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
@@ -12,6 +12,119 @@ import { KanbanColumnModal } from "@/components/Kanban/KanbanColumnModal";
 import { KanbanCardModal } from "@/components/Kanban/KanbanCardModal";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+// Sortable Card Component
+function SortableCard({ card, onEdit }: { card: KanbanCard, onEdit: (card: KanbanCard) => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: card.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const getIcon = (iconName: string) => {
+    const Icon = (Icons as any)[iconName] || Icons.FileText;
+    return <Icon className="h-4 w-4" />;
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className="p-3 cursor-pointer hover:shadow-sm"
+      onClick={() => onEdit(card)}
+      {...attributes}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          {getIcon(card.icon || "FileText")}
+          <span className="font-medium text-sm">
+            {card.title}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            {...listeners}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <GripVertical className="h-3 w-3" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(card);
+            }}
+          >
+            <MoreHorizontal className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      {card.description && (
+        <p className="text-xs text-muted-foreground mt-2">
+          {card.description}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-1 mt-2">
+        {card.labels?.map((label) => (
+          <Badge
+            key={label}
+            variant="outline"
+            className="text-xs"
+          >
+            {label}
+          </Badge>
+        ))}
+        {card.priorityLevel &&
+          card.priorityLevel !== "medium" && (
+            <Badge
+              variant={
+                card.priorityLevel === "high" ||
+                card.priorityLevel === "urgent"
+                  ? "destructive"
+                  : "default"
+              }
+              className="text-xs"
+            >
+              {card.priorityLevel}
+            </Badge>
+          )}
+      </div>
+    </Card>
+  );
+}
 
 export default function KanbanPage() {
   const [selectedBoard, setSelectedBoard] = useState<KanbanBoard | null>(null);
@@ -22,9 +135,20 @@ export default function KanbanPage() {
   const [editingColumn, setEditingColumn] = useState<KanbanColumn | null>(null);
   const [editingCard, setEditingCard] = useState<KanbanCard | null>(null);
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeType, setActiveType] = useState<"card" | "column" | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    })
+  );
 
   // Fetch all boards
   const { data: boards = [], isLoading: boardsLoading } = useQuery({
@@ -126,6 +250,37 @@ export default function KanbanPage() {
     },
   });
 
+  // Move card mutation
+  const moveCardMutation = useMutation({
+    mutationFn: async ({ cardId, newColumnId, position }: { cardId: string, newColumnId: string, position: number }) => {
+      return await apiRequest("POST", `/api/kanban/cards/${cardId}/move`, { 
+        columnId: newColumnId, 
+        position 
+      });
+    },
+    onSuccess: () => {
+      // Invalidate cards for all columns to refresh the data
+      if (selectedBoard) {
+        columns?.forEach(column => {
+          queryClient.invalidateQueries({
+            queryKey: ["/api/kanban/columns", column.id, "cards"],
+          });
+        });
+      }
+      toast({
+        title: "Kort flyttat",
+        description: "Kortet har flyttats till den nya kolumnen.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte flytta kortet.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Helper functions
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.FileText;
@@ -158,6 +313,67 @@ export default function KanbanPage() {
     setSelectedColumnId(columnId);
     setEditingCard(null);
     setShowCardModal(true);
+  };
+
+  const handleEditColumn = (column: KanbanColumn) => {
+    setEditingColumn(column);
+    setShowColumnModal(true);
+  };
+
+  const handleEditCard = (card: KanbanCard) => {
+    setEditingCard(card);
+    setSelectedColumnId(card.columnId);
+    setShowCardModal(true);
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    
+    // Determine if we're dragging a card or column
+    if (allCards.find(card => card.id === active.id)) {
+      setActiveType("card");
+    } else if (columns?.find(col => col.id === active.id)) {
+      setActiveType("column");
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    setActiveType(null);
+
+    if (!over) return;
+
+    if (activeType === "card") {
+      // Handle card movement
+      const activeCard = allCards.find(card => card.id === active.id);
+      if (!activeCard) return;
+
+      const overId = over.id as string;
+      let newColumnId = activeCard.columnId;
+      
+      // Check if dropped on a column or another card
+      const overColumn = columns?.find(col => col.id === overId);
+      if (overColumn) {
+        newColumnId = overColumn.id;
+      } else {
+        const overCard = allCards.find(card => card.id === overId);
+        if (overCard) {
+          newColumnId = overCard.columnId;
+        }
+      }
+
+      // If column changed, update the card
+      if (newColumnId !== activeCard.columnId) {
+        moveCardMutation.mutate({
+          cardId: activeCard.id,
+          newColumnId,
+          position: 0 // For now, put at top of new column
+        });
+      }
+    }
   };
 
   if (boardsLoading) {
@@ -298,9 +514,14 @@ export default function KanbanPage() {
           {columnsLoading ? (
             <div className="text-center py-8">Laddar kolumner...</div>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              {Array.isArray(columns) &&
-                columns.map((column: KanbanColumn) => {
+            <DndContext
+              sensors={sensors}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {Array.isArray(columns) &&
+                  columns.map((column: KanbanColumn) => {
                   const columnCards = getCardsForColumn(column.id);
                   return (
                     <div key={column.id} className="flex-shrink-0 w-80">
@@ -316,13 +537,22 @@ export default function KanbanPage() {
                                 {columnCards.length}
                               </Badge>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCreateCard(column.id)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCreateCard(column.id)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditColumn(column)}
+                              >
+                                <Settings className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                           {column.description && (
                             <p className="text-sm text-muted-foreground">
@@ -331,60 +561,25 @@ export default function KanbanPage() {
                           )}
                         </CardHeader>
                         <CardContent className="space-y-2">
-                          {columnCards.map((card: KanbanCard) => (
-                            <Card
-                              key={card.id}
-                              className="p-3 cursor-pointer hover:shadow-sm"
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-2">
-                                  {getIcon(card.icon || "FileText")}
-                                  <span className="font-medium text-sm">
-                                    {card.title}
-                                  </span>
-                                </div>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="h-3 w-3" />
-                                </Button>
-                              </div>
-                              {card.description && (
-                                <p className="text-xs text-muted-foreground mt-2">
-                                  {card.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-1 mt-2">
-                                {card.labels?.map((label) => (
-                                  <Badge
-                                    key={label}
-                                    variant="outline"
-                                    className="text-xs"
-                                  >
-                                    {label}
-                                  </Badge>
-                                ))}
-                                {card.priorityLevel &&
-                                  card.priorityLevel !== "medium" && (
-                                    <Badge
-                                      variant={
-                                        card.priorityLevel === "high" ||
-                                        card.priorityLevel === "urgent"
-                                          ? "destructive"
-                                          : "default"
-                                      }
-                                      className="text-xs"
-                                    >
-                                      {card.priorityLevel}
-                                    </Badge>
-                                  )}
-                              </div>
-                            </Card>
-                          ))}
+                          <SortableContext
+                            items={columnCards.map(card => card.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {columnCards.map((card: KanbanCard) => (
+                              <SortableCard
+                                key={card.id}
+                                card={card}
+                                onEdit={handleEditCard}
+                              />
+                            ))}
+                          </SortableContext>
                         </CardContent>
                       </Card>
                     </div>
                   );
                 })}
-            </div>
+              </div>
+            </DndContext>
           )}
         </div>
       )}
