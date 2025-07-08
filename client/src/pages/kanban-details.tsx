@@ -8,6 +8,7 @@ import {
   DragStartEvent,
   PointerSensor,
   KeyboardSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   UniqueIdentifier,
@@ -62,7 +63,7 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
     <Card
       ref={setNodeRef}
       style={style}
-      className="cursor-pointer hover:shadow-md transition-shadow bg-white"
+      className="cursor-pointer hover:shadow-md transition-shadow bg-white touch-manipulation select-none"
       onClick={() => onEdit(card)}
     >
       <CardContent className="p-3">
@@ -74,10 +75,11 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+            className="cursor-grab active:cursor-grabbing p-2 hover:bg-gray-100 rounded touch-manipulation"
             onClick={(e) => e.stopPropagation()}
+            style={{ touchAction: 'none' }}
           >
-            <GripVertical className="h-3 w-3 text-gray-400" />
+            <GripVertical className="h-4 w-4 text-gray-400" />
           </div>
         </div>
         {card.description && (
@@ -283,9 +285,19 @@ export default function KanbanDetails() {
     },
   });
 
-  // Sensors for drag and drop
+  // Sensors for drag and drop (mobile-friendly)
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -436,7 +448,7 @@ export default function KanbanDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" style={{ touchAction: 'pan-y' }}>
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
@@ -474,8 +486,9 @@ export default function KanbanDetails() {
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          autoScroll={true}
         >
-          <div className="flex gap-6 overflow-x-auto pb-6">
+          <div className="flex gap-6 overflow-x-auto pb-6 min-h-0" style={{ touchAction: 'auto' }}>
             {sortedColumns.map((column: KanbanColumn) => (
               <KanbanColumnComponent
                 key={column.id}
