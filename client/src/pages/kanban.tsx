@@ -670,6 +670,35 @@ export default function KanbanPage() {
                   );
                 })}
               </div>
+
+              <DragOverlay>
+                {activeId && activeType === "card" ? (
+                  (() => {
+                    const activeCard = allCards.find(card => card.id === activeId);
+                    return activeCard ? (
+                      <Card className="w-80 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg rotate-3">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2">
+                              {getIcon(activeCard.icon || "FileText")}
+                              <CardTitle className="text-sm">{activeCard.title}</CardTitle>
+                            </div>
+                            <Badge 
+                              variant={
+                                activeCard.priorityLevel === "high" ? "destructive" : 
+                                activeCard.priorityLevel === "medium" ? "default" : 
+                                "secondary"
+                              }
+                            >
+                              {activeCard.priorityLevel}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    ) : null;
+                  })()
+                ) : null}
+              </DragOverlay>
             </DndContext>
           )}
         </div>
