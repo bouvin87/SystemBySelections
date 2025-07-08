@@ -56,13 +56,21 @@ export default function KanbanPage() {
     queryKey: ["/api/kanban/cards", selectedBoard?.id],
     queryFn: async () => {
       if (!columns.length) return [];
-      const cardPromises = columns.map((column: KanbanColumn) =>
-        apiRequest("GET", `/api/kanban/columns/${column.id}/cards`),
-      );
+      console.log("Frontend: Fetching cards for columns:", columns);
+      const cardPromises = columns.map(async (column: KanbanColumn) => {
+        const response = await apiRequest("GET", `/api/kanban/columns/${column.id}/cards`);
+        const cards = await response.json();
+        console.log(`Frontend: Cards for column ${column.title}:`, cards);
+        return cards;
+      });
       const cardArrays = await Promise.all(cardPromises);
-      return cardArrays.flat();
+      const flatCards = cardArrays.flat();
+      console.log("Frontend: All cards flattened:", flatCards);
+      return flatCards;
     },
     enabled: !!selectedBoard?.id && columns.length > 0,
+    staleTime: 0,  // Force fresh data
+    cacheTime: 0,  // Don't cache
   });
 
   // Mutations
