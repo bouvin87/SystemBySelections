@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MoreHorizontal, Settings, Link, ArrowLeft, GripVertical } from "lucide-react";
+import { Plus, MoreHorizontal, Settings, Link, ArrowLeft, GripVertical, Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanBoard, KanbanColumn, KanbanCard } from "@shared/schema";
 import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
@@ -132,12 +133,16 @@ function DroppableColumn({
   column, 
   children, 
   onEdit,
-  cardCount 
+  onDelete,
+  cardCount,
+  canDelete 
 }: { 
   column: KanbanColumn, 
   children: React.ReactNode,
   onEdit: (column: KanbanColumn) => void,
-  cardCount: number
+  onDelete: (columnId: string) => void,
+  cardCount: number,
+  canDelete: boolean
 }) {
   const { setNodeRef } = useDroppable({
     id: column.id,
@@ -177,6 +182,16 @@ function DroppableColumn({
               >
                 <Settings className="h-3 w-3" />
               </Button>
+              {canDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(column.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           </div>
           {column.description && (
@@ -207,6 +222,7 @@ export default function KanbanPage() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Sensors for drag and drop
   const sensors = useSensors(
@@ -319,6 +335,19 @@ export default function KanbanPage() {
     },
   });
 
+  const deleteColumnMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/kanban/columns/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards", selectedBoard?.id],
+      });
+      toast({ title: "Kolumn borttagen framgångsrikt" });
+    },
+  });
+
   const createCardMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/kanban/cards", data),
     onSuccess: () => {
@@ -339,14 +368,10 @@ export default function KanbanPage() {
       });
     },
     onSuccess: () => {
-      // Invalidate cards for all columns to refresh the data
-      if (selectedBoard) {
-        columns?.forEach(column => {
-          queryClient.invalidateQueries({
-            queryKey: ["/api/kanban/columns", column.id, "cards"],
-          });
-        });
-      }
+      // Invalidate the main cards query to refresh all cards
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards", selectedBoard?.id],
+      });
       toast({
         title: "Kort flyttat",
         description: "Kortet har flyttats till den nya kolumnen.",
@@ -398,6 +423,12 @@ export default function KanbanPage() {
   const handleEditColumn = (column: KanbanColumn) => {
     setEditingColumn(column);
     setShowColumnModal(true);
+  };
+
+  const handleDeleteColumn = (columnId: string) => {
+    if (confirm("Är du säker på att du vill ta bort denna kolumn? Alla kort i kolumnen kommer också att tas bort.")) {
+      deleteColumnMutation.mutate(columnId);
+    }
   };
 
   const handleEditCard = (card: KanbanCard) => {
@@ -608,7 +639,9 @@ export default function KanbanPage() {
                       key={column.id}
                       column={column}
                       onEdit={handleEditColumn}
+                      onDelete={handleDeleteColumn}
                       cardCount={columnCards.length}
+                      canDelete={selectedBoard?.ownerUserId === user?.id}
                     >
                       <div className="mb-2">
                         <Button
