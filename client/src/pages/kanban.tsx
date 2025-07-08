@@ -31,7 +31,7 @@ export default function KanbanPage() {
   });
 
   // Fetch columns for selected board
-  const { data: columns = [] } = useQuery({
+  const { data: columns = [], isLoading: columnsLoading } = useQuery({
     queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
     queryFn: () => apiRequest("GET", `/api/kanban/boards/${selectedBoard?.id}/columns`),
     enabled: !!selectedBoard?.id,
@@ -226,73 +226,77 @@ export default function KanbanPage() {
           </div>
 
           {/* Columns */}
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {columns.map((column: KanbanColumn) => {
-              const columnCards = getCardsForColumn(column.id);
-              return (
-                <div key={column.id} className="flex-shrink-0 w-80">
-                  <Card className="h-full">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {getIcon(column.icon || "List")}
-                          <CardTitle className="text-base">{column.title}</CardTitle>
-                          <Badge variant="secondary">{columnCards.length}</Badge>
+          {columnsLoading ? (
+            <div className="text-center py-8">Laddar kolumner...</div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {Array.isArray(columns) && columns.map((column: KanbanColumn) => {
+                const columnCards = getCardsForColumn(column.id);
+                return (
+                  <div key={column.id} className="flex-shrink-0 w-80">
+                    <Card className="h-full">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {getIcon(column.icon || "List")}
+                            <CardTitle className="text-base">{column.title}</CardTitle>
+                            <Badge variant="secondary">{columnCards.length}</Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCreateCard(column.id)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCreateCard(column.id)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      {column.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {column.description}
-                        </p>
-                      )}
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {columnCards.map((card: KanbanCard) => (
-                        <Card key={card.id} className="p-3 cursor-pointer hover:shadow-sm">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2">
-                              {getIcon(card.icon || "FileText")}
-                              <span className="font-medium text-sm">{card.title}</span>
+                        {column.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {column.description}
+                          </p>
+                        )}
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {columnCards.map((card: KanbanCard) => (
+                          <Card key={card.id} className="p-3 cursor-pointer hover:shadow-sm">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                {getIcon(card.icon || "FileText")}
+                                <span className="font-medium text-sm">{card.title}</span>
+                              </div>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-3 w-3" />
+                              </Button>
                             </div>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          {card.description && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {card.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-1 mt-2">
-                            {card.labels?.map((label) => (
-                              <Badge key={label} variant="outline" className="text-xs">
-                                {label}
-                              </Badge>
-                            ))}
-                            {card.priorityLevel && card.priorityLevel !== "medium" && (
-                              <Badge 
-                                variant={card.priorityLevel === "high" || card.priorityLevel === "urgent" ? "destructive" : "default"}
-                                className="text-xs"
-                              >
-                                {card.priorityLevel}
-                              </Badge>
+                            {card.description && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {card.description}
+                              </p>
                             )}
-                          </div>
-                        </Card>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              );
-            })}
-          </div>
+                            <div className="flex items-center gap-1 mt-2">
+                              {card.labels?.map((label) => (
+                                <Badge key={label} variant="outline" className="text-xs">
+                                  {label}
+                                </Badge>
+                              ))}
+                              {card.priorityLevel && card.priorityLevel !== "medium" && (
+                                <Badge 
+                                  variant={card.priorityLevel === "high" || card.priorityLevel === "urgent" ? "destructive" : "default"}
+                                  className="text-xs"
+                                >
+                                  {card.priorityLevel}
+                                </Badge>
+                              )}
+                            </div>
+                          </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
