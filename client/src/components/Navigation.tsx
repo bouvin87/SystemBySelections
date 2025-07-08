@@ -53,6 +53,7 @@ export default function Navigation() {
     { href: "/", label: "Hem" },
     ...(hasChecklistsModule ? [{ href: "/checklists", label: "Checklistor" }] : []),
     ...(hasDeviationsModule ? [{ href: "/deviations", label: "Avvikelser" }] : []),
+    { href: "/kanban", label: "Kanban" },
   ];
 
   return (

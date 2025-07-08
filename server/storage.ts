@@ -4,6 +4,7 @@ import {
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
   systemAnnouncements, customFields, customFieldTypeMappings, customFieldValues,
   roles, userHasRoles, userHasDepartments,
+  kanbanBoards, kanbanColumns, kanbanCards, kanbanBoardShares,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -26,7 +27,11 @@ import {
   type CustomFieldValue, type InsertCustomFieldValue,
   type Role, type InsertRole,
   type UserHasRole, type InsertUserHasRole,
-  type UserHasDepartment, type InsertUserHasDepartment
+  type UserHasDepartment, type InsertUserHasDepartment,
+  type KanbanBoard, type InsertKanbanBoard,
+  type KanbanColumn, type InsertKanbanColumn,
+  type KanbanCard, type InsertKanbanCard,
+  type KanbanBoardShare, type InsertKanbanBoardShare
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -237,6 +242,36 @@ export interface IStorage {
   getDeviationAttachments(deviationId: number, tenantId: number): Promise<DeviationAttachment[]>;
   createDeviationAttachment(attachment: InsertDeviationAttachment): Promise<DeviationAttachment>;
   deleteDeviationAttachment(id: number, tenantId: number): Promise<void>;
+
+  // === KANBAN MODULE ===
+  // Kanban Boards (tenant-scoped)
+  getKanbanBoards(tenantId: number, userId?: number): Promise<KanbanBoard[]>;
+  getKanbanBoard(id: string, tenantId: number, userId?: number): Promise<KanbanBoard | undefined>;
+  createKanbanBoard(board: InsertKanbanBoard): Promise<KanbanBoard>;
+  updateKanbanBoard(id: string, board: Partial<InsertKanbanBoard>, tenantId: number): Promise<KanbanBoard>;
+  deleteKanbanBoard(id: string, tenantId: number): Promise<void>;
+
+  // Kanban Columns (tenant-scoped through board)
+  getKanbanColumns(boardId: string, tenantId: number): Promise<KanbanColumn[]>;
+  getKanbanColumn(id: string, tenantId: number): Promise<KanbanColumn | undefined>;
+  createKanbanColumn(column: InsertKanbanColumn): Promise<KanbanColumn>;
+  updateKanbanColumn(id: string, column: Partial<InsertKanbanColumn>, tenantId: number): Promise<KanbanColumn>;
+  deleteKanbanColumn(id: string, tenantId: number): Promise<void>;
+  reorderKanbanColumns(boardId: string, columnOrders: { id: string; position: number }[], tenantId: number): Promise<void>;
+
+  // Kanban Cards (tenant-scoped through column/board)
+  getKanbanCards(columnId: string, tenantId: number): Promise<KanbanCard[]>;
+  getKanbanCard(id: string, tenantId: number): Promise<KanbanCard | undefined>;
+  createKanbanCard(card: InsertKanbanCard): Promise<KanbanCard>;
+  updateKanbanCard(id: string, card: Partial<InsertKanbanCard>, tenantId: number): Promise<KanbanCard>;
+  deleteKanbanCard(id: string, tenantId: number): Promise<void>;
+  moveKanbanCard(cardId: string, newColumnId: string, newPosition: number, tenantId: number): Promise<KanbanCard>;
+  reorderKanbanCards(columnId: string, cardOrders: { id: string; position: number }[], tenantId: number): Promise<void>;
+
+  // Kanban Board Sharing (tenant-scoped)
+  getKanbanBoardShares(boardId: string, tenantId: number): Promise<KanbanBoardShare[]>;
+  createKanbanBoardShare(share: InsertKanbanBoardShare): Promise<KanbanBoardShare>;
+  deleteKanbanBoardShare(id: string, tenantId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1735,6 +1770,254 @@ export class DatabaseStorage implements IStorage {
   async removeDepartmentFromUser(id: string): Promise<void> {
     await db.delete(userHasDepartments)
       .where(eq(userHasDepartments.id, id));
+  }
+
+  // === KANBAN MODULE IMPLEMENTATION ===
+
+  // Kanban Boards
+  async getKanbanBoards(tenantId: number, userId?: number): Promise<KanbanBoard[]> {
+    const query = db.select().from(kanbanBoards)
+      .where(eq(kanbanBoards.tenantId, tenantId))
+      .orderBy(desc(kanbanBoards.createdAt));
+    
+    if (userId) {
+      // Return boards owned by user or shared with user
+      const boards = await query;
+      const ownedBoards = boards.filter(board => board.ownerUserId === userId);
+      // TODO: Add shared boards logic when implementing sharing
+      return ownedBoards;
+    }
+    
+    return await query;
+  }
+
+  async getKanbanBoard(id: string, tenantId: number, userId?: number): Promise<KanbanBoard | undefined> {
+    const [board] = await db.select()
+      .from(kanbanBoards)
+      .where(and(
+        eq(kanbanBoards.id, id),
+        eq(kanbanBoards.tenantId, tenantId)
+      ));
+    
+    if (!board) return undefined;
+    
+    // Check access permissions
+    if (userId && board.ownerUserId !== userId && !board.isPublic) {
+      // TODO: Check if board is shared with user
+      return undefined;
+    }
+    
+    return board;
+  }
+
+  async createKanbanBoard(board: InsertKanbanBoard): Promise<KanbanBoard> {
+    const [created] = await db.insert(kanbanBoards)
+      .values(board)
+      .returning();
+    return created;
+  }
+
+  async updateKanbanBoard(id: string, board: Partial<InsertKanbanBoard>, tenantId: number): Promise<KanbanBoard> {
+    const [updated] = await db.update(kanbanBoards)
+      .set(board)
+      .where(and(
+        eq(kanbanBoards.id, id),
+        eq(kanbanBoards.tenantId, tenantId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteKanbanBoard(id: string, tenantId: number): Promise<void> {
+    await db.delete(kanbanBoards)
+      .where(and(
+        eq(kanbanBoards.id, id),
+        eq(kanbanBoards.tenantId, tenantId)
+      ));
+  }
+
+  // Kanban Columns
+  async getKanbanColumns(boardId: string, tenantId: number): Promise<KanbanColumn[]> {
+    // Verify board belongs to tenant
+    const board = await this.getKanbanBoard(boardId, tenantId);
+    if (!board) throw new Error('Board not found');
+
+    return await db.select()
+      .from(kanbanColumns)
+      .where(eq(kanbanColumns.boardId, boardId))
+      .orderBy(asc(kanbanColumns.position));
+  }
+
+  async getKanbanColumn(id: string, tenantId: number): Promise<KanbanColumn | undefined> {
+    const [column] = await db.select()
+      .from(kanbanColumns)
+      .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
+      .where(and(
+        eq(kanbanColumns.id, id),
+        eq(kanbanBoards.tenantId, tenantId)
+      ));
+    return column?.kanban_columns || undefined;
+  }
+
+  async createKanbanColumn(column: InsertKanbanColumn): Promise<KanbanColumn> {
+    const [created] = await db.insert(kanbanColumns)
+      .values(column)
+      .returning();
+    return created;
+  }
+
+  async updateKanbanColumn(id: string, column: Partial<InsertKanbanColumn>, tenantId: number): Promise<KanbanColumn> {
+    const [updated] = await db.update(kanbanColumns)
+      .set(column)
+      .where(and(
+        eq(kanbanColumns.id, id),
+        // Verify through board tenant
+        sql`${kanbanColumns.boardId} IN (SELECT id FROM ${kanbanBoards} WHERE tenant_id = ${tenantId})`
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteKanbanColumn(id: string, tenantId: number): Promise<void> {
+    await db.delete(kanbanColumns)
+      .where(and(
+        eq(kanbanColumns.id, id),
+        sql`${kanbanColumns.boardId} IN (SELECT id FROM ${kanbanBoards} WHERE tenant_id = ${tenantId})`
+      ));
+  }
+
+  async reorderKanbanColumns(boardId: string, columnOrders: { id: string; position: number }[], tenantId: number): Promise<void> {
+    // Verify board belongs to tenant
+    const board = await this.getKanbanBoard(boardId, tenantId);
+    if (!board) throw new Error('Board not found');
+
+    for (const order of columnOrders) {
+      await db.update(kanbanColumns)
+        .set({ position: order.position })
+        .where(and(
+          eq(kanbanColumns.id, order.id),
+          eq(kanbanColumns.boardId, boardId)
+        ));
+    }
+  }
+
+  // Kanban Cards
+  async getKanbanCards(columnId: string, tenantId: number): Promise<KanbanCard[]> {
+    return await db.select()
+      .from(kanbanCards)
+      .innerJoin(kanbanColumns, eq(kanbanCards.columnId, kanbanColumns.id))
+      .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
+      .where(and(
+        eq(kanbanCards.columnId, columnId),
+        eq(kanbanBoards.tenantId, tenantId)
+      ))
+      .orderBy(asc(kanbanCards.position));
+  }
+
+  async getKanbanCard(id: string, tenantId: number): Promise<KanbanCard | undefined> {
+    const [card] = await db.select()
+      .from(kanbanCards)
+      .innerJoin(kanbanColumns, eq(kanbanCards.columnId, kanbanColumns.id))
+      .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
+      .where(and(
+        eq(kanbanCards.id, id),
+        eq(kanbanBoards.tenantId, tenantId)
+      ));
+    return card?.kanban_cards || undefined;
+  }
+
+  async createKanbanCard(card: InsertKanbanCard): Promise<KanbanCard> {
+    const [created] = await db.insert(kanbanCards)
+      .values(card)
+      .returning();
+    return created;
+  }
+
+  async updateKanbanCard(id: string, card: Partial<InsertKanbanCard>, tenantId: number): Promise<KanbanCard> {
+    const [updated] = await db.update(kanbanCards)
+      .set(card)
+      .where(and(
+        eq(kanbanCards.id, id),
+        sql`${kanbanCards.columnId} IN (
+          SELECT c.id FROM ${kanbanColumns} c 
+          JOIN ${kanbanBoards} b ON c.board_id = b.id 
+          WHERE b.tenant_id = ${tenantId}
+        )`
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteKanbanCard(id: string, tenantId: number): Promise<void> {
+    await db.delete(kanbanCards)
+      .where(and(
+        eq(kanbanCards.id, id),
+        sql`${kanbanCards.columnId} IN (
+          SELECT c.id FROM ${kanbanColumns} c 
+          JOIN ${kanbanBoards} b ON c.board_id = b.id 
+          WHERE b.tenant_id = ${tenantId}
+        )`
+      ));
+  }
+
+  async moveKanbanCard(cardId: string, newColumnId: string, newPosition: number, tenantId: number): Promise<KanbanCard> {
+    const [updated] = await db.update(kanbanCards)
+      .set({ 
+        columnId: newColumnId, 
+        position: newPosition 
+      })
+      .where(and(
+        eq(kanbanCards.id, cardId),
+        sql`${kanbanCards.columnId} IN (
+          SELECT c.id FROM ${kanbanColumns} c 
+          JOIN ${kanbanBoards} b ON c.board_id = b.id 
+          WHERE b.tenant_id = ${tenantId}
+        )`
+      ))
+      .returning();
+    return updated;
+  }
+
+  async reorderKanbanCards(columnId: string, cardOrders: { id: string; position: number }[], tenantId: number): Promise<void> {
+    for (const order of cardOrders) {
+      await db.update(kanbanCards)
+        .set({ position: order.position })
+        .where(and(
+          eq(kanbanCards.id, order.id),
+          eq(kanbanCards.columnId, columnId),
+          sql`${kanbanCards.columnId} IN (
+            SELECT c.id FROM ${kanbanColumns} c 
+            JOIN ${kanbanBoards} b ON c.board_id = b.id 
+            WHERE b.tenant_id = ${tenantId}
+          )`
+        ));
+    }
+  }
+
+  // Kanban Board Sharing
+  async getKanbanBoardShares(boardId: string, tenantId: number): Promise<KanbanBoardShare[]> {
+    return await db.select()
+      .from(kanbanBoardShares)
+      .innerJoin(kanbanBoards, eq(kanbanBoardShares.boardId, kanbanBoards.id))
+      .where(and(
+        eq(kanbanBoardShares.boardId, boardId),
+        eq(kanbanBoards.tenantId, tenantId)
+      ));
+  }
+
+  async createKanbanBoardShare(share: InsertKanbanBoardShare): Promise<KanbanBoardShare> {
+    const [created] = await db.insert(kanbanBoardShares)
+      .values(share)
+      .returning();
+    return created;
+  }
+
+  async deleteKanbanBoardShare(id: string, tenantId: number): Promise<void> {
+    await db.delete(kanbanBoardShares)
+      .where(and(
+        eq(kanbanBoardShares.id, id),
+        sql`${kanbanBoardShares.boardId} IN (SELECT id FROM ${kanbanBoards} WHERE tenant_id = ${tenantId})`
+      ));
   }
 }
 

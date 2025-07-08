@@ -684,3 +684,127 @@ export interface JWTPayload {
   firstName?: string;
   lastName?: string;
 }
+
+// ============== KANBAN MODULE ==============
+
+export const kanbanBoards = pgTable("kanban_boards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: integer("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  ownerUserId: integer("owner_user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  icon: text("icon").default("ClipboardList"),
+  isPublic: boolean("is_public").default(false),
+  settingsJson: text("settings_json"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const kanbanColumns = pgTable("kanban_columns", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  boardId: uuid("board_id").references(() => kanbanBoards.id, { onDelete: "cascade" }).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  icon: text("icon").default("List"),
+  position: integer("position").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const kanbanCards = pgTable("kanban_cards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  columnId: uuid("column_id").references(() => kanbanColumns.id, { onDelete: "cascade" }).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  icon: text("icon").default("FileText"),
+  position: integer("position").notNull(),
+  dueDate: timestamp("due_date"),
+  completed: boolean("completed").default(false),
+  assignedUserId: integer("assigned_user_id").references(() => users.id, { onDelete: "set null" }),
+  priorityLevel: text("priority_level").default("medium"), // low, medium, high, urgent
+  labels: text("labels").array(),
+  attachments: text("attachments").array(),
+  checklistItems: text("checklist_items"), // JSON string
+  commentsEnabled: boolean("comments_enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const kanbanBoardShares = pgTable("kanban_board_shares", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  boardId: uuid("board_id").references(() => kanbanBoards.id, { onDelete: "cascade" }).notNull(),
+  sharedWithType: text("shared_with_type").notNull(), // "user" | "role" | "department" | "public"
+  referenceId: text("reference_id"), // user_id, role_id, department_id (nullable for public)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Kanban Relations
+export const kanbanBoardRelations = relations(kanbanBoards, ({ one, many }) => ({
+  tenant: one(tenants, {
+    fields: [kanbanBoards.tenantId],
+    references: [tenants.id],
+  }),
+  owner: one(users, {
+    fields: [kanbanBoards.ownerUserId],
+    references: [users.id],
+  }),
+  columns: many(kanbanColumns),
+  shares: many(kanbanBoardShares),
+}));
+
+export const kanbanColumnRelations = relations(kanbanColumns, ({ one, many }) => ({
+  board: one(kanbanBoards, {
+    fields: [kanbanColumns.boardId],
+    references: [kanbanBoards.id],
+  }),
+  cards: many(kanbanCards),
+}));
+
+export const kanbanCardRelations = relations(kanbanCards, ({ one }) => ({
+  column: one(kanbanColumns, {
+    fields: [kanbanCards.columnId],
+    references: [kanbanColumns.id],
+  }),
+  assignedUser: one(users, {
+    fields: [kanbanCards.assignedUserId],
+    references: [users.id],
+  }),
+}));
+
+export const kanbanBoardShareRelations = relations(kanbanBoardShares, ({ one }) => ({
+  board: one(kanbanBoards, {
+    fields: [kanbanBoardShares.boardId],
+    references: [kanbanBoards.id],
+  }),
+}));
+
+// Kanban Types
+export type KanbanBoard = typeof kanbanBoards.$inferSelect;
+export type InsertKanbanBoard = z.infer<typeof insertKanbanBoardSchema>;
+export type KanbanColumn = typeof kanbanColumns.$inferSelect;
+export type InsertKanbanColumn = z.infer<typeof insertKanbanColumnSchema>;
+export type KanbanCard = typeof kanbanCards.$inferSelect;
+export type InsertKanbanCard = z.infer<typeof insertKanbanCardSchema>;
+export type KanbanBoardShare = typeof kanbanBoardShares.$inferSelect;
+export type InsertKanbanBoardShare = z.infer<typeof insertKanbanBoardShareSchema>;
+
+// Kanban Schemas
+export const insertKanbanBoardSchema = createInsertSchema(kanbanBoards).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKanbanColumnSchema = createInsertSchema(kanbanColumns).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKanbanCardSchema = createInsertSchema(kanbanCards).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  labels: z.array(z.string()).optional(),
+  attachments: z.array(z.string()).optional(),
+});
+
+export const insertKanbanBoardShareSchema = createInsertSchema(kanbanBoardShares).omit({
+  id: true,
+  createdAt: true,
+});

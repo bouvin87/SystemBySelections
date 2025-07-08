@@ -28,6 +28,10 @@ import {
   insertUserHasDepartmentSchema,
   insertRoleSchema,
   insertUserHasRoleSchema,
+  insertKanbanBoardSchema,
+  insertKanbanColumnSchema,
+  insertKanbanCardSchema,
+  insertKanbanBoardShareSchema,
 } from "@shared/schema";
 import { uploadMultiple } from "./middleware/upload";
 import path from "path";
@@ -2312,6 +2316,332 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(announcement);
       } catch (error) {
         console.error("Error fetching active system announcement:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  // === KANBAN MODULE ROUTES ===
+
+  // Kanban Boards
+  app.get(
+    "/api/kanban/boards",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const boards = await storage.getKanbanBoards(req.tenantId!, req.user.id);
+        res.json(boards);
+      } catch (error) {
+        console.error("Error fetching kanban boards:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/kanban/boards/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.id);
+        if (!board) {
+          return res.status(404).json({ message: "Board not found" });
+        }
+        res.json(board);
+      } catch (error) {
+        console.error("Error fetching kanban board:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/boards",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const validatedData = insertKanbanBoardSchema.parse({
+          ...req.body,
+          tenantId: req.tenantId,
+          ownerUserId: req.user.id,
+        });
+        const board = await storage.createKanbanBoard(validatedData);
+        res.status(201).json(board);
+      } catch (error) {
+        console.error("Error creating kanban board:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/kanban/boards/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        const validatedData = insertKanbanBoardSchema.partial().parse(req.body);
+        const board = await storage.updateKanbanBoard(id, validatedData, req.tenantId!);
+        res.json(board);
+      } catch (error) {
+        console.error("Error updating kanban board:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/boards/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        await storage.deleteKanbanBoard(id, req.tenantId!);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting kanban board:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  // Kanban Columns
+  app.get(
+    "/api/kanban/boards/:boardId/columns",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { boardId } = req.params;
+        const columns = await storage.getKanbanColumns(boardId, req.tenantId!);
+        res.json(columns);
+      } catch (error) {
+        console.error("Error fetching kanban columns:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/columns",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const validatedData = insertKanbanColumnSchema.parse(req.body);
+        const column = await storage.createKanbanColumn(validatedData);
+        res.status(201).json(column);
+      } catch (error) {
+        console.error("Error creating kanban column:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/kanban/columns/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        const validatedData = insertKanbanColumnSchema.partial().parse(req.body);
+        const column = await storage.updateKanbanColumn(id, validatedData, req.tenantId!);
+        res.json(column);
+      } catch (error) {
+        console.error("Error updating kanban column:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/columns/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        await storage.deleteKanbanColumn(id, req.tenantId!);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting kanban column:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/boards/:boardId/columns/reorder",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { boardId } = req.params;
+        const { columnOrders } = req.body;
+        await storage.reorderKanbanColumns(boardId, columnOrders, req.tenantId!);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error reordering kanban columns:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  // Kanban Cards
+  app.get(
+    "/api/kanban/columns/:columnId/cards",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { columnId } = req.params;
+        const cards = await storage.getKanbanCards(columnId, req.tenantId!);
+        res.json(cards);
+      } catch (error) {
+        console.error("Error fetching kanban cards:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/cards",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const validatedData = insertKanbanCardSchema.parse(req.body);
+        const card = await storage.createKanbanCard(validatedData);
+        res.status(201).json(card);
+      } catch (error) {
+        console.error("Error creating kanban card:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/kanban/cards/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        const validatedData = insertKanbanCardSchema.partial().parse(req.body);
+        const card = await storage.updateKanbanCard(id, validatedData, req.tenantId!);
+        res.json(card);
+      } catch (error) {
+        console.error("Error updating kanban card:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/cards/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        await storage.deleteKanbanCard(id, req.tenantId!);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting kanban card:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/cards/:id/move",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        const { columnId, position } = req.body;
+        const card = await storage.moveKanbanCard(id, columnId, position, req.tenantId!);
+        res.json(card);
+      } catch (error) {
+        console.error("Error moving kanban card:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/columns/:columnId/cards/reorder",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { columnId } = req.params;
+        const { cardOrders } = req.body;
+        await storage.reorderKanbanCards(columnId, cardOrders, req.tenantId!);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error reordering kanban cards:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  // Kanban Board Sharing
+  app.get(
+    "/api/kanban/boards/:boardId/shares",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { boardId } = req.params;
+        const shares = await storage.getKanbanBoardShares(boardId, req.tenantId!);
+        res.json(shares);
+      } catch (error) {
+        console.error("Error fetching kanban board shares:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/boards/:boardId/shares",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { boardId } = req.params;
+        const validatedData = insertKanbanBoardShareSchema.parse({
+          ...req.body,
+          boardId,
+        });
+        const share = await storage.createKanbanBoardShare(validatedData);
+        res.status(201).json(share);
+      } catch (error) {
+        console.error("Error creating kanban board share:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/shares/:id",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { id } = req.params;
+        await storage.deleteKanbanBoardShare(id, req.tenantId!);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting kanban board share:", error);
         res.status(500).json({ message: "Internal server error" });
       }
     },
