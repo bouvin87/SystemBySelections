@@ -2498,6 +2498,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Kanban Cards
   app.get(
+    "/api/kanban/boards/:boardId/cards",
+    authenticateToken,
+    enforceTenantIsolation,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { boardId } = req.params;
+        const cards = await storage.getKanbanCardsByBoard(boardId, req.tenantId!, req.user.userId);
+        res.json(cards);
+      } catch (error) {
+        console.error("Error fetching kanban cards for board:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.get(
     "/api/kanban/columns/:columnId/cards",
     authenticateToken,
     enforceTenantIsolation,

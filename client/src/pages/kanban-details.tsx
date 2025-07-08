@@ -268,22 +268,25 @@ export default function KanbanDetails() {
     },
   });
 
-  // Fetch cards for all columns
-  const allCards = useMemo(() => {
-    const cards: KanbanCard[] = [];
-    return cards;
-  }, []);
+  // Fetch cards for this board
+  const { data: allCards = [], isLoading: cardsLoading } = useQuery({
+    queryKey: ["/api/kanban/boards", boardId, "cards"],
+    enabled: !!boardId && columns.length > 0,
+    onSuccess: (data) => {
+      console.log("Kanban Details - Fetched all cards:", data);
+    },
+  });
 
-  // For now, use empty cards array - will be populated by individual column queries
+  // Group cards by column
   const cardsByColumn = useMemo(() => {
     const result: Record<string, KanbanCard[]> = {};
     if (columns && Array.isArray(columns)) {
       columns.forEach((column: KanbanColumn) => {
-        result[column.id] = [];
+        result[column.id] = allCards.filter((card: KanbanCard) => card.columnId === column.id);
       });
     }
     return result;
-  }, [columns]);
+  }, [columns, allCards]);
 
   // Mutations
   const createColumnMutation = useMutation({
@@ -341,7 +344,7 @@ export default function KanbanDetails() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards", boardId, "cards"] });
       setShowCardModal(false);
       setEditingCard(null);
       setSelectedColumnId(null);
@@ -355,7 +358,7 @@ export default function KanbanDetails() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards", boardId, "cards"] });
     },
   });
 

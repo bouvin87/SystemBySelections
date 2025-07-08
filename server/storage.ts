@@ -260,6 +260,7 @@ export interface IStorage {
   reorderKanbanColumns(boardId: string, columnOrders: { id: string; position: number }[], tenantId: number): Promise<void>;
 
   // Kanban Cards (tenant-scoped through column/board)
+  getKanbanCardsByBoard(boardId: string, tenantId: number, userId?: number): Promise<KanbanCard[]>;
   getKanbanCards(columnId: string, tenantId: number): Promise<KanbanCard[]>;
   getKanbanCard(id: string, tenantId: number): Promise<KanbanCard | undefined>;
   createKanbanCard(card: InsertKanbanCard): Promise<KanbanCard>;
@@ -1909,6 +1910,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Kanban Cards
+  async getKanbanCardsByBoard(boardId: string, tenantId: number, userId?: number): Promise<KanbanCard[]> {
+    // Verify board belongs to tenant and user has access
+    const board = await this.getKanbanBoard(boardId, tenantId, userId);
+    if (!board) throw new Error('Board not found or access denied');
+
+    return await db.select()
+      .from(kanbanCards)
+      .innerJoin(kanbanColumns, eq(kanbanCards.columnId, kanbanColumns.id))
+      .where(eq(kanbanColumns.boardId, boardId))
+      .orderBy(asc(kanbanCards.position))
+      .then(results => results.map(row => row.kanban_cards));
+  }
+
   async getKanbanCards(columnId: string, tenantId: number): Promise<KanbanCard[]> {
     // First verify the column belongs to a board owned by this tenant
     const column = await db.select()
