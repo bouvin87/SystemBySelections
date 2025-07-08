@@ -89,13 +89,17 @@ function SortableItem({
           <div 
             {...listeners} 
             {...attributes}
-            className="cursor-grab hover:cursor-grabbing"
+            className="cursor-grab hover:cursor-grabbing p-1"
+            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
             <GripVertical className="h-3 w-3 text-muted-foreground" />
           </div>
-          {getIcon(card.icon || "FileText")}
-          <h4 className="font-semibold text-sm">{card.title}</h4>
+          <div className="flex items-center gap-2 flex-1">
+            {getIcon(card.icon || "FileText")}
+            <h4 className="font-semibold text-sm">{card.title}</h4>
+          </div>
         </div>
         {card.description && (
           <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
@@ -281,11 +285,11 @@ export default function KanbanPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // Sensors for drag and drop
+  // Sensors for drag and drop with handle detection
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 5,
       },
     }),
   );
@@ -810,10 +814,10 @@ export default function KanbanPage() {
 
       {/* Modals */}
       <KanbanBoardModal
-        isOpen={showBoardModal}
-        onClose={() => {
-          setShowBoardModal(false);
-          setEditingBoard(null);
+        open={showBoardModal}
+        onOpenChange={(open) => {
+          setShowBoardModal(open);
+          if (!open) setEditingBoard(null);
         }}
         board={editingBoard}
         onSubmit={(data) => {
@@ -823,14 +827,13 @@ export default function KanbanPage() {
             createBoardMutation.mutate(data);
           }
         }}
-        isLoading={createBoardMutation.isPending || updateBoardMutation.isPending}
       />
 
       <KanbanColumnModal
-        isOpen={showColumnModal}
-        onClose={() => {
-          setShowColumnModal(false);
-          setEditingColumn(null);
+        open={showColumnModal}
+        onOpenChange={(open) => {
+          setShowColumnModal(open);
+          if (!open) setEditingColumn(null);
         }}
         column={editingColumn}
         boardId={selectedBoard?.id || ""}
@@ -841,15 +844,16 @@ export default function KanbanPage() {
             createColumnMutation.mutate({ ...data, boardId: selectedBoard?.id });
           }
         }}
-        isLoading={createColumnMutation.isPending || updateColumnMutation.isPending}
       />
 
       <KanbanCardModal
-        isOpen={showCardModal}
-        onClose={() => {
-          setShowCardModal(false);
-          setEditingCard(null);
-          setSelectedColumnId(null);
+        open={showCardModal}
+        onOpenChange={(open) => {
+          setShowCardModal(open);
+          if (!open) {
+            setEditingCard(null);
+            setSelectedColumnId(null);
+          }
         }}
         card={editingCard}
         columnId={selectedColumnId || ""}
@@ -860,7 +864,6 @@ export default function KanbanPage() {
             createCardMutation.mutate({ ...data, columnId: selectedColumnId });
           }
         }}
-        isLoading={createCardMutation.isPending || updateCardMutation.isPending}
       />
     </div>
   );
