@@ -372,8 +372,12 @@ export default function KanbanPage() {
   const updateCardMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: any }) => apiRequest("PUT", `/api/kanban/cards/${id}`, data),
     onSuccess: () => {
+      // Invalidate all card queries to refresh the data
       queryClient.invalidateQueries({
-        queryKey: ["/api/kanban/cards", selectedBoard?.id],
+        queryKey: ["/api/kanban/columns"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards"],
       });
       setShowCardModal(false);
       setEditingCard(null);
