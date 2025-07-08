@@ -122,6 +122,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 8, 2025**: Completely rebuilt Kanban details page with full functionality
+  - Fixed critical API query structure that prevented data loading
+  - Implemented proper drag-and-drop with dnd-kit for cards between columns
+  - Added column and card management with modals for creation/editing
+  - Restored sorting functionality for both columns and cards by position
+  - Added toast notifications for all CRUD operations
+  - Fixed React Hooks violations and component structure errors
+  - Complete rewrite eliminated accumulated technical debt
+
 - **July 7, 2025**: Implemented UserHasDepartment relationship system
   - Added `user_has_departments` table with UUID primary key
   - Created foreign key relationships to users and departments tables
