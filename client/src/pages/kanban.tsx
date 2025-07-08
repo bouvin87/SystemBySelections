@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
@@ -41,11 +41,13 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Sortable Card Component
-function SortableCard({
+// Sortable Item Component
+function SortableItem({
+  id,
   card,
   onEdit,
 }: {
+  id: UniqueIdentifier;
   card: KanbanCard;
   onEdit: (card: KanbanCard) => void;
 }) {
@@ -56,7 +58,7 @@ function SortableCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: card.id });
+  } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -120,25 +122,25 @@ function SortableCard({
   );
 }
 
-// Sortable Column Component for Multiple Containers
-function SortableColumn({
+// Droppable Container Component
+function DroppableContainer({
+  children,
   column,
-  cards,
   onEditColumn,
   onDeleteColumn,
-  onEditCard,
   onCreateCard,
   canDelete,
+  items,
 }: {
+  children: React.ReactNode;
   column: KanbanColumn;
-  cards: KanbanCard[];
   onEditColumn: (column: KanbanColumn) => void;
   onDeleteColumn: (columnId: string) => void;
-  onEditCard: (card: KanbanCard) => void;
   onCreateCard: (columnId: string) => void;
   canDelete: boolean;
+  items: UniqueIdentifier[];
 }) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: column.id,
   });
 
@@ -147,17 +149,21 @@ function SortableColumn({
     return <Icon className="h-4 w-4" />;
   };
 
-  const cardIds = cards.map(card => card.id);
-
   return (
     <div className="flex-shrink-0 w-80">
-      <Card className="h-full transition-all duration-200 overflow-visible">
+      <Card 
+        className={`h-full transition-all duration-200 ${
+          isOver 
+            ? "ring-2 ring-blue-500 ring-offset-2 bg-blue-50/50 dark:bg-blue-950/20" 
+            : ""
+        }`}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {getIcon(column.icon || "List")}
               <CardTitle className="text-base">{column.title}</CardTitle>
-              <Badge variant="secondary">{cards.length}</Badge>
+              <Badge variant="secondary">{items.length}</Badge>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -192,10 +198,7 @@ function SortableColumn({
             </p>
           )}
         </CardHeader>
-        <CardContent 
-          className="space-y-2 overflow-visible min-h-[200px]" 
-          ref={setNodeRef}
-        >
+        <CardContent className="min-h-[200px]" ref={setNodeRef}>
           <div className="mb-2">
             <Button
               variant="ghost"
@@ -207,17 +210,8 @@ function SortableColumn({
               Lägg till kort
             </Button>
           </div>
-          <SortableContext 
-            items={cardIds} 
-            strategy={verticalListSortingStrategy}
-          >
-            {cards.map((card) => (
-              <SortableCard
-                key={card.id}
-                card={card}
-                onEdit={onEditCard}
-              />
-            ))}
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {children}
           </SortableContext>
         </CardContent>
       </Card>
@@ -267,7 +261,7 @@ export default function KanbanPage() {
     enabled: !!selectedBoard?.id,
   });
 
-  // Fetch cards for all columns with forced refresh after moves
+  // Fetch cards for all columns
   const { data: allCards = [] } = useQuery({
     queryKey: ["/api/kanban/cards", selectedBoard?.id],
     queryFn: async () => {
@@ -285,24 +279,36 @@ export default function KanbanPage() {
       return flatCards;
     },
     enabled: !!selectedBoard?.id && columns.length > 0,
-    staleTime: 0,  
-    cacheTime: 1000 * 5,  
-    refetchOnWindowFocus: true,  
+    staleTime: 0,
   });
 
-  // Helper function to get cards for a specific column
-  const getCardsForColumn = (columnId: string): KanbanCard[] => {
-    return allCards.filter((card: KanbanCard) => card.columnId === columnId);
-  };
+  // Organize data for dnd-kit multiple containers pattern
+  const containers = useMemo(() => {
+    const result: Record<string, KanbanCard[]> = {};
+    columns.forEach((column: KanbanColumn) => {
+      result[column.id] = allCards.filter((card: KanbanCard) => card.columnId === column.id);
+    });
+    return result;
+  }, [columns, allCards]);
 
-  // Find container (column) that contains a specific item (card)
+  // Find container ID that contains a specific item
   const findContainer = (id: UniqueIdentifier) => {
-    if (columns.find(col => col.id === id)) {
+    if (id in containers) {
       return id;
     }
-    
-    const card = allCards.find(card => card.id === id);
-    return card ? card.columnId : null;
+
+    return Object.keys(containers).find((key) =>
+      containers[key].find((card) => card.id === id)
+    );
+  };
+
+  // Get position of item within its container
+  const getIndex = (id: UniqueIdentifier) => {
+    const container = findContainer(id);
+    if (!container) {
+      return -1;
+    }
+    return containers[container].findIndex((card) => card.id === id);
   };
 
   // Mutations
@@ -394,7 +400,7 @@ export default function KanbanPage() {
     },
   });
 
-  // Move card mutation with instant UI update
+  // Move card mutation with optimistic updates
   const moveCardMutation = useMutation({
     mutationFn: async ({ cardId, newColumnId, position }: { cardId: string, newColumnId: string, position: number }) => {
       return await apiRequest("POST", `/api/kanban/cards/${cardId}/move`, { 
@@ -402,33 +408,53 @@ export default function KanbanPage() {
         position 
       });
     },
+    onMutate: async ({ cardId, newColumnId, position }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/kanban/cards", selectedBoard?.id] });
+
+      // Snapshot the previous value
+      const previousCards = queryClient.getQueryData(["/api/kanban/cards", selectedBoard?.id]);
+
+      // Optimistically update
+      queryClient.setQueryData(["/api/kanban/cards", selectedBoard?.id], (old: KanbanCard[] = []) => {
+        const updatedCards = [...old];
+        const cardIndex = updatedCards.findIndex(card => card.id === cardId);
+        
+        if (cardIndex !== -1) {
+          // Update the card's column and position
+          updatedCards[cardIndex] = {
+            ...updatedCards[cardIndex],
+            columnId: newColumnId,
+            position: position
+          };
+        }
+        
+        return updatedCards;
+      });
+
+      return { previousCards };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousCards) {
+        queryClient.setQueryData(["/api/kanban/cards", selectedBoard?.id], context.previousCards);
+      }
+      toast({
+        title: "Fel",
+        description: "Kunde inte flytta kortet.",
+        variant: "destructive",
+      });
+    },
     onSuccess: () => {
-      // Multiple invalidation strategies for maximum responsiveness
-      queryClient.invalidateQueries({
-        queryKey: ["/api/kanban/cards"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["/api/kanban/boards"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["/api/kanban/columns"],
-      });
-      
-      // Force immediate refetch
-      queryClient.refetchQueries({
-        queryKey: ["/api/kanban/cards", selectedBoard?.id],
-      });
-      
       toast({
         title: "Kort flyttat",
         description: "Kortet har flyttats till den nya kolumnen.",
       });
     },
-    onError: (error: any) => {
-      toast({
-        title: "Fel",
-        description: error.message || "Kunde inte flytta kortet.",
-        variant: "destructive",
+    onSettled: () => {
+      // Always refetch after success or error
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/cards", selectedBoard?.id],
       });
     },
   });
@@ -478,7 +504,7 @@ export default function KanbanPage() {
     setShowCardModal(true);
   };
 
-  // Drag and drop handlers
+  // Drag and drop handlers - Following the Sortable Multiple Containers pattern
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id);
@@ -486,7 +512,7 @@ export default function KanbanPage() {
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    
+
     if (!over) return;
 
     const activeId = active.id;
@@ -496,32 +522,13 @@ export default function KanbanPage() {
     const activeContainer = findContainer(activeId);
     const overContainer = findContainer(overId);
 
-    if (!activeContainer || !overContainer || activeContainer === overContainer) {
+    if (!activeContainer || !overContainer) {
       return;
     }
 
-    // This is the logic for moving cards between columns
-    const activeItems = getCardsForColumn(activeContainer as string);
-    const overItems = getCardsForColumn(overContainer as string);
-
-    // Find the indexes for the items
-    const activeIndex = activeItems.findIndex(item => item.id === activeId);
-    const overIndex = overItems.findIndex(item => item.id === overId);
-
-    let newIndex: number;
-    if (overId in columns.reduce((acc, col) => ({ ...acc, [col.id]: col }), {})) {
-      // We're at the root droppable of a container
-      newIndex = overItems.length + 1;
-    } else {
-      const isBelowOverItem = over && over.rect?.current?.translated &&
-        over.rect.current.translated.top > over.rect.current.top + over.rect.current.height;
-      const modifier = isBelowOverItem ? 1 : 0;
-      newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
-    }
-
-    // Don't do anything if we're dropping in the same place
-    if (activeIndex === newIndex && activeContainer === overContainer) {
-      return;
+    if (activeContainer !== overContainer) {
+      // Moving between containers - implement if needed for real-time updates
+      // This is where you'd handle cross-container moves during drag
     }
   };
 
@@ -542,31 +549,30 @@ export default function KanbanPage() {
       return;
     }
 
-    if (activeContainer === overContainer) {
-      // Same container - reorder within column
-      const activeItems = getCardsForColumn(activeContainer as string);
-      const activeIndex = activeItems.findIndex(item => item.id === activeId);
-      const overIndex = activeItems.findIndex(item => item.id === overId);
+    const activeIndex = getIndex(activeId);
+    const overIndex = getIndex(overId);
 
+    if (activeContainer === overContainer) {
+      // Same container - reorder within
       if (activeIndex !== overIndex) {
-        const sortedItems = arrayMove(activeItems, activeIndex, overIndex);
-        // Update positions and move card
+        const newCards = arrayMove(containers[activeContainer], activeIndex, overIndex);
+        // Calculate new position
+        const newPosition = overIndex;
+        
         moveCardMutation.mutate({
           cardId: activeId as string,
-          newColumnId: activeContainer as string,
-          position: overIndex
+          newColumnId: activeContainer,
+          position: newPosition
         });
       }
     } else {
-      // Different containers - move between columns
-      const overItems = getCardsForColumn(overContainer as string);
-      const overIndex = overItems.findIndex(item => item.id === overId);
-      const insertIndex = overIndex >= 0 ? overIndex : overItems.length;
-
+      // Different containers - move between
+      const newPosition = overIndex >= 0 ? overIndex : containers[overContainer].length;
+      
       moveCardMutation.mutate({
         cardId: activeId as string,
-        newColumnId: overContainer as string,
-        position: insertIndex
+        newColumnId: overContainer,
+        position: newPosition
       });
     }
   };
@@ -659,7 +665,7 @@ export default function KanbanPage() {
           </div>
         </div>
       ) : (
-        // Kanban board view
+        // Kanban board view with Sortable Multiple Containers
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -692,18 +698,28 @@ export default function KanbanPage() {
             ) : (
               <div className="flex gap-6 overflow-x-auto pb-6">
                 {columns.map((column: KanbanColumn) => {
-                  const columnCards = getCardsForColumn(column.id);
+                  const columnCards = containers[column.id] || [];
+                  const cardIds = columnCards.map(card => card.id);
+
                   return (
-                    <SortableColumn
+                    <DroppableContainer
                       key={column.id}
                       column={column}
-                      cards={columnCards}
+                      items={cardIds}
                       onEditColumn={handleEditColumn}
                       onDeleteColumn={handleDeleteColumn}
-                      onEditCard={handleEditCard}
                       onCreateCard={handleCreateCard}
                       canDelete={selectedBoard?.ownerUserId === user?.id}
-                    />
+                    >
+                      {columnCards.map((card: KanbanCard) => (
+                        <SortableItem
+                          key={card.id}
+                          id={card.id}
+                          card={card}
+                          onEdit={handleEditCard}
+                        />
+                      ))}
+                    </DroppableContainer>
                   );
                 })}
               </div>
@@ -712,11 +728,12 @@ export default function KanbanPage() {
 
           <DragOverlay>
             {activeId ? (
-              <div className="opacity-50">
+              <div className="opacity-50 rotate-5">
                 {(() => {
                   const draggedCard = allCards.find(card => card.id === activeId);
                   return draggedCard ? (
-                    <SortableCard
+                    <SortableItem
+                      id={draggedCard.id}
                       card={draggedCard}
                       onEdit={() => {}}
                     />
