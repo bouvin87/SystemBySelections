@@ -2346,7 +2346,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
+        console.log(`Fetching board ${id} for tenant ${req.tenantId}, user ${req.user.userId}`);
         const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.userId);
+        console.log(`Found board:`, board ? {id: board.id, name: board.name, description: board.description} : null);
         if (!board) {
           return res.status(404).json({ message: "Board not found" });
         }
