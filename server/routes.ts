@@ -2330,7 +2330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     enforceTenantIsolation,
     async (req: AuthenticatedRequest, res) => {
       try {
-        const boards = await storage.getKanbanBoards(req.tenantId!, req.user.id);
+        const boards = await storage.getKanbanBoards(req.tenantId!, req.user.userId);
         res.json(boards);
       } catch (error) {
         console.error("Error fetching kanban boards:", error);
@@ -2346,7 +2346,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
-        const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.id);
+        const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.userId);
         if (!board) {
           return res.status(404).json({ message: "Board not found" });
         }
@@ -2367,7 +2367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validatedData = insertKanbanBoardSchema.parse({
           ...req.body,
           tenantId: req.tenantId,
-          ownerUserId: req.user.id,
+          ownerUserId: req.user.userId,
         });
         const board = await storage.createKanbanBoard(validatedData);
         res.status(201).json(board);
