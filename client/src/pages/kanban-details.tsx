@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors, UniqueIdentifier, DragOverlay, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors, UniqueIdentifier, DragOverlay, closestCenter, useDroppable } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -91,8 +91,14 @@ function KanbanColumnComponent({
   onEditCard,
   canDelete,
 }: KanbanColumnComponentProps) {
-  // Kolumner ska inte vara dragbara - bara korten ska vara det
-  // Tar bort useSortable för kolumner
+  // Kolumner ska inte vara dragbara men måste vara droppable för kort
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+    data: {
+      type: "Column",
+      column,
+    },
+  });
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.List;
@@ -101,7 +107,10 @@ function KanbanColumnComponent({
 
   return (
     <Card
-      className="min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm"
+      ref={setNodeRef}
+      className={`min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm ${
+        isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
+      }`}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
