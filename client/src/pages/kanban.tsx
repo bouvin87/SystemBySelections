@@ -34,9 +34,12 @@ export default function KanbanPage() {
   // Fetch columns for selected board
   const { data: columns = [], isLoading: columnsLoading } = useQuery({
     queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
-    queryFn: () => {
+    queryFn: async () => {
       console.log("Frontend: Fetching columns for board", selectedBoard?.id);
-      return apiRequest("GET", `/api/kanban/boards/${selectedBoard?.id}/columns`);
+      const response = await apiRequest("GET", `/api/kanban/boards/${selectedBoard?.id}/columns`);
+      const data = await response.json();
+      console.log("Frontend: Parsed JSON data:", data);
+      return data;
     },
     enabled: !!selectedBoard?.id,
     staleTime: 0,  // Force fresh data
