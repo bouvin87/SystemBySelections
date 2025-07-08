@@ -77,7 +77,10 @@ function SortableItem({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      onClick={() => onEdit(card)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onEdit(card);
+      }}
     >
       <CardContent className="p-3">
         <div className="flex items-center gap-2 mb-2">
@@ -169,14 +172,20 @@ function DroppableContainer({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onCreateCard(column.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreateCard(column.id);
+                }}
               >
                 <Plus className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onEditColumn(column)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditColumn(column);
+                }}
               >
                 <Settings className="h-3 w-3" />
               </Button>
@@ -184,7 +193,10 @@ function DroppableContainer({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => onDeleteColumn(column.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteColumn(column.id);
+                  }}
                   className="text-red-500 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3" />
@@ -204,7 +216,10 @@ function DroppableContainer({
               variant="ghost"
               size="sm"
               className="w-full text-muted-foreground hover:text-foreground"
-              onClick={() => onCreateCard(column.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCreateCard(column.id);
+              }}
             >
               <Plus className="h-4 w-4 mr-2" />
               Lägg till kort
