@@ -385,7 +385,7 @@ export default function KanbanPage() {
     },
   });
 
-  // Move card mutation with optimistic updates
+  // Move card mutation
   const moveCardMutation = useMutation({
     mutationFn: async ({ cardId, newColumnId, position }: { cardId: string, newColumnId: string, position: number }) => {
       return await apiRequest("POST", `/api/kanban/cards/${cardId}/move`, { 
@@ -393,59 +393,23 @@ export default function KanbanPage() {
         position 
       });
     },
-    onMutate: async ({ cardId, newColumnId, position }) => {
-      // Cancel any outgoing refetches to prevent overwriting optimistic update
-      await queryClient.cancelQueries({ queryKey: ["/api/kanban/columns"] });
-
-      // Snapshot the previous value for rollback
-      const previousQueries = queryClient.getQueriesData({ queryKey: ["/api/kanban/columns"] });
-
-      // Optimistically update each column's cards
-      columns?.forEach(column => {
-        queryClient.setQueryData(["/api/kanban/columns", column.id, "cards"], (old: any) => {
-          if (!old) return old;
-          
-          // Remove card from all columns first
-          let updatedCards = old.filter((card: any) => card.id !== cardId);
-          
-          // If this is the target column, add the moved card
-          if (column.id === newColumnId) {
-            const movedCard = allCards.find(card => card.id === cardId);
-            if (movedCard) {
-              const optimisticCard = { ...movedCard, columnId: newColumnId, position };
-              updatedCards.push(optimisticCard);
-              // Sort by position for correct display
-              updatedCards.sort((a: any, b: any) => a.position - b.position);
-            }
-          }
-          
-          return updatedCards;
-        });
-      });
-
-      return { previousQueries };
-    },
-    onError: (err, variables, context) => {
-      // Rollback optimistic updates on error
-      if (context?.previousQueries) {
-        context.previousQueries.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
-      }
-      toast({
-        title: "Fel",
-        description: err.message || "Kunde inte flytta kortet.",
-        variant: "destructive",
-      });
-    },
     onSuccess: () => {
-      // Invalidate to get fresh data from server
-      queryClient.invalidateQueries({
-        queryKey: ["/api/kanban/columns"],
+      // Immediately invalidate all column queries for instant refresh
+      columns?.forEach(column => {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/kanban/columns", column.id, "cards"],
+        });
       });
       toast({
         title: "Kort flyttat",
         description: "Kortet har flyttats till den nya kolumnen.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte flytta kortet.",
+        variant: "destructive",
       });
     },
   });
