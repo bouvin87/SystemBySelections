@@ -254,12 +254,18 @@ export default function KanbanDetails() {
   const { data: board, isLoading: boardLoading } = useQuery({
     queryKey: ["/api/kanban/boards", boardId],
     enabled: !!boardId,
+    onSuccess: (data) => {
+      console.log("Kanban Details - Fetched board:", data);
+    },
   });
 
   // Fetch columns for this board
   const { data: columns = [], isLoading: columnsLoading } = useQuery({
     queryKey: ["/api/kanban/boards", boardId, "columns"],
     enabled: !!boardId,
+    onSuccess: (data) => {
+      console.log("Kanban Details - Fetched columns:", data);
+    },
   });
 
   // Fetch cards for all columns
