@@ -42,13 +42,18 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
 
   if (isDragging) {
     return (
-      <div
+      <Card
         ref={setNodeRef}
         style={style}
-        className="opacity-30 bg-white border border-gray-200 rounded-lg p-3"
+        className="opacity-50 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg"
       >
-        <div className="h-16"></div>
-      </div>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2">
+            {getIcon(card.icon || "FileText")}
+            <span className="text-sm font-medium text-gray-400">{card.title}</span>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
