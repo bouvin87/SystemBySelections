@@ -2419,7 +2419,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { boardId } = req.params;
+        console.log(`Fetching columns for board ${boardId}, tenant ${req.tenantId}, user ${req.user.userId}`);
         const columns = await storage.getKanbanColumns(boardId, req.tenantId!, req.user.userId);
+        console.log(`Found ${columns.length} columns:`, columns);
         res.json(columns);
       } catch (error) {
         console.error("Error fetching kanban columns:", error);

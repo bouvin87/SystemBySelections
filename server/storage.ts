@@ -1792,6 +1792,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getKanbanBoard(id: string, tenantId: number, userId?: number): Promise<KanbanBoard | undefined> {
+    console.log(`Getting board ${id} for tenant ${tenantId}, user ${userId}`);
     const [board] = await db.select()
       .from(kanbanBoards)
       .where(and(
@@ -1799,14 +1800,20 @@ export class DatabaseStorage implements IStorage {
         eq(kanbanBoards.tenantId, tenantId)
       ));
     
-    if (!board) return undefined;
-    
-    // Check access permissions
-    if (userId && board.ownerUserId !== userId && !board.isPublic) {
-      // TODO: Check if board is shared with user
+    if (!board) {
+      console.log(`Board ${id} not found for tenant ${tenantId}`);
       return undefined;
     }
     
+    console.log(`Board found: owner=${board.ownerUserId}, isPublic=${board.isPublic}`);
+    
+    // Check access permissions
+    if (userId && board.ownerUserId !== userId && !board.isPublic) {
+      console.log(`Access denied for user ${userId} to board ${id}`);
+      return undefined;
+    }
+    
+    console.log(`Access granted for user ${userId} to board ${id}`);
     return board;
   }
 
