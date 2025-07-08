@@ -265,6 +265,8 @@ export default function KanbanDetails() {
     enabled: !!boardId,
     onSuccess: (data) => {
       console.log("Kanban Details - Fetched columns:", data);
+      console.log("Number of columns:", data.length);
+      console.log("Column details:", data.map(c => ({id: c.id, title: c.title, position: c.position})));
     },
   });
 
