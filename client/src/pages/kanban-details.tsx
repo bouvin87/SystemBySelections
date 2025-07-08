@@ -232,6 +232,9 @@ export default function KanbanDetails() {
   const [location, navigate] = useLocation();
   const boardId = location.split('/')[2]; // Extract boardId from /kanban/[boardId]
   
+  console.log("KanbanDetails - Current location:", location);
+  console.log("KanbanDetails - Extracted boardId:", boardId);
+  
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [showBoardModal, setShowBoardModal] = useState(false);
   const [showColumnModal, setShowColumnModal] = useState(false);
@@ -256,6 +259,7 @@ export default function KanbanDetails() {
     enabled: !!boardId,
     onSuccess: (data) => {
       console.log("Kanban Details - Fetched board:", data);
+      console.log("Board name:", data?.name, "Description:", data?.description);
     },
   });
 
