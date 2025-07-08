@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors, UniqueIdentifier, DragOverlay, pointerWithin } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors, UniqueIdentifier, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -150,6 +150,8 @@ function KanbanColumnComponent({
       ref={setNodeRef}
       style={style}
       className="min-w-[300px] max-w-[300px] bg-muted/30"
+      {...attributes}
+      {...listeners}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -193,7 +195,12 @@ function KanbanColumnComponent({
           <p className="text-sm text-muted-foreground">{column.description}</p>
         )}
       </CardHeader>
-      <CardContent className="space-y-2 min-h-[100px]">
+      <CardContent 
+        className="space-y-2 min-h-[300px] p-4"
+        style={{ 
+          transition: 'background-color 0.1s ease',
+        }}
+      >
         <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
           {items.map((card) => (
             <KanbanCardComponent
@@ -253,9 +260,8 @@ export default function KanbanDetails() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 0,  // Ingen rörelse krävs för att starta drag
+        distance: 2,  // Mycket låg men stabil
         delay: 0,     // Ingen fördröjning
-        tolerance: 0  // Ingen tolerans - omedelbar detektering
       },
     }),
     useSensor(KeyboardSensor, {
@@ -501,7 +507,7 @@ export default function KanbanDetails() {
       {/* Kanban Board */}
       <DndContext
         sensors={sensors}
-        collisionDetection={pointerWithin}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
