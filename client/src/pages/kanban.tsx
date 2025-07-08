@@ -403,39 +403,13 @@ export default function KanbanPage() {
     },
   });
 
-  // Move card mutation with optimistic updates
+  // Move card mutation with optimistic updates for both inter and intra-container moves
   const moveCardMutation = useMutation({
     mutationFn: async ({ cardId, newColumnId, position }: { cardId: string, newColumnId: string, position: number }) => {
       return await apiRequest("POST", `/api/kanban/cards/${cardId}/move`, { 
         columnId: newColumnId, 
         position 
       });
-    },
-    onMutate: async ({ cardId, newColumnId, position }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ["/api/kanban/cards", selectedBoard?.id] });
-
-      // Snapshot the previous value
-      const previousCards = queryClient.getQueryData(["/api/kanban/cards", selectedBoard?.id]);
-
-      // Optimistically update
-      queryClient.setQueryData(["/api/kanban/cards", selectedBoard?.id], (old: KanbanCard[] = []) => {
-        const updatedCards = [...old];
-        const cardIndex = updatedCards.findIndex(card => card.id === cardId);
-        
-        if (cardIndex !== -1) {
-          // Update the card's column and position
-          updatedCards[cardIndex] = {
-            ...updatedCards[cardIndex],
-            columnId: newColumnId,
-            position: position
-          };
-        }
-        
-        return updatedCards;
-      });
-
-      return { previousCards };
     },
     onError: (err, variables, context) => {
       // Rollback on error
@@ -448,14 +422,20 @@ export default function KanbanPage() {
         variant: "destructive",
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, { cardId, newColumnId }) => {
+      // Find the original container to determine message
+      const originalCard = allCards.find(card => card.id === cardId);
+      const isInterContainer = originalCard?.columnId !== newColumnId;
+      
       toast({
         title: "Kort flyttat",
-        description: "Kortet har flyttats till den nya kolumnen.",
+        description: isInterContainer 
+          ? "Kortet har flyttats till den nya kolumnen."
+          : "Kortet har fått ny ordning i kolumnen.",
       });
     },
     onSettled: () => {
-      // Always refetch after success or error
+      // Always refetch after success or error to ensure consistency
       queryClient.invalidateQueries({
         queryKey: ["/api/kanban/cards", selectedBoard?.id],
       });
@@ -585,8 +565,19 @@ export default function KanbanPage() {
     }
 
     if (activeContainer === overContainer) {
-      // Same container - reorder within
+      // Same container - reorder within with optimistic update
       if (activeIndex !== overIndex) {
+        // Optimistic update for same container reordering
+        queryClient.setQueryData(["/api/kanban/cards", selectedBoard?.id], (old: KanbanCard[] = []) => {
+          const containerCards = old.filter(card => card.columnId === activeContainer);
+          const otherCards = old.filter(card => card.columnId !== activeContainer);
+          
+          // Reorder within container
+          const reorderedCards = arrayMove(containerCards, activeIndex, overIndex);
+          
+          return [...otherCards, ...reorderedCards];
+        });
+
         moveCardMutation.mutate({
           cardId: activeId as string,
           newColumnId: activeContainer,
