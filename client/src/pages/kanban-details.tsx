@@ -323,10 +323,7 @@ export default function KanbanDetails() {
 
   const moveCardMutation = useMutation({
     mutationFn: ({ cardId, data }: { cardId: string; data: any }) =>
-      apiRequest(`/api/kanban/cards/${cardId}/move`, {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      apiRequest(`/api/kanban/cards/${cardId}/move`, "POST", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
     },
