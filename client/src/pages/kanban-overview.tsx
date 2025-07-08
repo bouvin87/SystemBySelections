@@ -149,10 +149,7 @@ export default function KanbanOverview() {
 
   // Mutations
   const createBoardMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/kanban/boards`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: any) => apiRequest("POST", `/api/kanban/boards`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards"] });
       setShowBoardModal(false);
@@ -173,10 +170,7 @@ export default function KanbanOverview() {
 
   const updateBoardMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
-      apiRequest(`/api/kanban/boards/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("PATCH", `/api/kanban/boards/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards"] });
       setShowBoardModal(false);
@@ -197,9 +191,7 @@ export default function KanbanOverview() {
 
   const deleteBoardMutation = useMutation({
     mutationFn: (boardId: string) =>
-      apiRequest(`/api/kanban/boards/${boardId}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/kanban/boards/${boardId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards"] });
       toast({

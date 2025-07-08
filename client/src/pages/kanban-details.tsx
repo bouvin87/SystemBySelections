@@ -507,10 +507,20 @@ export default function KanbanDetails() {
         onOpenChange={setShowColumnModal}
         boardId={boardId}
         column={editingColumn}
-        onSuccess={() => {
-          setShowColumnModal(false);
-          setEditingColumn(null);
-          queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
+        onSubmit={async (data) => {
+          try {
+            if (editingColumn) {
+              await apiRequest("PATCH", `/api/kanban/columns/${editingColumn.id}`, data);
+            } else {
+              await apiRequest("POST", `/api/kanban/columns`, { ...data, boardId });
+            }
+            setShowColumnModal(false);
+            setEditingColumn(null);
+            queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
+            toast({ title: "Kolumn sparad", description: "Kolumnen har sparats framgångsrikt." });
+          } catch (error: any) {
+            toast({ title: "Fel", description: error.message || "Kunde inte spara kolumnen.", variant: "destructive" });
+          }
         }}
       />
 
@@ -519,11 +529,21 @@ export default function KanbanDetails() {
         onOpenChange={setShowCardModal}
         columnId={selectedColumnId || ""}
         card={editingCard}
-        onSuccess={() => {
-          setShowCardModal(false);
-          setEditingCard(null);
-          setSelectedColumnId(null);
-          queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
+        onSubmit={async (data) => {
+          try {
+            if (editingCard) {
+              await apiRequest("PATCH", `/api/kanban/cards/${editingCard.id}`, data);
+            } else {
+              await apiRequest("POST", `/api/kanban/cards`, { ...data, columnId: selectedColumnId });
+            }
+            setShowCardModal(false);
+            setEditingCard(null);
+            setSelectedColumnId(null);
+            queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
+            toast({ title: "Kort sparat", description: "Kortet har sparats framgångsrikt." });
+          } catch (error: any) {
+            toast({ title: "Fel", description: error.message || "Kunde inte spara kortet.", variant: "destructive" });
+          }
         }}
       />
     </div>
