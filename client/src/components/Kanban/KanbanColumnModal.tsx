@@ -135,7 +135,7 @@ export function KanbanColumnModal({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Avbryt
             </Button>
-            <Button type="submit" disabled={!title.trim()}>
+            <Button type="submit" disabled={!title || !title.trim()}>
               {column ? "Uppdatera" : "Skapa"}
             </Button>
           </div>

@@ -511,7 +511,7 @@ export default function KanbanDetails() {
             Tillbaka
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{board.title}</h1>
+            <h1 className="text-2xl font-bold">{board.name}</h1>
             {board.description && (
               <p className="text-muted-foreground">{board.description}</p>
             )}

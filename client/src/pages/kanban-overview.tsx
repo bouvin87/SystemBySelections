@@ -29,7 +29,7 @@ interface BoardCardProps {
 
 function BoardCard({ board, onEdit, onDelete, onView }: BoardCardProps) {
   const { user } = useAuth();
-  const isOwner = user?.id === board.ownerId;
+  const isOwner = user?.id === board.ownerUserId;
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.ClipboardList;
@@ -57,7 +57,7 @@ function BoardCard({ board, onEdit, onDelete, onView }: BoardCardProps) {
             </div>
             <div>
               <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors">
-                {board.title}
+                {board.name}
               </CardTitle>
               {board.description && (
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
