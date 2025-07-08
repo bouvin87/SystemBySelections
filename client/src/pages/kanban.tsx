@@ -122,7 +122,7 @@ function SortableItem({
   );
 }
 
-// Droppable Container Component
+// Droppable Container Component - Following dnd-kit Multiple Containers pattern
 function DroppableContainer({
   children,
   column,
@@ -198,7 +198,7 @@ function DroppableContainer({
             </p>
           )}
         </CardHeader>
-        <CardContent className="min-h-[200px]" ref={setNodeRef}>
+        <CardContent className="min-h-[200px]">
           <div className="mb-2">
             <Button
               variant="ghost"
@@ -210,9 +210,12 @@ function DroppableContainer({
               Lägg till kort
             </Button>
           </div>
-          <SortableContext items={items} strategy={verticalListSortingStrategy}>
-            {children}
-          </SortableContext>
+          {/* Droppable zone around SortableContext for empty columns */}
+          <div ref={setNodeRef} className="min-h-[150px]">
+            <SortableContext items={items} strategy={verticalListSortingStrategy}>
+              {children}
+            </SortableContext>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -527,8 +530,32 @@ export default function KanbanPage() {
     }
 
     if (activeContainer !== overContainer) {
-      // Moving between containers - implement if needed for real-time updates
-      // This is where you'd handle cross-container moves during drag
+      // Moving between containers - optimistic update during drag
+      queryClient.setQueryData(["/api/kanban/cards", selectedBoard?.id], (old: KanbanCard[] = []) => {
+        const activeItems = old.filter(card => card.columnId === activeContainer);
+        const overItems = old.filter(card => card.columnId === overContainer);
+        
+        // Find the active item
+        const activeIndex = activeItems.findIndex(card => card.id === activeId);
+        const activeItem = activeItems[activeIndex];
+
+        if (!activeItem) return old;
+
+        // Find the over index
+        const overIndex = overId in containers ? overItems.length : overItems.findIndex(card => card.id === overId);
+
+        // Create new array with the item moved
+        const newCards = old.filter(card => card.id !== activeId);
+        const updatedActiveItem = { ...activeItem, columnId: overContainer };
+        
+        // Insert at the correct position
+        const targetColumnCards = newCards.filter(card => card.columnId === overContainer);
+        const otherCards = newCards.filter(card => card.columnId !== overContainer);
+        
+        targetColumnCards.splice(overIndex, 0, updatedActiveItem);
+        
+        return [...otherCards, ...targetColumnCards];
+      });
     }
   };
 
@@ -550,19 +577,20 @@ export default function KanbanPage() {
     }
 
     const activeIndex = getIndex(activeId);
-    const overIndex = getIndex(overId);
+    let overIndex = getIndex(overId);
+
+    // If dropping on a container itself (not on an item), place at end
+    if (overId in containers) {
+      overIndex = containers[overContainer].length;
+    }
 
     if (activeContainer === overContainer) {
       // Same container - reorder within
       if (activeIndex !== overIndex) {
-        const newCards = arrayMove(containers[activeContainer], activeIndex, overIndex);
-        // Calculate new position
-        const newPosition = overIndex;
-        
         moveCardMutation.mutate({
           cardId: activeId as string,
           newColumnId: activeContainer,
-          position: newPosition
+          position: overIndex
         });
       }
     } else {
