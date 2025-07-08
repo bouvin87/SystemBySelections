@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors, UniqueIdentifier, DragOverlay, pointerWithin, rectIntersection } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";
+import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors, UniqueIdentifier, DragOverlay, closestCenter } from "@dnd-kit/core";
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
@@ -201,7 +201,10 @@ function KanbanColumnComponent({
           transition: 'background-color 0.1s ease',
         }}
       >
-        <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
+        <SortableContext 
+          items={items.map(item => item.id)} 
+          strategy={verticalListSortingStrategy}
+        >
           {items.map((card) => (
             <KanbanCardComponent
               key={card.id}
@@ -502,7 +505,7 @@ export default function KanbanDetails() {
       {/* Kanban Board */}
       <DndContext
         sensors={sensors}
-        collisionDetection={pointerWithin}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
