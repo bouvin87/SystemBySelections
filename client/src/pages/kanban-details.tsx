@@ -14,6 +14,7 @@ import { KanbanBoard, KanbanColumn, KanbanCard } from "@shared/schema";
 import { KanbanColumnModal } from "@/components/Kanban/KanbanColumnModal";
 import { KanbanCardModal } from "@/components/Kanban/KanbanCardModal";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 interface KanbanCardComponentProps {
   card: KanbanCard;
@@ -63,6 +64,8 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
       style={style}
       className="cursor-pointer hover:shadow-md transition-shadow bg-white"
       onClick={() => onEdit(card)}
+      {...attributes}
+      {...listeners}
     >
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
@@ -71,8 +74,7 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
             <span className="text-sm font-medium">{card.title}</span>
           </div>
           <div
-            {...attributes}
-            {...listeners}
+
             className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
             onClick={(e) => e.stopPropagation()}
           >
@@ -251,7 +253,9 @@ export default function KanbanDetails() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 3,  // Mycket lågt avstånd
+        delay: 0,     // Ingen fördröjning
+        tolerance: 3  // Låg tolerans för snabbare drop-detektering
       },
     }),
     useSensor(KeyboardSensor, {
@@ -470,6 +474,7 @@ export default function KanbanDetails() {
   const sortedColumns = columns.sort((a: KanbanColumn, b: KanbanColumn) => a.position - b.position);
 
   return (
+    
     <div className="container mx-auto p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
