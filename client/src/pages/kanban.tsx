@@ -27,6 +27,7 @@ import {
   arrayMove,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import {
   useSortable,
 } from "@dnd-kit/sortable";
@@ -123,6 +124,72 @@ function SortableCard({ card, onEdit }: { card: KanbanCard, onEdit: (card: Kanba
           )}
       </div>
     </Card>
+  );
+}
+
+// Droppable Column Component
+function DroppableColumn({ 
+  column, 
+  children, 
+  onEdit,
+  cardCount 
+}: { 
+  column: KanbanColumn, 
+  children: React.ReactNode,
+  onEdit: (column: KanbanColumn) => void,
+  cardCount: number
+}) {
+  const { setNodeRef } = useDroppable({
+    id: column.id,
+  });
+
+  const getIcon = (iconName: string) => {
+    const Icon = (Icons as any)[iconName] || Icons.List;
+    return <Icon className="h-4 w-4" />;
+  };
+
+  return (
+    <div className="flex-shrink-0 w-80">
+      <Card className="h-full" ref={setNodeRef}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {getIcon(column.icon || "List")}
+              <CardTitle className="text-base">
+                {column.title}
+              </CardTitle>
+              <Badge variant="secondary">
+                {cardCount}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {/* handleCreateCard kommer att hanteras i parent */}}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(column)}
+              >
+                <Settings className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+          {column.description && (
+            <p className="text-sm text-muted-foreground">
+              {column.description}
+            </p>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {children}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -235,7 +302,20 @@ export default function KanbanPage() {
         queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
       });
       setShowColumnModal(false);
+      setEditingColumn(null);
       toast({ title: "Kolumn skapad framgångsrikt" });
+    },
+  });
+
+  const updateColumnMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string, data: any }) => apiRequest("PATCH", `/api/kanban/columns/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/kanban/boards", selectedBoard?.id, "columns"],
+      });
+      setShowColumnModal(false);
+      setEditingColumn(null);
+      toast({ title: "Kolumn uppdaterad framgångsrikt" });
     },
   });
 
@@ -524,58 +604,36 @@ export default function KanbanPage() {
                   columns.map((column: KanbanColumn) => {
                   const columnCards = getCardsForColumn(column.id);
                   return (
-                    <div key={column.id} className="flex-shrink-0 w-80">
-                      <Card className="h-full">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {getIcon(column.icon || "List")}
-                              <CardTitle className="text-base">
-                                {column.title}
-                              </CardTitle>
-                              <Badge variant="secondary">
-                                {columnCards.length}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCreateCard(column.id)}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditColumn(column)}
-                              >
-                                <Settings className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                          {column.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {column.description}
-                            </p>
-                          )}
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <SortableContext
-                            items={columnCards.map(card => card.id)}
-                            strategy={verticalListSortingStrategy}
-                          >
-                            {columnCards.map((card: KanbanCard) => (
-                              <SortableCard
-                                key={card.id}
-                                card={card}
-                                onEdit={handleEditCard}
-                              />
-                            ))}
-                          </SortableContext>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    <DroppableColumn
+                      key={column.id}
+                      column={column}
+                      onEdit={handleEditColumn}
+                      cardCount={columnCards.length}
+                    >
+                      <div className="mb-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-muted-foreground hover:text-foreground"
+                          onClick={() => handleCreateCard(column.id)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Lägg till kort
+                        </Button>
+                      </div>
+                      <SortableContext
+                        items={columnCards.map(card => card.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {columnCards.map((card: KanbanCard) => (
+                          <SortableCard
+                            key={card.id}
+                            card={card}
+                            onEdit={handleEditCard}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DroppableColumn>
                   );
                 })}
               </div>
@@ -612,7 +670,11 @@ export default function KanbanPage() {
         column={editingColumn}
         boardId={selectedBoard?.id}
         onSubmit={(data) => {
-          createColumnMutation.mutate(data);
+          if (editingColumn) {
+            updateColumnMutation.mutate({ id: editingColumn.id, data });
+          } else {
+            createColumnMutation.mutate(data);
+          }
         }}
       />
 
