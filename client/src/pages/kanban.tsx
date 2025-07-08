@@ -492,12 +492,25 @@ export default function KanbanPage() {
         }
       }
 
-      // If column changed, update the card
-      if (newColumnId !== activeCard.columnId) {
+      // Calculate new position based on drop location
+      let newPosition = 0;
+      const targetColumnCards = getCardsForColumn(newColumnId);
+      const overCard = allCards.find(card => card.id === overId);
+      
+      if (overCard && overCard.columnId === newColumnId) {
+        // Dropped on another card - insert at that position
+        newPosition = overCard.position;
+      } else {
+        // Dropped on column - add to end
+        newPosition = targetColumnCards.length;
+      }
+
+      // Only move if column or position changed
+      if (newColumnId !== activeCard.columnId || newPosition !== activeCard.position) {
         moveCardMutation.mutate({
           cardId: activeCard.id,
           newColumnId,
-          position: 0 // For now, put at top of new column
+          position: newPosition
         });
       }
     }
@@ -764,7 +777,11 @@ export default function KanbanPage() {
         card={editingCard}
         columnId={selectedColumnId}
         onSubmit={(data) => {
-          createCardMutation.mutate(data);
+          if (editingCard) {
+            updateCardMutation.mutate({ id: editingCard.id, data });
+          } else {
+            createCardMutation.mutate(data);
+          }
         }}
       />
     </div>
