@@ -28,7 +28,6 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
     setNodeRef,
     transform,
     transition,
-    isDragging,
   } = useSortable({ id: card.id });
 
   const style = {
@@ -41,31 +40,12 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
     return <Icon className="h-4 w-4" />;
   };
 
-  if (isDragging) {
-    return (
-      <Card
-        ref={setNodeRef}
-        style={style}
-        className="opacity-50 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg"
-      >
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2">
-            {getIcon(card.icon || "FileText")}
-            <span className="text-sm font-medium text-gray-400">{card.title}</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card
       ref={setNodeRef}
       style={style}
       className="cursor-pointer hover:shadow-md transition-shadow bg-white"
       onClick={() => onEdit(card)}
-      {...attributes}
-      {...listeners}
     >
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
@@ -74,7 +54,8 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
             <span className="text-sm font-medium">{card.title}</span>
           </div>
           <div
-
+            {...attributes}
+            {...listeners}
             className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
             onClick={(e) => e.stopPropagation()}
           >
@@ -110,48 +91,17 @@ function KanbanColumnComponent({
   onEditCard,
   canDelete,
 }: KanbanColumnComponentProps) {
-  const {
-    setNodeRef,
-    attributes,
-    listeners,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: column.id,
-    data: {
-      type: "Column",
-      column,
-    },
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  // Kolumner ska inte vara dragbara - bara korten ska vara det
+  // Tar bort useSortable för kolumner
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.List;
     return <Icon className="h-4 w-4" />;
   };
 
-  if (isDragging) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg w-[300px] h-[200px] opacity-40"
-      ></div>
-    );
-  }
-
   return (
     <Card
-      ref={setNodeRef}
-      style={style}
       className="min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm"
-      {...attributes}
-      {...listeners}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -212,9 +162,6 @@ function KanbanColumnComponent({
       </CardHeader>
       <CardContent 
         className="space-y-2 min-h-[300px] p-4"
-        style={{ 
-          transition: 'background-color 0.1s ease',
-        }}
       >
         <SortableContext 
           items={items.map(item => item.id)} 
@@ -546,23 +493,18 @@ export default function KanbanDetails() {
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-6 overflow-x-auto pb-6">
-            <SortableContext
-              items={sortedColumns.map((col: KanbanColumn) => col.id)}
-              strategy={rectSortingStrategy}
-            >
-              {sortedColumns.map((column: KanbanColumn) => (
-                <KanbanColumnComponent
-                  key={column.id}
-                  column={column}
-                  items={cardsByColumn[column.id] || []}
-                  onCreateCard={handleCreateCard}
-                  onEditColumn={handleEditColumn}
-                  onDeleteColumn={handleDeleteColumn}
-                  onEditCard={handleEditCard}
-                  canDelete={columns.length > 1}
-                />
-              ))}
-            </SortableContext>
+            {sortedColumns.map((column: KanbanColumn) => (
+              <KanbanColumnComponent
+                key={column.id}
+                column={column}
+                items={cardsByColumn[column.id] || []}
+                onCreateCard={handleCreateCard}
+                onEditColumn={handleEditColumn}
+                onDeleteColumn={handleDeleteColumn}
+                onEditCard={handleEditCard}
+                canDelete={columns.length > 1}
+              />
+            ))}
           </div>
 
           <DragOverlay>
