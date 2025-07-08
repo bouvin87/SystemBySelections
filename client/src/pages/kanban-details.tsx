@@ -13,6 +13,7 @@ import {
   UniqueIdentifier,
   DragOverlay,
   closestCorners,
+  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -108,13 +109,22 @@ function KanbanColumnComponent({
   onEditCard,
   canDelete,
 }: KanbanColumnComponentProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+  });
+
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.List;
     return <Icon className="h-4 w-4" />;
   };
 
   return (
-    <Card className="min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm">
+    <Card 
+      ref={setNodeRef}
+      className={`min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm ${
+        isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
+      }`}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -467,21 +477,16 @@ export default function KanbanDetails() {
         >
           <div className="flex gap-6 overflow-x-auto pb-6">
             {sortedColumns.map((column: KanbanColumn) => (
-              <SortableContext
+              <KanbanColumnComponent
                 key={column.id}
-                items={cardsByColumn[column.id]?.map(card => card.id) || []}
-                strategy={verticalListSortingStrategy}
-              >
-                <KanbanColumnComponent
-                  column={column}
-                  items={cardsByColumn[column.id] || []}
-                  onCreateCard={handleCreateCard}
-                  onEditColumn={handleEditColumn}
-                  onDeleteColumn={handleDeleteColumn}
-                  onEditCard={handleEditCard}
-                  canDelete={columns.length > 1}
-                />
-              </SortableContext>
+                column={column}
+                items={cardsByColumn[column.id] || []}
+                onCreateCard={handleCreateCard}
+                onEditColumn={handleEditColumn}
+                onDeleteColumn={handleDeleteColumn}
+                onEditCard={handleEditCard}
+                canDelete={columns.length > 1}
+              />
             ))}
           </div>
 
