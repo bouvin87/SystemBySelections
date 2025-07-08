@@ -75,24 +75,24 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white"
+      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 bg-white border border-gray-200 rounded-lg mb-3"
       onClick={() => onEdit(card)}
     >
-      <CardContent className="p-4">
-        <h4 className="font-medium text-sm mb-2">{card.title}</h4>
+      <CardContent className="p-3">
+        <h4 className="font-medium text-sm mb-2 text-gray-900">{card.title}</h4>
         {card.description && (
-          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+          <p className="text-xs text-gray-600 mb-3 line-clamp-2">
             {card.description}
           </p>
         )}
         <div className="flex items-center justify-between">
           {card.priority && (
-            <Badge className={priorityColors[card.priority as keyof typeof priorityColors]}>
+            <Badge className={`text-xs ${priorityColors[card.priority as keyof typeof priorityColors]}`}>
               {card.priority}
             </Badge>
           )}
           {card.dueDate && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-gray-500">
               {new Date(card.dueDate).toLocaleDateString('sv-SE')}
             </span>
           )}
@@ -155,16 +155,16 @@ function KanbanColumnComponent({
     <Card
       ref={setNodeRef}
       style={style}
-      className="min-w-[300px] max-w-[300px] bg-muted/30"
+      className="w-80 bg-gray-50 border border-gray-200 rounded-lg shadow-sm"
       {...attributes}
       {...listeners}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 bg-white border-b border-gray-200 rounded-t-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {getIcon(column.icon || "List")}
-            <CardTitle className="text-lg">{column.title}</CardTitle>
-            <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-full">
+            <CardTitle className="text-lg font-semibold text-gray-900">{column.title}</CardTitle>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full font-medium">
               {items.length}
             </span>
           </div>
@@ -172,6 +172,7 @@ function KanbanColumnComponent({
             <Button
               variant="ghost"
               size="sm"
+              className="hover:bg-gray-100"
               onClick={(e) => {
                 e.stopPropagation();
                 onCreateCard(column.id);
@@ -182,6 +183,7 @@ function KanbanColumnComponent({
             <Button
               variant="ghost"
               size="sm"
+              className="hover:bg-gray-100"
               onClick={(e) => {
                 e.stopPropagation();
                 onEditColumn(column);
@@ -193,6 +195,7 @@ function KanbanColumnComponent({
               <Button
                 variant="ghost"
                 size="sm"
+                className="hover:bg-red-50 hover:text-red-600"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteColumn(column.id);
@@ -204,10 +207,10 @@ function KanbanColumnComponent({
           </div>
         </div>
         {column.description && (
-          <p className="text-sm text-muted-foreground">{column.description}</p>
+          <p className="text-sm text-gray-600 mt-2">{column.description}</p>
         )}
       </CardHeader>
-      <CardContent className="space-y-2 min-h-[300px] p-4">
+      <CardContent className="p-4 min-h-[400px] bg-gray-50">
         <SortableContext 
           items={items.map(item => item.id)} 
           strategy={verticalListSortingStrategy}
@@ -219,6 +222,12 @@ function KanbanColumnComponent({
               onEdit={onEditCard}
             />
           ))}
+          {items.length === 0 && (
+            <div className="text-center py-8 text-gray-400">
+              <Icons.Plus className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Inga kort ännu</p>
+            </div>
+          )}
         </SortableContext>
       </CardContent>
     </Card>
@@ -410,17 +419,20 @@ export default function KanbanDetails() {
   }
 
   return (
-    <div className="p-6">
+    <div className="h-full bg-gray-100">
       {/* Header */}
-      <div className="mb-6">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{board.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{board.name}</h1>
             {board.description && (
-              <p className="text-muted-foreground mt-1">{board.description}</p>
+              <p className="text-gray-600 mt-1">{board.description}</p>
             )}
           </div>
-          <Button onClick={handleCreateColumn}>
+          <Button 
+            onClick={handleCreateColumn}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
             <Icons.Plus className="h-4 w-4 mr-2" />
             Ny kolumn
           </Button>
@@ -428,42 +440,46 @@ export default function KanbanDetails() {
       </div>
 
       {/* Kanban Board */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-6 overflow-x-auto pb-6">
-          <SortableContext
-            items={sortedColumns.map((col: KanbanColumn) => col.id)}
-            strategy={rectSortingStrategy}
-          >
-            {sortedColumns.map((column: KanbanColumn) => (
-              <KanbanColumnComponent
-                key={column.id}
-                column={column}
-                items={cardsByColumn[column.id] || []}
-                onCreateCard={handleCreateCard}
-                onEditColumn={handleEditColumn}
-                onDeleteColumn={handleDeleteColumn}
-                onEditCard={handleEditCard}
-                canDelete={columns.length > 1}
-              />
-            ))}
-          </SortableContext>
-        </div>
+      <div className="p-6">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-6 overflow-x-auto pb-6">
+            <SortableContext
+              items={sortedColumns.map((col: KanbanColumn) => col.id)}
+              strategy={rectSortingStrategy}
+            >
+              {sortedColumns.map((column: KanbanColumn) => (
+                <KanbanColumnComponent
+                  key={column.id}
+                  column={column}
+                  items={cardsByColumn[column.id] || []}
+                  onCreateCard={handleCreateCard}
+                  onEditColumn={handleEditColumn}
+                  onDeleteColumn={handleDeleteColumn}
+                  onEditCard={handleEditCard}
+                  canDelete={columns.length > 1}
+                />
+              ))}
+            </SortableContext>
+          </div>
 
-        <DragOverlay>
-          {activeCard ? (
-            <KanbanCardComponent
-              card={activeCard}
-              onEdit={() => {}}
-            />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          <DragOverlay>
+            {activeCard ? (
+              <div className="rotate-3 scale-105 shadow-xl">
+                <KanbanCardComponent
+                  card={activeCard}
+                  onEdit={() => {}}
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
 
       {/* Modals */}
       <KanbanColumnModal
