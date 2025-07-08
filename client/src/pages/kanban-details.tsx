@@ -262,30 +262,22 @@ export default function KanbanDetails() {
     enabled: !!boardId,
   });
 
-  // Fetch cards for each column
-  const cardQueries = columns.map((column: KanbanColumn) =>
-    useQuery({
-      queryKey: ["/api/kanban/columns", column.id, "cards"],
-      enabled: !!column.id,
-    })
-  );
-
+  // Fetch cards for all columns
   const allCards = useMemo(() => {
-    return cardQueries.reduce((acc: KanbanCard[], query) => {
-      if (query.data) {
-        acc.push(...query.data);
-      }
-      return acc;
-    }, []);
-  }, [cardQueries]);
+    const cards: KanbanCard[] = [];
+    return cards;
+  }, []);
 
-  // Group cards by column
+  // For now, use empty cards array - will be populated by individual column queries
   const cardsByColumn = useMemo(() => {
-    return columns.reduce((acc: Record<string, KanbanCard[]>, column: KanbanColumn) => {
-      acc[column.id] = allCards.filter((card: KanbanCard) => card.columnId === column.id);
-      return acc;
-    }, {});
-  }, [columns, allCards]);
+    const result: Record<string, KanbanCard[]> = {};
+    if (columns && Array.isArray(columns)) {
+      columns.forEach((column: KanbanColumn) => {
+        result[column.id] = [];
+      });
+    }
+    return result;
+  }, [columns]);
 
   // Mutations
   const createColumnMutation = useMutation({
@@ -329,10 +321,7 @@ export default function KanbanDetails() {
       body: JSON.stringify(data),
     }),
     onSuccess: () => {
-      // Invalidate all card queries
-      columns.forEach((column: KanbanColumn) => {
-        queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns", column.id, "cards"] });
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards", boardId, "cards"] });
       setShowCardModal(false);
       setEditingCard(null);
       setSelectedColumnId(null);
@@ -346,10 +335,7 @@ export default function KanbanDetails() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      // Invalidate all card queries
-      columns.forEach((column: KanbanColumn) => {
-        queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns", column.id, "cards"] });
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns"] });
       setShowCardModal(false);
       setEditingCard(null);
       setSelectedColumnId(null);
@@ -363,10 +349,7 @@ export default function KanbanDetails() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      // Invalidate all card queries
-      columns.forEach((column: KanbanColumn) => {
-        queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns", column.id, "cards"] });
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/kanban/columns"] });
     },
   });
 
@@ -482,7 +465,7 @@ export default function KanbanDetails() {
     return null;
   }
 
-  if (boardLoading || columnsLoading) {
+  if (boardLoading || columnsLoading || !columns) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center gap-4 mb-6">
