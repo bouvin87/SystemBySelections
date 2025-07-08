@@ -12,19 +12,19 @@ export default function KanbanDetails() {
 
   // Fetch board details
   const { data: board, isLoading: boardLoading, error: boardError } = useQuery({
-    queryKey: ["/api/kanban/boards", boardId],
+    queryKey: [`/api/kanban/boards/${boardId}`],
     enabled: !!boardId,
   });
 
   // Fetch columns 
   const { data: columns = [], isLoading: columnsLoading, error: columnsError } = useQuery({
-    queryKey: ["/api/kanban/boards", boardId, "columns"],
+    queryKey: [`/api/kanban/boards/${boardId}/columns`],
     enabled: !!boardId,
   });
 
   // Fetch cards
   const { data: cards = [], isLoading: cardsLoading, error: cardsError } = useQuery({
-    queryKey: ["/api/kanban/boards", boardId, "cards"],
+    queryKey: [`/api/kanban/boards/${boardId}/cards`],
     enabled: !!boardId,
   });
 
