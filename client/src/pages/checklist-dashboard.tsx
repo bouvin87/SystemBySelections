@@ -236,7 +236,7 @@ export default function ChecklistDashboard({
               <p className="text-muted mb-6">
                 {t("dashboard.dashboardNotEnabledDescription")}
               </p>
-              <Link href="/">
+              <Link href="/checklists">
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   {t("dashboard.backToHome")}
@@ -259,7 +259,7 @@ export default function ChecklistDashboard({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href="/">
+              <Link href="/checklists">
                 <Button variant="ghost" size="sm">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   {t("common.back")}

@@ -314,7 +314,7 @@ export default function DeviationsPage() {
       {/* Header Row likt ChecklistDashboard */}
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {/* Vänstersida: Tillbaka + Titel */}
             <div className="flex items-center space-x-4">
               <Link href="/">
@@ -332,7 +332,7 @@ export default function DeviationsPage() {
             </div>
 
             {/* Högersida: Ny + Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
               <Button onClick={() => setIsCreateModalOpen(true)} variant="default">
                 <Plus className="h-4 w-4 mr-2" />
                 Ny avvikelse
@@ -348,6 +348,7 @@ export default function DeviationsPage() {
           </div>
         </div>
       </div>
+
 
 
       <div className="container mx-auto px-4 py-8 space-y-6">

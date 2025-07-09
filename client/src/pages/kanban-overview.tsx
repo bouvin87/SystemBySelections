@@ -13,12 +13,15 @@ import {
   Users,
   Lock,
   Trash2,
+  Link,
+  ArrowLeft,
 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanBoard } from "@shared/schema";
 import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import { useTranslation } from "react-i18next";
 
 interface BoardCardProps {
   board: KanbanBoard;
@@ -138,7 +141,7 @@ export default function KanbanOverview() {
   const [editingBoard, setEditingBoard] = useState<KanbanBoard | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  const { t } = useTranslation();
   // Fetch all boards
   const { data: boards = [], isLoading } = useQuery({
     queryKey: ["/api/kanban/boards"],
@@ -243,22 +246,32 @@ export default function KanbanOverview() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      <div className="container mx-auto p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Kanban Tavlor</h1>
-            <p className="text-muted-foreground mt-2">
-              Hantera dina projekt med visuella tavlor
-            </p>
+        <div className="bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Link href="/">
+                  <Button variant="ghost" size="sm">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    {t("common.back")}
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {t("common.checklists")}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {t("dashboard.selectDashboard")}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <Button onClick={handleCreateBoard} size="lg">
-            <Plus className="h-5 w-5 mr-2" />
-            Ny tavla
-          </Button>
         </div>
+
 
         {/* Boards Grid */}
         {boards.length === 0 ? (
@@ -307,6 +320,5 @@ export default function KanbanOverview() {
           onDelete={editingBoard ? () => handleDeleteBoard(editingBoard.id) : undefined}
         />
       </div>
-    </div>
   );
 }

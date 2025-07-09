@@ -21,7 +21,7 @@ export default function Checklists() {
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
       {/* Menyrad */}
-      <div className="bg-background border-b border-border">
+      <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
