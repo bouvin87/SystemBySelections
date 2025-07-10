@@ -21,7 +21,7 @@ import { Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanBoard } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface KanbanBoardModalProps {
   open: boolean;
@@ -96,6 +96,11 @@ export function KanbanBoardModal({
           boardId: board.id,
           showInQuickAccess,
           pinnedPosition: userPreference?.pinnedPosition || 0,
+        });
+        
+        // Invalidate queries to update QuickAccess and other preference displays
+        queryClient.invalidateQueries({
+          queryKey: ["/api/kanban/preferences"],
         });
       } catch (error) {
         console.error("Failed to update user preference:", error);
