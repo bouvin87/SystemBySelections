@@ -2140,11 +2140,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User Kanban Preferences
-  async getUserKanbanPreferences(userId: number): Promise<UserKanbanPreference[]> {
-    return await db.select()
+  async getUserKanbanPreferences(userId: number): Promise<any[]> {
+    const result = await db
+      .select({
+        preference: userKanbanPreferences,
+        board: {
+          id: kanbanBoards.id,
+          name: kanbanBoards.name,
+          icon: kanbanBoards.icon,
+          description: kanbanBoards.description,
+        },
+      })
       .from(userKanbanPreferences)
+      .innerJoin(
+        kanbanBoards,
+        eq(userKanbanPreferences.boardId, kanbanBoards.id)
+      )
       .where(eq(userKanbanPreferences.userId, userId))
       .orderBy(asc(userKanbanPreferences.pinnedPosition));
+
+    // Returnera i strukturen du förväntar dig i frontend:
+    return result.map((row) => ({
+      ...row.preference,
+      kanbanBoard: row.board,
+    }));
   }
 
   async getUserKanbanPreference(userId: number, boardId: string): Promise<UserKanbanPreference | undefined> {

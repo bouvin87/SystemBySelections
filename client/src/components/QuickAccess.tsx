@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import DeviationModal from "@/components/DeviationModal";
-import type { Checklist } from "@shared/schema";
+import type { Checklist, KanbanBoard, UserKanbanPreference } from "@shared/schema";
 import { renderIcon } from "@/lib/icon-utils";
 import ChecklistSelectionModal from "./ChecklistSelectionModal";
 import clsx from "clsx";
@@ -60,6 +60,20 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
         throw new Error(`Failed to fetch active checklists: ${result.status}`);
       const activeChecklists = await result.json();
       return activeChecklists.filter((c: Checklist) => c.showInMenu);
+    },
+  });
+  const { data: menuKanban = [] } = useQuery({
+    queryKey: ["/api/kanban/preferences", "menu"],
+    enabled: hasKanbanModule,
+    queryFn: async () => {
+      const token = localStorage.getItem("authToken");
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const result = await fetch("/api/kanban/preferences", { headers });
+      if (!result.ok)
+        throw new Error(`Failed to fetch kanban preferences: ${result.status}`);
+      const preferences = await result.json();
+      return preferences.filter((p: any) => p.boardId && p.showInQuickAccess);
     },
   });
 
@@ -159,33 +173,50 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       submenu,
     });
   }
-  if (hasKanbanModule && deviationSettings?.showCreateButtonInMenu) {
+  if (hasKanbanModule) {
+    const submenu: SubmenuItem[] = [
+      {
+        id: "kanban-link",
+        icon: <LayoutDashboard className="h-5 w-5" />,
+        label: "Dashboards",
+        onClick: () => {
+          setLocation("/kanban");
+          setOpenSubmenuId(null);
+        },
+      },
+      {
+        id: "kanban-select",
+        icon: <Plus className="h-5 w-5" />,
+        label: "Välj...",
+        onClick: () => {
+          setChecklistSelectionOpen(true);
+          setOpenSubmenuId(null);
+        },
+      },
+    ];
+
+    if (menuKanban.length > 0) {
+      const kanbantItems: SubmenuItem[] = menuKanban
+        .map((kanban) => ({
+          id: `kanban-${kanban.id}`,
+          icon: renderIcon(kanban.kanbanBoard?.icon, "h-5 w-5") || <CheckSquare className="h-5 w-5" />,
+          label: kanban.kanbanBoard?.name || kanban.boardId,
+          onClick: () => {
+            setLocation(`/kanban/${kanban.boardId}`);
+            setOpenSubmenuId(null);
+          },
+        }));
+
+      submenu.push(...kanbantItems);
+    }
+
     allButtons.push({
       id: "kanban",
-      icon: <Plus className="h-6 w-6" />,
+      icon: <ClipboardList className="h-6 w-6" />,
       label: "Kanban",
       onClick: () =>
         setOpenSubmenuId((prev) => (prev === "kanban" ? null : "kanban")),
-      submenu: [
-        {
-          id: "kanban-dashboard",
-          icon: <LayoutDashboard className="h-5 w-5" />,
-          label: "Kanban",
-          onClick: () => {
-            setLocation("/kanban");
-            setOpenSubmenuId(null);
-          },
-        },
-        {
-          id: "deviation-create",
-          icon: <Plus className="h-5 w-5" />,
-          label: "Ny avvikelse",
-          onClick: () => {
-            setIsDeviationModalOpen(true);
-            setOpenSubmenuId(null);
-          },
-        },
-      ],
+      submenu,
     });
   }
   return (
