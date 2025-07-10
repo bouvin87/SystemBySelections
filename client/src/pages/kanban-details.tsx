@@ -419,7 +419,7 @@ export default function KanbanDetails() {
       });
     },
   });
-  
+
   const deleteBoardMutation = useMutation({
     mutationFn: (boardId: string) =>
       apiRequest("DELETE", `/api/kanban/boards/${boardId}`),
@@ -430,7 +430,7 @@ export default function KanbanDetails() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards"] });
 
-       navigate("/kanban");
+      navigate("/kanban");
     },
     onError: (error: any) => {
       toast({
@@ -554,16 +554,17 @@ export default function KanbanDetails() {
             </div>
 
             {/* Högersida */}
-            {isOwner && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleEditBoard(board)}
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleEditBoard(board)}
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              {isOwner && (
                 <Button
                   onClick={handleCreateColumn}
                   variant="default"
@@ -573,8 +574,8 @@ export default function KanbanDetails() {
                   <Plus className="h-4 w-4" />
                   Ny kolumn
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

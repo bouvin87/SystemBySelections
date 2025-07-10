@@ -110,10 +110,7 @@ export default function KanbanOverview() {
   const { t } = useTranslation();
   // Fetch all boards
   const { data: boards = [], isLoading } = useQuery({
-    queryKey: ["/api/kanban/boards"],
-    onSuccess: (data) => {
-      console.log("Kanban Overview - Fetched boards:", data);
-    },
+    queryKey: ["/api/kanban/boards"]
   });
 
   // Mutations

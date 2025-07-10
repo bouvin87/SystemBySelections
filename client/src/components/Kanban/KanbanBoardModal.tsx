@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanBoard } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface KanbanBoardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  board?: KanbanBoard | null;
+  board?: any;
   onSubmit: (data: any) => void;
   onDelete?: () => void;
 }
@@ -34,7 +35,8 @@ export function KanbanBoardModal({
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("ClipboardList");
   const [isPublic, setIsPublic] = useState(false);
-
+  const { user } = useAuth();
+  const isOwner = user?.id === board?.ownerUserId || user?.role === "admin";
   useEffect(() => {
     if (board) {
       setName(board.name);
