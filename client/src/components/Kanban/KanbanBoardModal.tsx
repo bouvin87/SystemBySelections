@@ -147,7 +147,7 @@ export function KanbanBoardModal({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Avbryt
               </Button>
-              <Button type="submit" disabled={!name.trim()}>
+                <Button type="submit" disabled={name.trim().length === 0}>
                 {board ? "Uppdatera" : "Skapa"}
               </Button>
             </div>

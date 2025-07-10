@@ -45,6 +45,8 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
     (authData as any)?.tenant?.modules?.includes("checklists") ?? false;
   const hasDeviationsModule =
     (authData as any)?.tenant?.modules?.includes("deviations") ?? false;
+  const hasKanbanModule =
+    (authData as any)?.tenant?.modules?.includes("kanban") ?? false;
 
   const { data: menuChecklists = [] } = useQuery<Checklist[]>({
     queryKey: ["/api/checklists/active", "menu"],
@@ -157,7 +159,35 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       submenu,
     });
   }
-
+  if (hasKanbanModule && deviationSettings?.showCreateButtonInMenu) {
+    allButtons.push({
+      id: "kanban",
+      icon: <Plus className="h-6 w-6" />,
+      label: "Kanban",
+      onClick: () =>
+        setOpenSubmenuId((prev) => (prev === "kanban" ? null : "kanban")),
+      submenu: [
+        {
+          id: "kanban-dashboard",
+          icon: <LayoutDashboard className="h-5 w-5" />,
+          label: "Kanban",
+          onClick: () => {
+            setLocation("/kanban");
+            setOpenSubmenuId(null);
+          },
+        },
+        {
+          id: "deviation-create",
+          icon: <Plus className="h-5 w-5" />,
+          label: "Ny avvikelse",
+          onClick: () => {
+            setIsDeviationModalOpen(true);
+            setOpenSubmenuId(null);
+          },
+        },
+      ],
+    });
+  }
   return (
     <div
       ref={menuRef}

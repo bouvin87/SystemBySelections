@@ -34,6 +34,8 @@ import { KanbanColumnModal } from "@/components/Kanban/KanbanColumnModal";
 import { KanbanCardModal } from "@/components/Kanban/KanbanCardModal";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
 
 interface KanbanCardComponentProps {
   card: KanbanCard;
@@ -41,13 +43,8 @@ interface KanbanCardComponentProps {
 }
 
 function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: card.id });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: card.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -63,10 +60,10 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
     <Card
       ref={setNodeRef}
       style={style}
-      className="cursor-pointer hover:shadow-md transition-shadow bg-white touch-manipulation select-none"
+      className="bg-card rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
       onClick={() => onEdit(card)}
     >
-      <CardContent className="p-3">
+      <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1">
             {getIcon(card.icon || "FileText")}
@@ -75,11 +72,11 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing p-2 hover:bg-gray-100 rounded touch-manipulation"
+            className="cursor-grab active:cursor-grabbing p-2 hover:bg-muted rounded"
             onClick={(e) => e.stopPropagation()}
-            style={{ touchAction: 'none' }}
+            style={{ touchAction: "none" }}
           >
-            <GripVertical className="h-4 w-4 text-gray-400" />
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
           </div>
         </div>
         {card.description && (
@@ -99,7 +96,7 @@ interface KanbanColumnComponentProps {
   onEditColumn: (column: KanbanColumn) => void;
   onDeleteColumn: (columnId: string) => void;
   onEditCard: (card: KanbanCard) => void;
-  canDelete: boolean;
+  board: any;
 }
 
 function KanbanColumnComponent({
@@ -109,8 +106,9 @@ function KanbanColumnComponent({
   onEditColumn,
   onDeleteColumn,
   onEditCard,
-  canDelete,
+  board,
 }: KanbanColumnComponentProps) {
+  const queryClient = useQueryClient();
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
   });
@@ -119,71 +117,53 @@ function KanbanColumnComponent({
     const Icon = (Icons as any)[iconName] || Icons.List;
     return <Icon className="h-4 w-4" />;
   };
-
+  const { user } = useAuth();
+  const isOwner =
+    user?.id === board.ownerUserId ||
+    user?.role === "admin" ||
+    user?.role === "superadmin";
   return (
-    <Card 
+    <Card
       ref={setNodeRef}
       className={`min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm ${
-        isOver ? 'ring-2 ring-blue-400 bg-blue-50' : ''
+        isOver ? "ring-2 ring-primary/50 bg-primary/5" : ""
       }`}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {getIcon(column.icon || "List")}
-            <CardTitle className="text-base font-semibold">{column.title}</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              {column.title}
+            </CardTitle>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onCreateCard(column.id);
-              }}
-              className="h-8 w-8 p-0"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onEditColumn(column);
-              }}
-              className="h-8 w-8 p-0"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-            {canDelete && (
+            {isOwner && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  onDeleteColumn(column.id);
+                  onEditColumn(column);
                 }}
-                className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                className="h-8 w-8 p-0"
                 onMouseDown={(e) => e.stopPropagation()}
               >
-                <Trash2 className="h-4 w-4" />
+                <Settings className="h-4 w-4" />
               </Button>
             )}
           </div>
         </div>
         {column.description && (
-          <p className="text-sm text-muted-foreground leading-snug">{column.description}</p>
+          <p className="text-sm text-muted-foreground leading-snug">
+            {column.description}
+          </p>
         )}
       </CardHeader>
       <CardContent className="space-y-2 min-h-[300px] p-4">
-        <SortableContext 
-          items={items.map(item => item.id)} 
+        <SortableContext
+          items={items.map((item) => item.id)}
           strategy={verticalListSortingStrategy}
         >
           {items.map((card) => (
@@ -217,7 +197,7 @@ function KanbanColumnComponent({
 
 export default function KanbanDetails() {
   const [location, navigate] = useLocation();
-  const boardId = location.split('/')[2];
+  const boardId = location.split("/")[2];
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -227,6 +207,8 @@ export default function KanbanDetails() {
   const [editingColumn, setEditingColumn] = useState<KanbanColumn | null>(null);
   const [editingCard, setEditingCard] = useState<KanbanCard | null>(null);
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
+  const [editingBoard, setEditingBoard] = useState<KanbanBoard | null>(null);
+  const [showBoardModal, setShowBoardModal] = useState(false);
 
   // Fetch board details
   const { data: board, isLoading: boardLoading } = useQuery({
@@ -234,7 +216,7 @@ export default function KanbanDetails() {
     enabled: !!boardId,
   });
 
-  // Fetch columns 
+  // Fetch columns
   const { data: columns = [], isLoading: columnsLoading } = useQuery({
     queryKey: [`/api/kanban/boards/${boardId}/columns`],
     enabled: !!boardId,
@@ -259,12 +241,14 @@ export default function KanbanDetails() {
 
   // Sort columns by position
   const sortedColumns = useMemo(() => {
-    return [...columns].sort((a: KanbanColumn, b: KanbanColumn) => a.position - b.position);
+    return [...columns].sort(
+      (a: KanbanColumn, b: KanbanColumn) => a.position - b.position,
+    );
   }, [columns]);
 
   // Get all items (columns and cards) for DndContext
   const items = useMemo(() => {
-    const columnIds = sortedColumns.map(col => col.id);
+    const columnIds = sortedColumns.map((col) => col.id);
     const cardIds = allCards.map((card: KanbanCard) => card.id);
     return [...columnIds, ...cardIds];
   }, [sortedColumns, allCards]);
@@ -277,11 +261,24 @@ export default function KanbanDetails() {
 
   // Move card mutation
   const moveCardMutation = useMutation({
-    mutationFn: async ({ cardId, newColumnId, newPosition }: { cardId: string, newColumnId: string, newPosition: number }) => {
-      return apiRequest("POST", `/api/kanban/cards/${cardId}/move`, { columnId: newColumnId, position: newPosition });
+    mutationFn: async ({
+      cardId,
+      newColumnId,
+      newPosition,
+    }: {
+      cardId: string;
+      newColumnId: string;
+      newPosition: number;
+    }) => {
+      return apiRequest("POST", `/api/kanban/cards/${cardId}/move`, {
+        columnId: newColumnId,
+        position: newPosition,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/boards/${boardId}/cards`],
+      });
     },
   });
 
@@ -300,7 +297,7 @@ export default function KanbanDetails() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -315,7 +312,9 @@ export default function KanbanDetails() {
     const overId = over.id;
 
     // Find what we're dragging
-    const activeCard = allCards.find((card: KanbanCard) => card.id === activeId);
+    const activeCard = allCards.find(
+      (card: KanbanCard) => card.id === activeId,
+    );
     if (!activeCard) return;
 
     // Find what we're over - could be a column or a card
@@ -355,7 +354,9 @@ export default function KanbanDetails() {
     const activeId = active.id;
     const overId = over.id;
 
-    const activeCard = allCards.find((card: KanbanCard) => card.id === activeId);
+    const activeCard = allCards.find(
+      (card: KanbanCard) => card.id === activeId,
+    );
     if (!activeCard) return;
 
     // Find what we're over
@@ -369,9 +370,9 @@ export default function KanbanDetails() {
       // Reordering within the same column
       targetColumnId = activeCard.columnId;
       const columnCards = cardsByColumn[targetColumnId] || [];
-      const oldIndex = columnCards.findIndex(card => card.id === activeId);
-      const newIndex = columnCards.findIndex(card => card.id === overId);
-      
+      const oldIndex = columnCards.findIndex((card) => card.id === activeId);
+      const newIndex = columnCards.findIndex((card) => card.id === overId);
+
       if (oldIndex !== newIndex) {
         newPosition = newIndex;
         moveCardMutation.mutate({
@@ -395,6 +396,50 @@ export default function KanbanDetails() {
       }
     }
   };
+  const updateBoardMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      apiRequest("PATCH", `/api/kanban/boards/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/boards/${boardId}`],
+      }); // enskild tavla
+
+      setShowBoardModal(false);
+      setEditingBoard(null);
+      toast({
+        title: "Tavla uppdaterad",
+        description: "Tavlan har uppdaterats framgångsrikt.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Det gick inte att uppdatera tavlan.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const deleteBoardMutation = useMutation({
+    mutationFn: (boardId: string) =>
+      apiRequest("DELETE", `/api/kanban/boards/${boardId}`),
+    onSuccess: () => {
+      toast({
+        title: "Tavla borttagen",
+        description: "Tavlan har tagits bort framgångsrikt.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/kanban/boards"] });
+
+       navigate("/kanban");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Det gick inte att ta bort tavlan.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Column management
   const handleCreateColumn = () => {
@@ -410,11 +455,22 @@ export default function KanbanDetails() {
   const handleDeleteColumn = async (columnId: string) => {
     try {
       await apiRequest("DELETE", `/api/kanban/columns/${columnId}`);
-      toast({ title: "Kolumn borttagen", description: "Kolumnen har tagits bort framgångsrikt." });
-      queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
+      toast({
+        title: "Kolumn borttagen",
+        description: "Kolumnen har tagits bort framgångsrikt.",
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/boards/${boardId}/columns`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/boards/${boardId}/cards`],
+      });
     } catch (error) {
-      toast({ title: "Fel", description: "Kunde inte ta bort kolumnen.", variant: "destructive" });
+      toast({
+        title: "Fel",
+        description: "Kunde inte ta bort kolumnen.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -429,6 +485,19 @@ export default function KanbanDetails() {
     setSelectedColumnId(card.columnId);
     setEditingCard(card);
     setShowCardModal(true);
+  };
+  const handleEditBoard = (board: KanbanBoard) => {
+    setEditingBoard(board);
+    setShowBoardModal(true);
+  };
+  const handleDeleteBoard = (boardId: string) => {
+    if (
+      confirm(
+        "Är du säker på att du vill ta bort denna tavla? Alla kolumner och kort kommer också att tas bort.",
+      )
+    ) {
+      deleteBoardMutation.mutate(boardId);
+    }
   };
 
   if (boardLoading || columnsLoading || cardsLoading) {
@@ -446,40 +515,70 @@ export default function KanbanDetails() {
       </div>
     );
   }
+  const { user } = useAuth();
+  const isOwner =
+    user?.id === board.ownerUserId ||
+    user?.role === "admin" ||
+    user?.role === "superadmin";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" style={{ touchAction: 'pan-y' }}>
+    <div
+      className="min-h-screen bg-background text-foreground"
+      style={{ touchAction: "pan-y" }}
+    >
       <Navigation />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/kanban")}
-              className="flex items-center gap-2"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Tillbaka
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{board.name}</h1>
-              {board.description && (
-                <p className="text-gray-600 mt-1">{board.description}</p>
-              )}
+      {/* Menyrad */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Vänstersida */}
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/kanban")}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Tillbaka
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {board.name}
+                </h1>
+                {board.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {board.description}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-          <Button
-            onClick={handleCreateColumn}
-            className="flex items-center gap-2"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <Plus className="h-4 w-4" />
-            Ny kolumn
-          </Button>
-        </div>
 
+            {/* Högersida */}
+            {isOwner && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleEditBoard(board)}
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={handleCreateColumn}
+                  variant="default"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Ny kolumn
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <main className="mx-auto px-4 pt-6 pb-32 space-y-6">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -488,51 +587,66 @@ export default function KanbanDetails() {
           onDragEnd={handleDragEnd}
           autoScroll={true}
         >
-          <div className="flex gap-6 overflow-x-auto pb-6 min-h-0" style={{ touchAction: 'auto' }}>
-            {sortedColumns.map((column: KanbanColumn) => (
-              <KanbanColumnComponent
-                key={column.id}
-                column={column}
-                items={cardsByColumn[column.id] || []}
-                onCreateCard={handleCreateCard}
-                onEditColumn={handleEditColumn}
-                onDeleteColumn={handleDeleteColumn}
-                onEditCard={handleEditCard}
-                canDelete={columns.length > 1}
-              />
-            ))}
+          <div className="overflow-x-auto pb-6">
+            <div className="flex justify-center gap-6 w-full min-w-max">
+              {sortedColumns.map((column: KanbanColumn) => (
+                <KanbanColumnComponent
+                  key={column.id}
+                  column={column}
+                  items={cardsByColumn[column.id] || []}
+                  onCreateCard={handleCreateCard}
+                  onEditColumn={handleEditColumn}
+                  onDeleteColumn={handleDeleteColumn}
+                  onEditCard={handleEditCard}
+                  board={board}
+                />
+              ))}
+            </div>
           </div>
 
           <DragOverlay>
             {activeCard ? (
-              <KanbanCardComponent
-                card={activeCard}
-                onEdit={() => {}}
-              />
+              <KanbanCardComponent card={activeCard} onEdit={() => {}} />
             ) : null}
           </DragOverlay>
         </DndContext>
       </main>
-
       {/* Modals */}
       <KanbanColumnModal
         open={showColumnModal}
         onOpenChange={setShowColumnModal}
         boardId={boardId}
+        board={board}
         column={editingColumn}
         onSubmit={async (data) => {
           try {
             if (editingColumn) {
-              await apiRequest("PATCH", `/api/kanban/columns/${editingColumn.id}`, data);
+              await apiRequest(
+                "PATCH",
+                `/api/kanban/columns/${editingColumn.id}`,
+                data,
+              );
             } else {
-              await apiRequest("POST", `/api/kanban/columns`, { ...data, boardId });
+              await apiRequest("POST", `/api/kanban/columns`, {
+                ...data,
+                boardId,
+              });
             }
             setShowColumnModal(false);
             setEditingColumn(null);
-            queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/columns`] });
-            toast({ title: "Kolumn sparad", description: "Kolumnen har sparats framgångsrikt." });
+            queryClient.invalidateQueries({
+              queryKey: [`/api/kanban/boards/${boardId}/columns`],
+            });
+            toast({
+              title: "Kolumn sparad",
+              description: "Kolumnen har sparats framgångsrikt.",
+            });
           } catch (error: any) {
-            toast({ title: "Fel", description: error.message || "Kunde inte spara kolumnen.", variant: "destructive" });
+            toast({
+              title: "Fel",
+              description: error.message || "Kunde inte spara kolumnen.",
+              variant: "destructive",
+            });
           }
         }}
       />
@@ -541,23 +655,56 @@ export default function KanbanDetails() {
         open={showCardModal}
         onOpenChange={setShowCardModal}
         columnId={selectedColumnId || ""}
+        board={board}
         card={editingCard}
         onSubmit={async (data) => {
           try {
             if (editingCard) {
-              await apiRequest("PATCH", `/api/kanban/cards/${editingCard.id}`, data);
+              await apiRequest(
+                "PATCH",
+                `/api/kanban/cards/${editingCard.id}`,
+                data,
+              );
             } else {
-              await apiRequest("POST", `/api/kanban/cards`, { ...data, columnId: selectedColumnId });
+              await apiRequest("POST", `/api/kanban/cards`, {
+                ...data,
+                columnId: selectedColumnId,
+              });
             }
             setShowCardModal(false);
             setEditingCard(null);
             setSelectedColumnId(null);
-            queryClient.invalidateQueries({ queryKey: [`/api/kanban/boards/${boardId}/cards`] });
-            toast({ title: "Kort sparat", description: "Kortet har sparats framgångsrikt." });
+            queryClient.invalidateQueries({
+              queryKey: [`/api/kanban/boards/${boardId}/cards`],
+            });
+            toast({
+              title: "Kort sparat",
+              description: "Kortet har sparats framgångsrikt.",
+            });
           } catch (error: any) {
-            toast({ title: "Fel", description: error.message || "Kunde inte spara kortet.", variant: "destructive" });
+            toast({
+              title: "Fel",
+              description: error.message || "Kunde inte spara kortet.",
+              variant: "destructive",
+            });
           }
         }}
+      />
+      <KanbanBoardModal
+        open={showBoardModal}
+        onOpenChange={(open) => {
+          setShowBoardModal(open);
+          if (!open) setEditingBoard(null);
+        }}
+        board={editingBoard}
+        onSubmit={(data) => {
+          if (editingBoard) {
+            updateBoardMutation.mutate({ id: editingBoard.id, data });
+          }
+        }}
+        onDelete={
+          editingBoard ? () => handleDeleteBoard(editingBoard.id) : undefined
+        }
       />
     </div>
   );

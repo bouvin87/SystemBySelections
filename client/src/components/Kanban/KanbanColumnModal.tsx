@@ -7,6 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as Icons from "lucide-react";
 import { KanbanColumn } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+
 
 interface KanbanColumnModalProps {
   open: boolean;
@@ -14,6 +20,7 @@ interface KanbanColumnModalProps {
   column?: KanbanColumn | null;
   boardId?: string;
   onSubmit: (data: any) => void;
+  board: any;
 }
 
 const COLUMN_ICONS = [
@@ -26,13 +33,18 @@ export function KanbanColumnModal({
   onOpenChange, 
   column, 
   boardId,
-  onSubmit 
+  onSubmit,
+  board
 }: KanbanColumnModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("List");
   const [position, setPosition] = useState(0);
-
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const { user } = useAuth();
+  const isOwner = user?.id === board.ownerUserId || user?.role === "admin";
   useEffect(() => {
     if (column) {
       setTitle(column.title);
@@ -56,6 +68,25 @@ export function KanbanColumnModal({
       icon,
       position,
     });
+  };
+  const handleDelete = async () => {
+    if (!column) return;
+
+    try {
+      await apiRequest("DELETE", `/api/kanban/columns/${column.id}`);
+      toast({
+        title: "Kolumnen raderat",
+        description: "Kolumnen har raderats.",
+      });
+      onOpenChange(false);
+      queryClient.invalidateQueries(); // Eller en mer specifik queryKey om du vill
+    } catch (error: any) {
+      toast({
+        title: "Fel vid borttagning",
+        description: error.message || "Kunde inte ta bort kortet.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getIcon = (iconName: string) => {
@@ -131,13 +162,31 @@ export function KanbanColumnModal({
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Avbryt
-            </Button>
-            <Button type="submit" disabled={!title || !title.trim()}>
-              {column ? "Uppdatera" : "Skapa"}
-            </Button>
+          <div className="flex justify-between items-center pt-4">
+            {/* Vänstersida: Soptunna */}
+            <div>
+              {isOwner && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-700"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Ta bort
+                </Button>
+              )}
+            </div>
+
+            {/* Högersida: Avbryt & Spara */}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Avbryt
+              </Button>
+              <Button type="submit" disabled={!title.trim()}>
+                {column ? "Uppdatera" : "Skapa"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

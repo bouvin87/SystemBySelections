@@ -99,7 +99,7 @@ export const userHasDepartments = pgTable("user_has_departments", {
 
 // Checklists (tenant-scoped)
 export const checklists = pgTable("checklists", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
   name: text("name").notNull(),
   description: text("description"),
@@ -117,7 +117,7 @@ export const checklists = pgTable("checklists", {
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
-  checklistId: integer("checklist_id").references(() => checklists.id).notNull(),
+  checklistId: uuid("checklist_id").references(() => checklists.id).notNull(),
   name: text("name").notNull(),
   description: text("description"),
   order: integer("order").notNull().default(0),
@@ -156,7 +156,7 @@ export const questionWorkTasks = pgTable("question_work_tasks", {
 export const checklistWorkTasks = pgTable("checklist_work_tasks", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
-  checklistId: integer("checklist_id").references(() => checklists.id),
+  checklistId: uuid("checklist_id").references(() => checklists.id),
   workTaskId: integer("work_task_id").references(() => workTasks.id),
 });
 
@@ -164,7 +164,7 @@ export const checklistWorkTasks = pgTable("checklist_work_tasks", {
 export const checklistResponses = pgTable("checklist_responses", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").references(() => tenants.id).notNull(),
-  checklistId: integer("checklist_id").references(() => checklists.id),
+  checklistId: uuid("checklist_id").references(() => checklists.id),
   operatorName: text("operator_name").notNull(),
   workTaskId: integer("work_task_id").references(() => workTasks.id),
   workStationId: integer("work_station_id").references(() => workStations.id),
@@ -686,7 +686,13 @@ export interface JWTPayload {
 }
 
 // ============== KANBAN MODULE ==============
-
+export type KanbanBoardWithOwner = KanbanBoard & {
+  ownerUser?: {
+    id: number;
+    firstName: string;
+    lastName: string | null;
+  };
+};
 export const kanbanBoards = pgTable("kanban_boards", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: integer("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),

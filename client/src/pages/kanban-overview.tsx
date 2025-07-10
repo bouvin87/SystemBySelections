@@ -13,18 +13,18 @@ import {
   Users,
   Lock,
   Trash2,
-  Link,
   ArrowLeft,
 } from "lucide-react";
+import { Link } from "wouter";
 import * as Icons from "lucide-react";
-import { KanbanBoard } from "@shared/schema";
+import { KanbanBoard, KanbanBoardWithOwner } from "@shared/schema";
 import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { useTranslation } from "react-i18next";
 
 interface BoardCardProps {
-  board: KanbanBoard;
+  board: KanbanBoardWithOwner;
   onEdit: (board: KanbanBoard) => void;
   onDelete: (boardId: string) => void;
   onView: (boardId: string) => void;
@@ -33,6 +33,8 @@ interface BoardCardProps {
 function BoardCard({ board, onEdit, onDelete, onView }: BoardCardProps) {
   const { user } = useAuth();
   const isOwner = user?.id === board.ownerUserId;
+  const ownerName =
+    `${board.ownerUser?.firstName ?? ""} ${board.ownerUser?.lastName ?? ""}`.trim();
 
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.ClipboardList;
@@ -51,87 +53,51 @@ function BoardCard({ board, onEdit, onDelete, onView }: BoardCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              {getIcon(board.icon || "ClipboardList")}
-            </div>
-            <div>
-              <CardTitle className="text-lg font-semibold group-hover:text-primary transition-colors">
-                {board.name}
-              </CardTitle>
-              {board.description && (
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                  {board.description}
-                </p>
-              )}
-            </div>
+    <Link
+      href={`/kanban/${board.id}`}
+      className="block bg-card rounded-2xl p-6 border border-border hover:shadow-lg transition-all group"
+    >
+      {/* Översta raden med ikon och namn */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            {getIcon(board.icon || "ClipboardList")}
           </div>
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onView(board.id);
-              }}
-              className="h-8 w-8 p-0"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            {isOwner && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(board);
-                  }}
-                  className="h-8 w-8 p-0"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(board.id);
-                  }}
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
+          <div>
+            <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
+              {board.name}
+            </h3>
+            {board.description && (
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                {board.description}
+              </p>
             )}
           </div>
         </div>
-      </CardHeader>
-      <CardContent
-        className="pt-0 cursor-pointer"
-        onClick={() => onView(board.id)}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {getVisibilityIcon()}
-            <span className="text-sm text-muted-foreground">
-              {getVisibilityText()}
-            </span>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            {new Date(board.createdAt).toLocaleDateString('sv-SE')}
-          </Badge>
+      </div>
+
+      {/* Undre raden med metadata */}
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {getVisibilityIcon()}
+          <span>{getVisibilityText()}</span>
         </div>
-        {isOwner && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Du äger denna tavla
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <Badge variant="outline" className="text-xs">
+          {new Date(board.createdAt).toLocaleDateString("sv-SE")}
+        </Badge>
+      </div>
+
+      {/* Egenskapsinfo */}
+      {isOwner ? (
+        <div className="mt-2 text-xs text-muted-foreground">
+          Du äger denna tavla
+        </div>
+      ) : (
+        <div className="mt-2 text-xs text-muted-foreground">
+          {ownerName} äger denna tavla
+        </div>
+      )}
+    </Link>
   );
 }
 
@@ -223,7 +189,11 @@ export default function KanbanOverview() {
   };
 
   const handleDeleteBoard = (boardId: string) => {
-    if (confirm("Är du säker på att du vill ta bort denna tavla? Alla kolumner och kort kommer också att tas bort.")) {
+    if (
+      confirm(
+        "Är du säker på att du vill ta bort denna tavla? Alla kolumner och kort kommer också att tas bort.",
+      )
+    ) {
       deleteBoardMutation.mutate(boardId);
     }
   };
@@ -248,77 +218,86 @@ export default function KanbanOverview() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-        {/* Header */}
-        <div className="bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Link href="/">
-                  <Button variant="ghost" size="sm">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    {t("common.back")}
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">
-                    {t("common.checklists")}
-                  </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {t("dashboard.selectDashboard")}
-                  </p>
-                </div>
+      {/* Header */}
+      <div className="bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Vänstersida: Tillbaka + Titel */}
+            <div className="flex items-center space-x-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Tillbaka
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Kanban</h1>
+                <p className="text-sm text-muted-foreground">
+                  Översikt över kanban-tavlor
+                </p>
               </div>
+            </div>
+
+            {/* Högersida: Ny + Filter */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
+              <Button onClick={handleCreateBoard} variant="default">
+                <Plus className="h-4 w-4 mr-2" />
+                Ny tavla
+              </Button>
             </div>
           </div>
         </div>
-
-
-        {/* Boards Grid */}
-        {boards.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
-              <Icons.ClipboardList className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Inga tavlor ännu</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              Kom igång genom att skapa din första Kanban-tavla för att organisera ditt arbete.
-            </p>
-            <Button onClick={handleCreateBoard}>
-              <Plus className="h-4 w-4 mr-2" />
-              Skapa din första tavla
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {boards.map((board: KanbanBoard) => (
-              <BoardCard
-                key={board.id}
-                board={board}
-                onEdit={handleEditBoard}
-                onDelete={handleDeleteBoard}
-                onView={handleViewBoard}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Modal */}
-        <KanbanBoardModal
-          open={showBoardModal}
-          onOpenChange={(open) => {
-            setShowBoardModal(open);
-            if (!open) setEditingBoard(null);
-          }}
-          board={editingBoard}
-          onSubmit={(data) => {
-            if (editingBoard) {
-              updateBoardMutation.mutate({ id: editingBoard.id, data });
-            } else {
-              createBoardMutation.mutate(data);
-            }
-          }}
-          onDelete={editingBoard ? () => handleDeleteBoard(editingBoard.id) : undefined}
-        />
       </div>
+
+      {/* Boards Grid */}
+      {boards.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
+            <Icons.ClipboardList className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Inga tavlor ännu</h3>
+          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+            Kom igång genom att skapa din första Kanban-tavla för att organisera
+            ditt arbete.
+          </p>
+          <Button onClick={handleCreateBoard}>
+            <Plus className="h-4 w-4 mr-2" />
+            Skapa din första tavla
+          </Button>
+        </div>
+      ) : (
+        <main className="max-w-md mx-auto px-4 pt-6 pb-32 space-y-6">
+          {boards.map((board: KanbanBoard) => (
+            <BoardCard
+              key={board.id}
+              board={board}
+              onEdit={handleEditBoard}
+              onDelete={handleDeleteBoard}
+              onView={handleViewBoard}
+            />
+          ))}
+        </main>
+      )}
+
+      {/* Modal */}
+      <KanbanBoardModal
+        open={showBoardModal}
+        onOpenChange={(open) => {
+          setShowBoardModal(open);
+          if (!open) setEditingBoard(null);
+        }}
+        board={editingBoard}
+        onSubmit={(data) => {
+          if (editingBoard) {
+            updateBoardMutation.mutate({ id: editingBoard.id, data });
+          } else {
+            createBoardMutation.mutate(data);
+          }
+        }}
+        onDelete={
+          editingBoard ? () => handleDeleteBoard(editingBoard.id) : undefined
+        }
+      />
+    </div>
   );
 }

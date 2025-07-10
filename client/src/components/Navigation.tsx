@@ -44,7 +44,7 @@ export default function Navigation() {
   const hasChecklistsModule = authData?.tenant?.modules?.includes("checklists") ?? false;
   const hasDeviationsModule = authData?.tenant?.modules?.includes("deviations") ?? false;
   const tenant = authData?.tenant || { name: "System" };
-
+  const hasKanbanModule = authData?.tenant?.modules?.includes("kanban") ?? false;
   const { firstName, lastName, email, role } = user || {};
   const displayName = firstName && lastName ? `${firstName} ${lastName}` : email;
   const initials = displayName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -53,7 +53,7 @@ export default function Navigation() {
     { href: "/", label: "Hem" },
     ...(hasChecklistsModule ? [{ href: "/checklists", label: "Checklistor" }] : []),
     ...(hasDeviationsModule ? [{ href: "/deviations", label: "Avvikelser" }] : []),
-    { href: "/kanban", label: "Kanban" },
+    ...(hasChecklistsModule ? [{ href: "/kanban", label: "Kanban" }] : []),
   ];
 
   return (

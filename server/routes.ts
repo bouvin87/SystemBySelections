@@ -1602,7 +1602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/checklists/:id", authenticateToken, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const validatedData = insertChecklistSchema.partial().parse(req.body);
       const checklist = await storage.updateChecklist(
         id,
@@ -1618,7 +1618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/checklists/:id", authenticateToken, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       await storage.deleteChecklist(id, req.tenantId!);
       res.status(200).json({ message: "Checklist deleted" });
     } catch (error) {
@@ -1633,7 +1633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     authenticateToken,
     async (req, res) => {
       try {
-        const checklistId = parseInt(req.params.id);
+        const checklistId = req.params.id;
         const workTasks = await storage.getChecklistWorkTasks(
           checklistId,
           req.tenantId!,
@@ -1653,7 +1653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     authenticateToken,
     async (req, res) => {
       try {
-        const checklistId = parseInt(req.params.id);
+        const checklistId = req.params.id;
         const { workTaskId } = req.body;
         const checklistWorkTask = await storage.createChecklistWorkTask({
           checklistId,
@@ -1675,7 +1675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     authenticateToken,
     async (req, res) => {
       try {
-        const checklistId = parseInt(req.params.id);
+        const checklistId = req.params.id;
         // Delete all work task relationships for this checklist
         await storage.deleteAllChecklistWorkTasks(checklistId, req.tenantId!);
         res.status(200).json({ message: "Checklist work tasks deleted" });
@@ -1694,12 +1694,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     authenticateToken,
     async (req: AuthenticatedRequest, res) => {
       try {
-        const checklistId = req.query.checklistId
-          ? parseInt(req.query.checklistId as string)
-          : null;
+        const checklistId = req.query.checklistId as string;
         if (!checklistId) {
           return res.status(400).json({ message: "checklistId is required" });
         }
+        
+        // Validate UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(checklistId)) {
+          return res.status(400).json({ message: "Invalid checklistId format" });
+        }
+        
         const categories = await storage.getCategories(
           checklistId,
           req.tenantId!,
@@ -1717,6 +1722,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     authenticateToken,
     async (req: AuthenticatedRequest, res) => {
       try {
+        // Validate that checklistId is provided and is a valid UUID
+        if (!req.body.checklistId) {
+          return res.status(400).json({ message: "checklistId is required" });
+        }
+        
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(req.body.checklistId)) {
+          return res.status(400).json({ message: "Invalid checklistId format" });
+        }
+        
         const { tenantId, ...validatedData } = insertCategorySchema.parse({
           ...req.body,
           tenantId: req.tenantId!,
@@ -1728,7 +1743,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(201).json(category);
       } catch (error) {
         console.error("Create category error:", error);
-        res.status(400).json({ message: "Invalid category data" });
+        if (error.name === 'ZodError') {
+          res.status(400).json({ 
+            message: "Invalid category data", 
+            details: error.errors 
+          });
+        } else {
+          res.status(400).json({ message: "Invalid category data" });
+        }
       }
     },
   );
@@ -1909,7 +1931,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireModule("checklists"),
     async (req, res) => {
       try {
-        const id = parseInt(req.params.id);
+        const id = req.params.id;
         const checklist = await storage.getChecklist(id, req.tenantId!);
         if (!checklist) {
           return res.status(404).json({ message: "Checklist not found" });
@@ -2330,7 +2352,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     enforceTenantIsolation,
     async (req: AuthenticatedRequest, res) => {
       try {
-        const boards = await storage.getKanbanBoards(req.tenantId!, req.user.userId);
+        const isAdmin = req.user?.role === "admin";
+
+        const boards = await storage.getKanbanBoards(req.tenantId!, req.user.userId, isAdmin);
         res.json(boards);
       } catch (error) {
         console.error("Error fetching kanban boards:", error);
@@ -2345,9 +2369,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     enforceTenantIsolation,
     async (req: AuthenticatedRequest, res) => {
       try {
+        const isAdmin = req.user?.role === "admin";
+
         const { id } = req.params;
         console.log(`Fetching board ${id} for tenant ${req.tenantId}, user ${req.user.userId}`);
-        const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.userId);
+        const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.userId, isAdmin);
         console.log(`Found board:`, board ? {id: board.id, name: board.name, description: board.description} : null);
         if (!board) {
           return res.status(404).json({ message: "Board not found" });
@@ -2420,9 +2446,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     enforceTenantIsolation,
     async (req: AuthenticatedRequest, res) => {
       try {
+        const isAdmin = req.user?.role === "admin";
         const { boardId } = req.params;
         console.log(`Fetching columns for board ${boardId}, tenant ${req.tenantId}, user ${req.user.userId}`);
-        const columns = await storage.getKanbanColumns(boardId, req.tenantId!, req.user.userId);
+        const columns = await storage.getKanbanColumns(boardId, req.tenantId!, req.user.userId, isAdmin);
         console.log(`Found ${columns.length} columns:`, columns.map(c => ({id: c.id, title: c.title, position: c.position})));
         res.json(columns);
       } catch (error) {
@@ -2505,8 +2532,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     enforceTenantIsolation,
     async (req: AuthenticatedRequest, res) => {
       try {
+        const isAdmin = req.user?.role === "admin";
         const { boardId } = req.params;
-        const cards = await storage.getKanbanCardsByBoard(boardId, req.tenantId!, req.user.userId);
+        const cards = await storage.getKanbanCardsByBoard(boardId, req.tenantId!, req.user.userId, isAdmin);
         res.json(cards);
       } catch (error) {
         console.error("Error fetching kanban cards for board:", error);
@@ -2521,8 +2549,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     enforceTenantIsolation,
     async (req: AuthenticatedRequest, res) => {
       try {
+        const isAdmin = req.user?.role === "admin";
         const { columnId } = req.params;
-        const cards = await storage.getKanbanCards(columnId, req.tenantId!);
+        const cards = await storage.getKanbanCards(columnId, req.tenantId!, isAdmin);
         res.json(cards);
       } catch (error) {
         console.error("Error fetching kanban cards:", error);

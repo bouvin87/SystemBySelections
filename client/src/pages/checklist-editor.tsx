@@ -50,7 +50,7 @@ function QuestionTypeLabel({ type }: { type: string }) {
 
 export default function ChecklistEditor() {
   const { id } = useParams<{ id: string }>();
-  const checklistId = parseInt(id!);
+  const checklistId = id!; // Keep as UUID string
   const [dialogOpen, setDialogOpen] = useState(false);
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -121,7 +121,7 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
         // Invalidate checklist data to update dashboard status
         queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/checklists", parseInt(checklistId)] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists", checklistId] });
         // Invalidate dashboard questions with specific checklistId pattern
         queryClient.invalidateQueries({ 
           predicate: (query) => 
@@ -157,7 +157,7 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
         // Invalidate checklist data to update dashboard status
         queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/checklists", parseInt(checklistId)] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists", checklistId] });
         // Invalidate dashboard questions with specific checklistId pattern
         queryClient.invalidateQueries({ 
           predicate: (query) => 
@@ -193,7 +193,7 @@ export default function ChecklistEditor() {
         queryClient.invalidateQueries({ queryKey: ["/api/questions", "for-checklist", checklistId] });
         // Invalidate checklist data to update dashboard status
         queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/checklists", parseInt(checklistId)] });
+        queryClient.invalidateQueries({ queryKey: ["/api/checklists", checklistId] });
         // Invalidate dashboard questions with specific checklistId pattern
         queryClient.invalidateQueries({ 
           predicate: (query) => 

@@ -31,7 +31,8 @@ import {
   type KanbanBoard, type InsertKanbanBoard,
   type KanbanColumn, type InsertKanbanColumn,
   type KanbanCard, type InsertKanbanCard,
-  type KanbanBoardShare, type InsertKanbanBoardShare
+  type KanbanBoardShare, type InsertKanbanBoardShare,
+  KanbanBoardWithOwner
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, count, or, ilike, asc, isNotNull, lt, ne } from "drizzle-orm";
@@ -114,7 +115,7 @@ export interface IStorage {
   deleteDepartment(id: number, tenantId: number): Promise<void>;
 
   // Categories (tenant-scoped, belonging to checklists)
-  getCategories(checklistId: number, tenantId: number): Promise<Category[]>;
+  getCategories(checklistId: string, tenantId: number): Promise<Category[]>;
   getCategory(id: number, tenantId: number): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: number, category: Partial<InsertCategory>, tenantId: number): Promise<Category>;
@@ -137,21 +138,21 @@ export interface IStorage {
   getChecklists(tenantId: number): Promise<Checklist[]>;
   getActiveChecklists(tenantId: number): Promise<Checklist[]>;
   getAllActiveChecklists(tenantId: number): Promise<Checklist[]>;
-  getChecklist(id: number, tenantId: number): Promise<Checklist | undefined>;
+  getChecklist(id: string, tenantId: number): Promise<Checklist | undefined>;
   createChecklist(checklist: InsertChecklist): Promise<Checklist>;
-  updateChecklist(id: number, checklist: Partial<InsertChecklist>, tenantId: number): Promise<Checklist>;
-  deleteChecklist(id: number, tenantId: number): Promise<void>;
+  updateChecklist(id: string, checklist: Partial<InsertChecklist>, tenantId: number): Promise<Checklist>;
+  deleteChecklist(id: string, tenantId: number): Promise<void>;
 
   // Checklist Work Tasks (tenant-scoped)
-  getChecklistWorkTasks(checklistId: number, tenantId: number): Promise<ChecklistWorkTask[]>;
+  getChecklistWorkTasks(checklistId: string, tenantId: number): Promise<ChecklistWorkTask[]>;
   createChecklistWorkTask(checklistWorkTask: InsertChecklistWorkTask): Promise<ChecklistWorkTask>;
-  deleteChecklistWorkTask(checklistId: number, workTaskId: number, tenantId: number): Promise<void>;
+  deleteChecklistWorkTask(checklistId: string, workTaskId: number, tenantId: number): Promise<void>;
 
   // Checklist Responses (tenant-scoped)
   getChecklistResponses(tenantId: number, filters?: { 
     limit?: number; 
     offset?: number; 
-    checklistId?: number;
+    checklistId?: string;
     workTaskId?: number;
     workStationId?: number;
     shiftId?: number;
@@ -166,7 +167,7 @@ export interface IStorage {
 
   // Dashboard Statistics (tenant-scoped)
   getDashboardStats(tenantId: number, filters?: { 
-    checklistId?: number;
+    checklistId?: string;
     workTaskId?: number;
     workStationId?: number;
     shiftId?: number;
@@ -176,7 +177,7 @@ export interface IStorage {
   }): Promise<any>;
 
   // Dashboard Questions (tenant-scoped)
-  getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]>;
+  getDashboardQuestions(checklistId: string, tenantId: number): Promise<Question[]>;
 
   // Question Work Tasks (tenant-scoped)
   getQuestionWorkTasks(questionId: number, tenantId: number): Promise<QuestionWorkTask[]>;
@@ -516,7 +517,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Categories
-  async getCategories(checklistId: number, tenantId: number): Promise<Category[]> {
+  async getCategories(checklistId: string, tenantId: number): Promise<Category[]> {
     return await db.select().from(categories).where(
       and(
         eq(categories.checklistId, checklistId),
@@ -634,7 +635,7 @@ export class DatabaseStorage implements IStorage {
     ).orderBy(checklists.order);
   }
 
-  async getChecklist(id: number, tenantId: number): Promise<Checklist | undefined> {
+  async getChecklist(id: string, tenantId: number): Promise<Checklist | undefined> {
     const [checklist] = await db.select().from(checklists).where(
       and(eq(checklists.id, id), eq(checklists.tenantId, tenantId))
     );
@@ -646,7 +647,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateChecklist(id: number, checklist: Partial<InsertChecklist>, tenantId: number): Promise<Checklist> {
+  async updateChecklist(id: string, checklist: Partial<InsertChecklist>, tenantId: number): Promise<Checklist> {
     const [updated] = await db.update(checklists)
       .set(checklist)
       .where(and(eq(checklists.id, id), eq(checklists.tenantId, tenantId)))
@@ -654,12 +655,12 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async deleteChecklist(id: number, tenantId: number): Promise<void> {
+  async deleteChecklist(id: string, tenantId: number): Promise<void> {
     await db.delete(checklists).where(and(eq(checklists.id, id), eq(checklists.tenantId, tenantId)));
   }
 
   // Checklist Work Tasks
-  async getChecklistWorkTasks(checklistId: number, tenantId: number): Promise<ChecklistWorkTask[]> {
+  async getChecklistWorkTasks(checklistId: string, tenantId: number): Promise<ChecklistWorkTask[]> {
     return await db.select().from(checklistWorkTasks).where(
       and(eq(checklistWorkTasks.checklistId, checklistId), eq(checklistWorkTasks.tenantId, tenantId))
     );
@@ -670,7 +671,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async deleteChecklistWorkTask(checklistId: number, workTaskId: number, tenantId: number): Promise<void> {
+  async deleteChecklistWorkTask(checklistId: string, workTaskId: number, tenantId: number): Promise<void> {
     await db.delete(checklistWorkTasks).where(
       and(
         eq(checklistWorkTasks.checklistId, checklistId),
@@ -680,7 +681,7 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async deleteAllChecklistWorkTasks(checklistId: number, tenantId: number): Promise<void> {
+  async deleteAllChecklistWorkTasks(checklistId: string, tenantId: number): Promise<void> {
     await db.delete(checklistWorkTasks).where(
       and(
         eq(checklistWorkTasks.checklistId, checklistId),
@@ -693,7 +694,7 @@ export class DatabaseStorage implements IStorage {
   async getChecklistResponses(tenantId: number, filters: { 
     limit?: number; 
     offset?: number; 
-    checklistId?: number;
+    checklistId?: string;
     workTaskId?: number;
     workStationId?: number;
     shiftId?: number;
@@ -762,7 +763,7 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard Statistics
   async getDashboardStats(tenantId: number, filters: {
-    checklistId?: number;
+    checklistId?: string;
     workTaskId?: number;
     workStationId?: number;
     shiftId?: number;
@@ -818,7 +819,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard Questions
-  async getDashboardQuestions(checklistId: number, tenantId: number): Promise<Question[]> {
+  async getDashboardQuestions(checklistId: string, tenantId: number): Promise<Question[]> {
     const result = await db.select({
       id: questions.id,
       tenantId: questions.tenantId,
@@ -1776,47 +1777,69 @@ export class DatabaseStorage implements IStorage {
   // === KANBAN MODULE IMPLEMENTATION ===
 
   // Kanban Boards
-  async getKanbanBoards(tenantId: number, userId?: number): Promise<KanbanBoard[]> {
-    const query = db.select().from(kanbanBoards)
+  
+  async getKanbanBoards(
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanBoardWithOwner[]> {
+    const results = await db
+      .select({
+        board: kanbanBoards,
+        ownerUser: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
+      })
+      .from(kanbanBoards)
+      .leftJoin(users, eq(kanbanBoards.ownerUserId, users.id))
       .where(eq(kanbanBoards.tenantId, tenantId))
       .orderBy(desc(kanbanBoards.createdAt));
-    
-    if (userId) {
-      // Return boards owned by user or shared with user
-      const boards = await query;
-      const ownedBoards = boards.filter(board => board.ownerUserId === userId);
-      // TODO: Add shared boards logic when implementing sharing
-      return ownedBoards;
+
+    const boards = results.map(({ board, ownerUser }) => ({
+      ...board,
+      ownerUser,
+    }));
+
+    if (isAdmin) {
+      return boards;
     }
-    
-    return await query;
+
+    if (userId) {
+      return boards.filter(
+        (board) => board.ownerUserId === userId || board.isPublic === true
+      );
+    }
+
+    return boards.filter((board) => board.isPublic === true);
   }
 
-  async getKanbanBoard(id: string, tenantId: number, userId?: number): Promise<KanbanBoard | undefined> {
-    console.log(`Getting board ${id} for tenant ${tenantId}, user ${userId}`);
+
+  async getKanbanBoard(
+    id: string,
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanBoard | undefined> {
     const [board] = await db.select()
       .from(kanbanBoards)
       .where(and(
         eq(kanbanBoards.id, id),
         eq(kanbanBoards.tenantId, tenantId)
       ));
-    
-    if (!board) {
-      console.log(`Board ${id} not found for tenant ${tenantId}`);
-      return undefined;
+
+    if (!board) return undefined;
+
+    if (isAdmin) return board;
+
+    if (userId && (board.ownerUserId === userId || board.isPublic)) {
+      return board;
     }
-    
-    console.log(`Board found: owner=${board.ownerUserId}, isPublic=${board.isPublic}`);
-    
-    // Check access permissions
-    if (userId && board.ownerUserId !== userId && !board.isPublic) {
-      console.log(`Access denied for user ${userId} to board ${id}`);
-      return undefined;
-    }
-    
-    console.log(`Access granted for user ${userId} to board ${id}`);
-    return board;
+
+    return undefined;
   }
+
 
   async createKanbanBoard(board: InsertKanbanBoard): Promise<KanbanBoard> {
     const [created] = await db.insert(kanbanBoards)
@@ -1845,10 +1868,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Kanban Columns
-  async getKanbanColumns(boardId: string, tenantId: number, userId?: number): Promise<KanbanColumn[]> {
-    // Verify board belongs to tenant and user has access
-    const board = await this.getKanbanBoard(boardId, tenantId, userId);
-    if (!board) throw new Error('Board not found or access denied');
+  async getKanbanColumns(
+    boardId: string,
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanColumn[]> {
+    // Kontrollera åtkomst till board (inkl. admin/public)
+    const board = await this.getKanbanBoard(boardId, tenantId, userId, isAdmin);
+    if (!board) throw new Error("Board not found or access denied");
 
     return await db.select()
       .from(kanbanColumns)
@@ -1856,16 +1884,35 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(kanbanColumns.position));
   }
 
-  async getKanbanColumn(id: string, tenantId: number): Promise<KanbanColumn | undefined> {
-    const [column] = await db.select()
+
+  async getKanbanColumn(
+    columnId: string,
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanColumn | undefined> {
+    const [result] = await db.select()
       .from(kanbanColumns)
       .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
       .where(and(
-        eq(kanbanColumns.id, id),
+        eq(kanbanColumns.id, columnId),
         eq(kanbanBoards.tenantId, tenantId)
       ));
-    return column?.kanban_columns || undefined;
+
+    if (!result) return undefined;
+
+    const board = result.kanban_boards;
+
+    const hasAccess =
+      isAdmin ||
+      board.isPublic ||
+      (userId && board.ownerUserId === userId);
+
+    if (!hasAccess) return undefined;
+
+    return result.kanban_columns;
   }
+
 
   async createKanbanColumn(column: InsertKanbanColumn): Promise<KanbanColumn> {
     const [created] = await db.insert(kanbanColumns)
@@ -1910,10 +1957,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Kanban Cards
-  async getKanbanCardsByBoard(boardId: string, tenantId: number, userId?: number): Promise<KanbanCard[]> {
-    // Verify board belongs to tenant and user has access
-    const board = await this.getKanbanBoard(boardId, tenantId, userId);
-    if (!board) throw new Error('Board not found or access denied');
+  async getKanbanCardsByBoard(
+    boardId: string,
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanCard[]> {
+    const board = await this.getKanbanBoard(boardId, tenantId, userId, isAdmin);
+    if (!board) throw new Error("Board not found or access denied");
 
     return await db.select()
       .from(kanbanCards)
@@ -1923,9 +1974,14 @@ export class DatabaseStorage implements IStorage {
       .then(results => results.map(row => row.kanban_cards));
   }
 
-  async getKanbanCards(columnId: string, tenantId: number): Promise<KanbanCard[]> {
-    // First verify the column belongs to a board owned by this tenant
-    const column = await db.select()
+
+  async getKanbanCards(
+    columnId: string,
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanCard[]> {
+    const [result] = await db.select()
       .from(kanbanColumns)
       .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
       .where(and(
@@ -1933,29 +1989,53 @@ export class DatabaseStorage implements IStorage {
         eq(kanbanBoards.tenantId, tenantId)
       ))
       .limit(1);
-    
-    if (!column.length) {
-      throw new Error('Column not found or access denied');
-    }
 
-    // Now get only the cards from that column
+    if (!result) throw new Error("Column not found or access denied");
+
+    const board = result.kanban_boards;
+    const hasAccess =
+      isAdmin ||
+      board.isPublic ||
+      (userId && board.ownerUserId === userId);
+
+    if (!hasAccess) throw new Error("Access denied");
+
     return await db.select()
       .from(kanbanCards)
       .where(eq(kanbanCards.columnId, columnId))
       .orderBy(asc(kanbanCards.position));
   }
 
-  async getKanbanCard(id: string, tenantId: number): Promise<KanbanCard | undefined> {
-    const [card] = await db.select()
+
+  async getKanbanCard(
+    cardId: string,
+    tenantId: number,
+    userId?: number,
+    isAdmin = false
+  ): Promise<KanbanCard | undefined> {
+    const [result] = await db.select()
       .from(kanbanCards)
       .innerJoin(kanbanColumns, eq(kanbanCards.columnId, kanbanColumns.id))
       .innerJoin(kanbanBoards, eq(kanbanColumns.boardId, kanbanBoards.id))
       .where(and(
-        eq(kanbanCards.id, id),
+        eq(kanbanCards.id, cardId),
         eq(kanbanBoards.tenantId, tenantId)
-      ));
-    return card?.kanban_cards || undefined;
+      ))
+      .limit(1);
+
+    if (!result) return undefined;
+
+    const board = result.kanban_boards;
+    const hasAccess =
+      isAdmin ||
+      board.isPublic ||
+      (userId && board.ownerUserId === userId);
+
+    if (!hasAccess) return undefined;
+
+    return result.kanban_cards;
   }
+
 
   async createKanbanCard(card: InsertKanbanCard): Promise<KanbanCard> {
     const [created] = await db.insert(kanbanCards)

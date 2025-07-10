@@ -7,16 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanCard } from "@shared/schema";
-
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 interface KanbanCardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   card?: KanbanCard | null;
   columnId?: string | null;
   onSubmit: (data: any) => void;
+  board: any;
 }
 
 const CARD_ICONS = [
@@ -36,7 +40,8 @@ export function KanbanCardModal({
   onOpenChange, 
   card, 
   columnId,
-  onSubmit 
+  onSubmit,
+  board
 }: KanbanCardModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -48,7 +53,12 @@ export function KanbanCardModal({
   const [labels, setLabels] = useState<string[]>([]);
   const [newLabel, setNewLabel] = useState("");
   const [dueDate, setDueDate] = useState("");
-
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const { user } = useAuth();
+  const isOwner = user?.id === board.ownerUserId || user?.role === "admin";
+  
   useEffect(() => {
     if (card) {
       setTitle(card.title);
@@ -107,7 +117,25 @@ export function KanbanCardModal({
       handleAddLabel();
     }
   };
+  const handleDelete = async () => {
+    if (!card) return;
 
+    try {
+      await apiRequest("DELETE", `/api/kanban/cards/${card.id}`);
+      toast({
+        title: "Kort raderat",
+        description: "Kortet har raderats.",
+      });
+      onOpenChange(false);
+      queryClient.invalidateQueries(); // Eller en mer specifik queryKey om du vill
+    } catch (error: any) {
+      toast({
+        title: "Fel vid borttagning",
+        description: error.message || "Kunde inte ta bort kortet.",
+        variant: "destructive",
+      });
+    }
+  };
   const getIcon = (iconName: string) => {
     const Icon = (Icons as any)[iconName] || Icons.FileText;
     return <Icon className="h-4 w-4" />;
@@ -258,14 +286,33 @@ export function KanbanCardModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Avbryt
-            </Button>
-            <Button type="submit" disabled={!title.trim()}>
-              {card ? "Uppdatera" : "Skapa"}
-            </Button>
+          <div className="flex justify-between items-center pt-4">
+            {/* Vänstersida: Soptunna */}
+            <div>
+              {isOwner && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-700"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Ta bort
+                </Button>
+              )}
+            </div>
+
+            {/* Högersida: Avbryt & Spara */}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Avbryt
+              </Button>
+              <Button type="submit" disabled={!title.trim()}>
+                {card ? "Uppdatera" : "Skapa"}
+              </Button>
+            </div>
           </div>
+
         </form>
       </DialogContent>
     </Dialog>
