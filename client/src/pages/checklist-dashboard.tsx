@@ -207,16 +207,22 @@ export default function ChecklistDashboard({
   const { data: dashboardQuestions = [] } = useQuery<Question[]>({
     queryKey: ["/api/dashboard/questions", id],
     queryFn: async () => {
+      console.log('Fetching dashboard questions for checklistId:', id);
       const response = await fetch(`/api/dashboard/questions?checklistId=${id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
+      console.log('Dashboard questions response status:', response.status);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Dashboard questions error:', errorText);
         throw new Error('Failed to fetch dashboard questions');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Dashboard questions data:', data);
+      return data;
     },
   });
 
