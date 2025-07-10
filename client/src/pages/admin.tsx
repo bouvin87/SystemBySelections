@@ -663,8 +663,12 @@ export default function Admin() {
         checklistId = result.id;
       }
 
-      if (checklistId && selectedWorkTaskIds.length > 0) {
+      // Always update work tasks (to handle both adding and removing)
+      if (checklistId) {
+        // First remove all existing work tasks
         await apiRequest("DELETE", `/api/checklists/${checklistId}/work-tasks`);
+        
+        // Then add the selected work tasks
         for (const workTaskId of selectedWorkTaskIds) {
           await apiRequest(
             "POST",
@@ -677,6 +681,7 @@ export default function Admin() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["/api/checklists"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/checklists/${checklistId}/work-tasks`] });
 
       toast({
         title: editingItem ? "Checklista uppdaterad" : "Checklista skapad",
