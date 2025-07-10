@@ -1671,6 +1671,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // Delete a specific work task from a checklist
+  app.delete(
+    "/api/checklists/:id/work-tasks/:workTaskId",
+    authenticateToken,
+    async (req, res) => {
+      try {
+        const checklistId = req.params.id;
+        const workTaskId = parseInt(req.params.workTaskId);
+        
+        if (isNaN(workTaskId)) {
+          return res.status(400).json({ message: "Invalid work task ID" });
+        }
+        
+        await storage.deleteChecklistWorkTask(checklistId, workTaskId, req.tenantId!);
+        res.status(200).json({ message: "Work task removed from checklist" });
+      } catch (error) {
+        console.error("Delete checklist work task error:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to remove work task from checklist" });
+      }
+    },
+  );
+
   app.delete(
     "/api/checklists/:id/work-tasks",
     authenticateToken,
