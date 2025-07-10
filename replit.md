@@ -122,6 +122,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 10, 2025**: Completed transition from boolean flags to relational data in FormModal
+  - Updated FormModal logic to use `workTasks.length > 0` instead of `currentChecklist?.includeWorkTasks`
+  - Updated validation and submission logic to check data availability rather than configuration flags
+  - Changed field visibility logic to be based on actual data relationships from checklist_work_tasks table
+  - Updated question filtering logic to use `workTasks.length` dependency instead of `includeWorkTasks`
+  - All form functionality now properly uses the new relational data structure for better data integrity
+
 - **July 10, 2025**: Implemented UserKanbanPreference system for QuickAccess functionality
   - Added `user_kanban_preferences` table with UUID primary key, user/board foreign keys
   - Unique constraint on (user_id, board_id) to prevent duplicate preferences per user-board combination

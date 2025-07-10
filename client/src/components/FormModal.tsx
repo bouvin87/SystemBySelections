@@ -126,18 +126,13 @@ export default function FormModal({
   // Hämta arbetsmoment kopplade till den valda checklistan
   const { data: checklistWorkTasks = [] } = useQuery({
     queryKey: [`/api/checklists/${formData.checklistId}/work-tasks`],
-    enabled: Boolean(
-      isOpen && formData.checklistId && currentChecklist?.includeWorkTasks,
-    ),
+    enabled: Boolean(isOpen && formData.checklistId),
   });
 
   // Hämta alla arbetsmoment för att kunna visa namn
   const { data: allWorkTasks = [] } = useQuery<WorkTask[]>({
     queryKey: ["/api/work-tasks"],
-    enabled:
-      isOpen &&
-      Array.isArray(checklistWorkTasks) &&
-      checklistWorkTasks.length > 0,
+    enabled: isOpen && Array.isArray(checklistWorkTasks) && checklistWorkTasks.length > 0,
   });
 
   // Filtrera arbetsmoment baserat på vad som är kopplat till checklistan
@@ -168,12 +163,12 @@ export default function FormModal({
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
-    enabled: isOpen && currentChecklist?.includeWorkStations,
+    enabled: isOpen,
   });
 
   const { data: shifts = [] } = useQuery<Shift[]>({
     queryKey: ["/api/shifts"],
-    enabled: isOpen && currentChecklist?.includeShifts,
+    enabled: isOpen,
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -248,8 +243,8 @@ export default function FormModal({
 
   // Filtrera frågor baserat på valt arbetsmoment
   const filteredQuestions = useMemo(() => {
-    if (!formData.workTaskId || !currentChecklist?.includeWorkTasks) {
-      // Om inget arbetsmoment är valt eller checklistan inte använder arbetsmoment, visa alla frågor
+    if (!formData.workTaskId || workTasks.length === 0) {
+      // Om inget arbetsmoment är valt eller inga arbetsmoment är tillgängliga, visa alla frågor
       return questions;
     }
 
@@ -273,7 +268,7 @@ export default function FormModal({
     questions,
     allQuestionWorkTasks,
     formData.workTaskId,
-    currentChecklist?.includeWorkTasks,
+    workTasks.length,
   ]);
 
   const submitMutation = useMutation({
@@ -342,11 +337,11 @@ export default function FormModal({
         missingFields.push("Operatörsnamn");
       }
 
-      if (currentChecklist?.includeWorkTasks && !formData.workTaskId) {
+      if (workTasks.length > 0 && !formData.workTaskId) {
         missingFields.push("Arbetsuppgift");
       }
 
-      if (currentChecklist?.includeWorkStations && formData.workTaskId) {
+      if (workTasks.length > 0 && formData.workTaskId) {
         const selectedWorkTask = workTasks.find(
           (task) => task.id === formData.workTaskId,
         );
@@ -355,7 +350,7 @@ export default function FormModal({
         }
       }
 
-      if (currentChecklist?.includeShifts && !formData.shiftId) {
+      if (shifts.length > 0 && !formData.shiftId) {
         missingFields.push("Skift");
       }
     } else if (currentStep >= 3) {
@@ -416,14 +411,14 @@ export default function FormModal({
       isCompleted: true,
     };
 
-    // Only include work task, station, and shift if the checklist requires them
-    if (currentChecklist?.includeWorkTasks) {
+    // Only include work task, station, and shift if they are available
+    if (workTasks.length > 0) {
       submitData.workTaskId = formData.workTaskId;
     }
-    if (currentChecklist?.includeWorkStations) {
+    if (workTasks.length > 0) {
       submitData.workStationId = formData.workStationId;
     }
-    if (currentChecklist?.includeShifts) {
+    if (shifts.length > 0) {
       submitData.shiftId = formData.shiftId;
     }
 
@@ -507,7 +502,7 @@ export default function FormModal({
               />
             </div>
 
-            {currentChecklist?.includeWorkTasks && (
+            {workTasks.length > 0 && (
               <div>
                 <FloatingSelect
                   label={t("admin.workTasks")}
@@ -537,7 +532,7 @@ export default function FormModal({
               </div>
             )}
 
-            {currentChecklist?.includeWorkStations && (
+            {workTasks.length > 0 && (
               <div>
                 <FloatingSelect
                   label={t("admin.workStations")}
@@ -577,7 +572,7 @@ export default function FormModal({
               </div>
             )}
 
-            {currentChecklist?.includeShifts && (
+            {shifts.length > 0 && (
               <div>
                 <FloatingSelect
                   label={t("admin.shifts")}
@@ -882,12 +877,12 @@ export default function FormModal({
       // Always require operator name
       if (!formData.operatorName) return false;
 
-      // Only require work task if the checklist includes it
-      if (currentChecklist?.includeWorkTasks && !formData.workTaskId)
+      // Only require work task if work tasks are available
+      if (workTasks.length > 0 && !formData.workTaskId)
         return false;
 
-      // If work task has stations and checklist includes work stations, require station selection
-      if (currentChecklist?.includeWorkStations && formData.workTaskId) {
+      // If work task has stations and work tasks are available, require station selection
+      if (workTasks.length > 0 && formData.workTaskId) {
         const selectedWorkTask = workTasks.find(
           (task) => task.id === formData.workTaskId,
         );
@@ -895,8 +890,8 @@ export default function FormModal({
           return false;
       }
 
-      // Only require shift if the checklist includes it
-      if (currentChecklist?.includeShifts && !formData.shiftId) return false;
+      // Only require shift if shifts are available
+      if (shifts.length > 0 && !formData.shiftId) return false;
 
       return true;
     }
