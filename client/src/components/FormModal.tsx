@@ -25,8 +25,17 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from 'react-i18next';
-import { Star, ChevronLeft, ChevronRight, Check, X, Frown, Meh, Smile } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import {
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  X,
+  Frown,
+  Meh,
+  Smile,
+} from "lucide-react";
 import {
   type Checklist,
   type WorkTask,
@@ -44,11 +53,11 @@ import { FloatingTextarea } from "./ui/floatingTextarea";
 interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  preselectedChecklistId?: number;
+  preselectedChecklistId?: string;
 }
 
 interface FormData {
-  checklistId: number | null;
+  checklistId: string;
   operatorName: string;
   workTaskId: number | null;
   workStationId: number | null;
@@ -67,7 +76,7 @@ export default function FormModal({
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(2); // Start directly at identification step
   const [formData, setFormData] = useState<FormData>({
-    checklistId: preselectedChecklistId || null,
+    checklistId: preselectedChecklistId || "",
     operatorName: "",
     workTaskId: null,
     workStationId: null,
@@ -92,7 +101,7 @@ export default function FormModal({
     if (!isOpen) {
       setCurrentStep(2); // Always reset to identification step
       setFormData({
-        checklistId: preselectedChecklistId || null,
+        checklistId: preselectedChecklistId || "",
         operatorName: "",
         workTaskId: null,
         workStationId: null,
@@ -108,18 +117,25 @@ export default function FormModal({
   });
 
   // Get the current checklist configuration
-  const currentChecklist = checklists.find(c => c.id === formData.checklistId);
+  const currentChecklist = checklists.find(
+    (c) => c.id === formData.checklistId,
+  );
 
   // Hämta arbetsmoment kopplade till den valda checklistan
   const { data: checklistWorkTasks = [] } = useQuery({
     queryKey: [`/api/checklists/${formData.checklistId}/work-tasks`],
-    enabled: Boolean(isOpen && formData.checklistId && currentChecklist?.includeWorkTasks),
+    enabled: Boolean(
+      isOpen && formData.checklistId && currentChecklist?.includeWorkTasks,
+    ),
   });
 
   // Hämta alla arbetsmoment för att kunna visa namn
   const { data: allWorkTasks = [] } = useQuery<WorkTask[]>({
     queryKey: ["/api/work-tasks"],
-    enabled: isOpen && Array.isArray(checklistWorkTasks) && checklistWorkTasks.length > 0,
+    enabled:
+      isOpen &&
+      Array.isArray(checklistWorkTasks) &&
+      checklistWorkTasks.length > 0,
   });
 
   // Filtrera arbetsmoment baserat på vad som är kopplat till checklistan
@@ -127,8 +143,8 @@ export default function FormModal({
     if (!Array.isArray(checklistWorkTasks) || !Array.isArray(allWorkTasks)) {
       return [];
     }
-    return allWorkTasks.filter(wt => 
-      checklistWorkTasks.some((cwt: any) => cwt.workTaskId === wt.id)
+    return allWorkTasks.filter((wt) =>
+      checklistWorkTasks.some((cwt: any) => cwt.workTaskId === wt.id),
     );
   }, [checklistWorkTasks, allWorkTasks]);
 
@@ -150,7 +166,7 @@ export default function FormModal({
 
   const { data: workStations = [] } = useQuery<WorkStation[]>({
     queryKey: ["/api/work-stations"],
-    enabled: isOpen && currentChecklist?.includeWorkStations && formData.workTaskId !== null,
+    enabled: isOpen && currentChecklist?.includeWorkStations,
   });
 
   const { data: shifts = [] } = useQuery<Shift[]>({
@@ -162,7 +178,10 @@ export default function FormModal({
     queryKey: ["/api/categories", formData.checklistId],
     queryFn: async () => {
       if (!formData.checklistId) return [];
-      const response = await apiRequest("GET", `/api/categories?checklistId=${formData.checklistId}`);
+      const response = await apiRequest(
+        "GET",
+        `/api/categories?checklistId=${formData.checklistId}`,
+      );
       return response.json();
     },
     enabled: isOpen && formData.checklistId !== null,
@@ -175,7 +194,10 @@ export default function FormModal({
       const allQuestions: Question[] = [];
       for (const category of categories) {
         try {
-          const response = await apiRequest("GET", `/api/questions?categoryId=${category.id}`);
+          const response = await apiRequest(
+            "GET",
+            `/api/questions?categoryId=${category.id}`,
+          );
           const categoryQuestions = await response.json();
           allQuestions.push(...categoryQuestions);
         } catch (error) {
@@ -192,15 +214,22 @@ export default function FormModal({
 
   // Hämta alla frågornas arbetsmoment-kopplingar
   const { data: allQuestionWorkTasks = [] } = useQuery<QuestionWorkTask[]>({
-    queryKey: ["/api/question-work-tasks", "for-checklist", formData.checklistId],
+    queryKey: [
+      "/api/question-work-tasks",
+      "for-checklist",
+      formData.checklistId,
+    ],
     queryFn: async () => {
       if (!questions || questions.length === 0) return [];
       const allQuestionWorkTasks: QuestionWorkTask[] = [];
-      
+
       // Hämta arbetsmoment-kopplingar för alla frågor
       for (const question of questions) {
         try {
-          const response = await apiRequest("GET", `/api/questions/${question.id}/work-tasks`);
+          const response = await apiRequest(
+            "GET",
+            `/api/questions/${question.id}/work-tasks`,
+          );
           const questionWorkTasks = await response.json();
           allQuestionWorkTasks.push(...questionWorkTasks);
         } catch (error) {
@@ -222,19 +251,28 @@ export default function FormModal({
       return questions;
     }
 
-    return questions.filter(question => {
+    return questions.filter((question) => {
       // Kolla om frågan har några arbetsmoment-kopplingar
-      const questionWorkTasks = allQuestionWorkTasks.filter(qwt => qwt.questionId === question.id);
-      
+      const questionWorkTasks = allQuestionWorkTasks.filter(
+        (qwt) => qwt.questionId === question.id,
+      );
+
       // Om frågan inte har några kopplingar, visa den för alla arbetsmoment
       if (questionWorkTasks.length === 0) {
         return true;
       }
-      
+
       // Om frågan har kopplingar, visa bara om det valda arbetsmoment är inkluderat
-      return questionWorkTasks.some(qwt => qwt.workTaskId === formData.workTaskId);
+      return questionWorkTasks.some(
+        (qwt) => qwt.workTaskId === formData.workTaskId,
+      );
     });
-  }, [questions, allQuestionWorkTasks, formData.workTaskId, currentChecklist?.includeWorkTasks]);
+  }, [
+    questions,
+    allQuestionWorkTasks,
+    formData.workTaskId,
+    currentChecklist?.includeWorkTasks,
+  ]);
 
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -262,7 +300,7 @@ export default function FormModal({
   const resetForm = () => {
     setCurrentStep(2);
     setFormData({
-      checklistId: preselectedChecklistId || null,
+      checklistId: preselectedChecklistId || "",
       operatorName: "",
       workTaskId: null,
       workStationId: null,
@@ -277,7 +315,8 @@ export default function FormModal({
   );
 
   const totalSteps = 1 + categoriesWithQuestions.length; // Identification step + category steps with questions
-  const progress = totalSteps > 1 ? ((currentStep - 2) / (totalSteps - 1)) * 100 : 0;
+  const progress =
+    totalSteps > 1 ? ((currentStep - 2) / (totalSteps - 1)) * 100 : 0;
 
   const handleNext = () => {
     // Validate current step before proceeding
@@ -300,18 +339,20 @@ export default function FormModal({
       if (!formData.operatorName.trim()) {
         missingFields.push("Operatörsnamn");
       }
-      
+
       if (currentChecklist?.includeWorkTasks && !formData.workTaskId) {
         missingFields.push("Arbetsuppgift");
       }
-      
+
       if (currentChecklist?.includeWorkStations && formData.workTaskId) {
-        const selectedWorkTask = workTasks.find(task => task.id === formData.workTaskId);
+        const selectedWorkTask = workTasks.find(
+          (task) => task.id === formData.workTaskId,
+        );
         if (selectedWorkTask?.hasStations && !formData.workStationId) {
           missingFields.push("Arbetsstation");
         }
       }
-      
+
       if (currentChecklist?.includeShifts && !formData.shiftId) {
         missingFields.push("Skift");
       }
@@ -319,20 +360,26 @@ export default function FormModal({
       // Question step validation
       const categoryIndex = currentStep - 3;
       const category = categoriesWithQuestions[categoryIndex];
-      
+
       if (category) {
-        const categoryQuestions = filteredQuestions.filter(q => q.categoryId === category.id);
-        
+        const categoryQuestions = filteredQuestions.filter(
+          (q) => q.categoryId === category.id,
+        );
+
         for (const question of categoryQuestions) {
           if (question.isRequired) {
             const response = formData.responses[question.id];
-            
+
             if (question.type === "check") {
               if (response !== true) {
                 missingFields.push(`Fråga: "${question.text}"`);
               }
             } else {
-              if (response === undefined || response === null || response === "") {
+              if (
+                response === undefined ||
+                response === null ||
+                response === ""
+              ) {
                 missingFields.push(`Fråga: "${question.text}"`);
               }
             }
@@ -444,7 +491,7 @@ export default function FormModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <FloatingInput
-                label={t('form.operatorName')}
+                label={t("form.operatorName")}
                 id="operator"
                 name="operator"
                 required
@@ -461,20 +508,23 @@ export default function FormModal({
             {currentChecklist?.includeWorkTasks && (
               <div>
                 <FloatingSelect
-                  label={t('admin.workTasks')}
+                  label={t("admin.workTasks")}
                   name="workTaskId"
                   required
                   value={formData.workTaskId?.toString() || ""}
                   onChange={(value) => {
                     const taskId = parseInt(value);
-                    const selectedTask = workTasks.find(task => task.id === taskId);
+                    const selectedTask = workTasks.find(
+                      (task) => task.id === taskId,
+                    );
                     setFormData((prev) => ({
                       ...prev,
                       workTaskId: taskId,
-                      workStationId: selectedTask?.hasStations ? prev.workStationId : null,
+                      // Reset workStationId when changing workTask
+                      workStationId: null,
                     }));
                   }}
-                  placeholder={t('form.selectWorkTask')}
+                  placeholder={t("form.selectWorkTask")}
                 >
                   {workTasks.map((task) => (
                     <SelectItem key={task.id} value={task.id.toString()}>
@@ -482,14 +532,13 @@ export default function FormModal({
                     </SelectItem>
                   ))}
                 </FloatingSelect>
-
               </div>
             )}
 
             {currentChecklist?.includeWorkStations && (
               <div>
                 <FloatingSelect
-                  label={t('admin.workStations')}
+                  label={t("admin.workStations")}
                   name="workStationId"
                   value={formData.workStationId?.toString() || ""}
                   onChange={(value) =>
@@ -498,39 +547,47 @@ export default function FormModal({
                       workStationId: parseInt(value),
                     }))
                   }
-                  placeholder={t('form.selectWorkStation')}
+                  placeholder={t("form.selectWorkStation")}
                   required={
                     !!formData.workTaskId &&
-                    !!workTasks.find((task) => task.id === formData.workTaskId)?.hasStations
+                    !!workTasks.find((task) => task.id === formData.workTaskId)
+                      ?.hasStations
                   }
                   disabled={
                     !formData.workTaskId ||
-                    !workTasks.find((task) => task.id === formData.workTaskId)?.hasStations
+                    !workTasks.find((task) => task.id === formData.workTaskId)
+                      ?.hasStations
                   }
                 >
                   {workStations
-                    .filter((station) => station.workTaskId === formData.workTaskId)
+                    .filter(
+                      (station) => station.workTaskId === formData.workTaskId,
+                    )
                     .map((station) => (
-                      <SelectItem key={station.id} value={station.id.toString()}>
+                      <SelectItem
+                        key={station.id}
+                        value={station.id.toString()}
+                      >
                         {station.name}
                       </SelectItem>
                     ))}
                 </FloatingSelect>
-
-
               </div>
             )}
 
             {currentChecklist?.includeShifts && (
               <div>
                 <FloatingSelect
-                  label={t('admin.shifts')}
+                  label={t("admin.shifts")}
                   name="shiftId"
                   value={formData.shiftId?.toString() || ""}
                   onChange={(value) =>
-                    setFormData((prev) => ({ ...prev, shiftId: parseInt(value) }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      shiftId: parseInt(value),
+                    }))
                   }
-                  placeholder={t('form.selectShift')}
+                  placeholder={t("form.selectShift")}
                   required
                 >
                   {shifts.map((shift) => (
@@ -539,7 +596,6 @@ export default function FormModal({
                     </SelectItem>
                   ))}
                 </FloatingSelect>
-
               </div>
             )}
           </div>
@@ -559,246 +615,260 @@ export default function FormModal({
         <h3 className="text-lg font-medium mb-4">{category?.name}</h3>
         {categoryQuestions.map((question) => (
           <div key={question.id} className="space-y-3">
-            
-
             {question.type === "text" && (
-            <FloatingTextarea
-              label={question.text}
-              id={`question_${question.id}`}
-              name={`question_${question.id}`}
-              value={formData.responses[question.id] || ""}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  responses: {
-                    ...prev.responses,
-                    [question.id]: e.target.value,
-                  },
-                }));
-              }}
-              rows={3}
-            />
-
+              <FloatingTextarea
+                label={question.text}
+                id={`question_${question.id}`}
+                name={`question_${question.id}`}
+                value={formData.responses[question.id] || ""}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    responses: {
+                      ...prev.responses,
+                      [question.id]: e.target.value,
+                    },
+                  }));
+                }}
+                rows={3}
+              />
             )}
 
             {question.type === "val" &&
               question.options &&
               Array.isArray(question.options) && (
-                <><Label className="text-sm font-medium text-gray-900">
+                <>
+                  <Label className="text-sm font-medium text-gray-900">
                     {question.text}
                     {question.isRequired && (
-                        <span className="text-destructive ml-1">*</span>
+                      <span className="text-destructive ml-1">*</span>
                     )}
-                </Label>
-                <RadioGroup
-                  value={formData.responses[question.id]?.toString() || ""}
-                  onValueChange={(value) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      responses: { ...prev.responses, [question.id]: value },
-                    }));
-                  }}
-                >
-                  {(question.options as string[]).map((option: string, index: number) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <RadioGroupItem
-                        value={option}
-                        id={`${question.id}-${index}`}
-                      />
-                      <Label
-                        htmlFor={`${question.id}-${index}`}
-                        className="text-sm text-gray-700"
-                      >
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup></>
+                  </Label>
+                  <RadioGroup
+                    value={formData.responses[question.id]?.toString() || ""}
+                    onValueChange={(value) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        responses: { ...prev.responses, [question.id]: value },
+                      }));
+                    }}
+                  >
+                    {(question.options as string[]).map(
+                      (option: string, index: number) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          <RadioGroupItem
+                            value={option}
+                            id={`${question.id}-${index}`}
+                          />
+                          <Label
+                            htmlFor={`${question.id}-${index}`}
+                            className="text-sm text-gray-700"
+                          >
+                            {option}
+                          </Label>
+                        </div>
+                      ),
+                    )}
+                  </RadioGroup>
+                </>
               )}
 
             {question.type === "nummer" && (
-            <FloatingInput
-              label={question.text}
-              id={`question_${question.id}`}
-              name={`question_${question.id}`}
-              type="number"
-              value={formData.responses[question.id] || ""}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  responses: {
-                    ...prev.responses,
-                    [question.id]: e.target.value,
-                  },
-                }));
-              }}
-            />
+              <FloatingInput
+                label={question.text}
+                id={`question_${question.id}`}
+                name={`question_${question.id}`}
+                type="number"
+                value={formData.responses[question.id] || ""}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    responses: {
+                      ...prev.responses,
+                      [question.id]: e.target.value,
+                    },
+                  }));
+                }}
+              />
+            )}
 
-              )}
-
-              {(question.type === "ja_nej" || question.type === "boolean") && (
-                <div className="flex items-center space-x-3">
-                  
-                  <Switch
-                    id={`question-${question.id}`}
-                    checked={formData.responses[question.id] || false}
-                    onCheckedChange={(checked) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: {
-                          ...prev.responses,
-                          [question.id]: checked,
-                        },
-                      }));
-                    }}
-                  />
-                  <Label
-                    htmlFor={`question-${question.id}`}
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    {question.text}
-                    {question.isRequired && (
-                      <span className="text-destructive ml-1">*</span>
-                    )}
-                  </Label>
-                </div>
-              )}
-
-              {(question.type === "datum" || question.type === "date") && (
-            <FloatingDatePicker
-              label={question.text}
-              name={`question_${question.id}`}
-              value={formData.responses[question.id] || ""}
-              onChange={(value) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  responses: {
-                    ...prev.responses,
-                    [question.id]: value,
-                  },
-                }));
-              }}
-            />
-
-              )}
-
-              {question.type === "fil" && (
-                <Input
-                  type="file"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: {
-                          ...prev.responses,
-                          [question.id]: file.name,
-                        },
-                      }));
-                    }
+            {(question.type === "ja_nej" || question.type === "boolean") && (
+              <div className="flex items-center space-x-3">
+                <Switch
+                  id={`question-${question.id}`}
+                  checked={formData.responses[question.id] || false}
+                  onCheckedChange={(checked) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      responses: {
+                        ...prev.responses,
+                        [question.id]: checked,
+                      },
+                    }));
                   }}
                 />
-              )}
+                <Label
+                  htmlFor={`question-${question.id}`}
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  {question.text}
+                  {question.isRequired && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
+                </Label>
+              </div>
+            )}
 
-              {question.type === "stjärnor" && (
-                <><Label className="text-sm font-medium text-gray-900">
-                        {question.text}
-                        {question.isRequired && (
-                            <span className="text-destructive ml-1">*</span>
-                        )}
-                    </Label><div className="flex space-x-2">
+            {(question.type === "datum" || question.type === "date") && (
+              <FloatingDatePicker
+                label={question.text}
+                name={`question_${question.id}`}
+                value={formData.responses[question.id] || ""}
+                onChange={(value) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    responses: {
+                      ...prev.responses,
+                      [question.id]: value,
+                    },
+                  }));
+                }}
+              />
+            )}
 
-                            {[1, 2, 3, 4, 5].map((star) => {
-                                const responseValue = formData.responses[question.id];
-                                const currentRating = responseValue ? Number(responseValue) : 0;
-                                const isActive = currentRating > 0 && star <= currentRating;
+            {question.type === "fil" && (
+              <Input
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      responses: {
+                        ...prev.responses,
+                        [question.id]: file.name,
+                      },
+                    }));
+                  }
+                }}
+              />
+            )}
 
+            {question.type === "stjärnor" && (
+              <>
+                <Label className="text-sm font-medium text-gray-900">
+                  {question.text}
+                  {question.isRequired && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
+                </Label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const responseValue = formData.responses[question.id];
+                    const currentRating = responseValue
+                      ? Number(responseValue)
+                      : 0;
+                    const isActive = currentRating > 0 && star <= currentRating;
 
-
-                                return (
-                                    <><button
-                                        key={star}
-                                        type="button"
-                                        onClick={() => {
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                responses: { ...prev.responses, [question.id]: star },
-                                            }));
-                                        } }
-                                        className={`transition-colors hover:text-yellow-400 focus:outline-none ${isActive ? "text-yellow-500" : "text-gray-400"}`}
-                                    >
-                                        <Star
-                                            className="h-8 w-8"
-                                            fill={isActive ? "currentColor" : "none"} />
-                                    </button></>
-                                );
-                            })}
-                        </div></>
-              )}
-
-              {question.type === "humör" && (
-            <><Label className="text-sm font-medium text-gray-900">
-                        {question.text}
-                        {question.isRequired && (
-                            <span className="text-destructive ml-1">*</span>
-                        )}
-                    </Label><div className="flex space-x-2">
-                            {[
-                                { value: 1, emoji: "😢", label: "Mycket dåligt" },
-                                { value: 2, emoji: "😞", label: "Dåligt" },
-                                { value: 3, emoji: "😐", label: "Okej" },
-                                { value: 4, emoji: "😊", label: "Bra" },
-                                { value: 5, emoji: "😄", label: "Mycket bra" },
-                            ].map((mood) => (
-                                <button
-                                    key={mood.value}
-                                    type="button"
-                                    onClick={() => {
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            responses: {
-                                                ...prev.responses,
-                                                [question.id]: mood.value,
-                                            },
-                                        }));
-                                    } }
-                                    className={`text-3xl p-2 rounded-lg border-2 transition-all ${formData.responses[question.id] === mood.value
-                                            ? "border-blue-500 bg-blue-50"
-                                            : "border-gray-200 hover:border-gray-300"}`}
-                                    title={mood.label}
-                                >
-                                    {mood.emoji}
-                                </button>
-                            ))}
-                        </div></>
-              )}
-
-              {question.type === "check" && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`check-${question.id}`}
-                    checked={formData.responses[question.id] === true}
-                    onCheckedChange={(checked) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        responses: {
-                          ...prev.responses,
-                          [question.id]: checked === true,
-                        },
-                      }));
-                    }}
-                  />
-                  <Label 
-                    htmlFor={`check-${question.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {question.text}
-                    {question.isRequired && (
-                      <span className="text-destructive ml-1">*</span>
-                    )}
-                  </Label>
+                    return (
+                      <>
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              responses: {
+                                ...prev.responses,
+                                [question.id]: star,
+                              },
+                            }));
+                          }}
+                          className={`transition-colors hover:text-yellow-400 focus:outline-none ${isActive ? "text-yellow-500" : "text-gray-400"}`}
+                        >
+                          <Star
+                            className="h-8 w-8"
+                            fill={isActive ? "currentColor" : "none"}
+                          />
+                        </button>
+                      </>
+                    );
+                  })}
                 </div>
-              )}
+              </>
+            )}
+
+            {question.type === "humör" && (
+              <>
+                <Label className="text-sm font-medium text-gray-900">
+                  {question.text}
+                  {question.isRequired && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
+                </Label>
+                <div className="flex space-x-2">
+                  {[
+                    { value: 1, emoji: "😢", label: "Mycket dåligt" },
+                    { value: 2, emoji: "😞", label: "Dåligt" },
+                    { value: 3, emoji: "😐", label: "Okej" },
+                    { value: 4, emoji: "😊", label: "Bra" },
+                    { value: 5, emoji: "😄", label: "Mycket bra" },
+                  ].map((mood) => (
+                    <button
+                      key={mood.value}
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          responses: {
+                            ...prev.responses,
+                            [question.id]: mood.value,
+                          },
+                        }));
+                      }}
+                      className={`text-3xl p-2 rounded-lg border-2 transition-all ${
+                        formData.responses[question.id] === mood.value
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      title={mood.label}
+                    >
+                      {mood.emoji}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {question.type === "check" && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id={`check-${question.id}`}
+                  checked={formData.responses[question.id] === true}
+                  onCheckedChange={(checked) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      responses: {
+                        ...prev.responses,
+                        [question.id]: checked === true,
+                      },
+                    }));
+                  }}
+                />
+                <Label
+                  htmlFor={`check-${question.id}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {question.text}
+                  {question.isRequired && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
+                </Label>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -809,35 +879,41 @@ export default function FormModal({
     if (currentStep === 2) {
       // Always require operator name
       if (!formData.operatorName) return false;
-      
+
       // Only require work task if the checklist includes it
-      if (currentChecklist?.includeWorkTasks && !formData.workTaskId) return false;
-      
+      if (currentChecklist?.includeWorkTasks && !formData.workTaskId)
+        return false;
+
       // If work task has stations and checklist includes work stations, require station selection
       if (currentChecklist?.includeWorkStations && formData.workTaskId) {
-        const selectedWorkTask = workTasks.find(task => task.id === formData.workTaskId);
-        if (selectedWorkTask?.hasStations && !formData.workStationId) return false;
+        const selectedWorkTask = workTasks.find(
+          (task) => task.id === formData.workTaskId,
+        );
+        if (selectedWorkTask?.hasStations && !formData.workStationId)
+          return false;
       }
-      
+
       // Only require shift if the checklist includes it
       if (currentChecklist?.includeShifts && !formData.shiftId) return false;
-      
+
       return true;
     }
-    
+
     // For question steps (step 3 and above)
     if (currentStep >= 3) {
       const categoryIndex = currentStep - 3;
       const category = categoriesWithQuestions[categoryIndex];
-      
+
       if (!category) return true; // If no category, allow proceed
-      
+
       // Check that all required questions in current category are answered
-      const categoryQuestions = questions.filter(q => q.categoryId === category.id);
+      const categoryQuestions = questions.filter(
+        (q) => q.categoryId === category.id,
+      );
       for (const question of categoryQuestions) {
         if (question.isRequired) {
           const response = formData.responses[question.id];
-          
+
           // For checkbox questions, require true (not just any value)
           if (question.type === "check") {
             if (response !== true) {
@@ -845,7 +921,11 @@ export default function FormModal({
             }
           } else {
             // For other question types, check for empty/null/undefined
-            if (response === undefined || response === null || response === "") {
+            if (
+              response === undefined ||
+              response === null ||
+              response === ""
+            ) {
               return false;
             }
           }
@@ -853,14 +933,17 @@ export default function FormModal({
       }
       return true;
     }
-    
+
     return true;
   };
 
   // Auto-hide URL bar on mobile when modal opens
   useEffect(() => {
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+    const isMobile =
+      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+      );
+
     if (isOpen && isMobile) {
       // Set body to fullscreen mode
       const originalBodyStyle = {
@@ -870,17 +953,20 @@ export default function FormModal({
       };
 
       // Apply fullscreen styles
-      document.body.style.height = '100vh';
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = '0';
+      document.body.style.height = "100vh";
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.top = "0";
 
       // Force minimal-ui viewport
       const viewport = document.querySelector('meta[name="viewport"]');
-      const originalViewport = viewport?.getAttribute('content');
+      const originalViewport = viewport?.getAttribute("content");
       if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, minimal-ui');
+        viewport.setAttribute(
+          "content",
+          "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, minimal-ui",
+        );
       }
 
       // Cleanup on modal close
@@ -888,11 +974,11 @@ export default function FormModal({
         document.body.style.height = originalBodyStyle.height;
         document.body.style.overflow = originalBodyStyle.overflow;
         document.body.style.position = originalBodyStyle.position;
-        document.body.style.width = '';
-        document.body.style.top = '';
-        
+        document.body.style.width = "";
+        document.body.style.top = "";
+
         if (viewport && originalViewport) {
-          viewport.setAttribute('content', originalViewport);
+          viewport.setAttribute("content", originalViewport);
         }
       };
     }
@@ -904,7 +990,7 @@ export default function FormModal({
   );
   const modalTitle = selectedChecklist
     ? selectedChecklist.name
-    : t('form.newControl');
+    : t("form.newControl");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -917,12 +1003,11 @@ export default function FormModal({
         <div className="p-2  border-b border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">
-              {t('form.step')} {currentStep - 1} {t('form.of')} {totalSteps}
+              {t("form.step")} {currentStep - 1} {t("form.of")} {totalSteps}
             </span>
             <span className="text-sm text-muted-foreground">
-              {Math.round(progress)}% {t('form.complete')}
+              {Math.round(progress)}% {t("form.complete")}
             </span>
-            
           </div>
           <Progress value={progress} className="w-full" />
         </div>
@@ -936,24 +1021,24 @@ export default function FormModal({
           {/* Mobile: Stack buttons vertically, Desktop: Previous on left */}
           <div className="order-1 sm:order-1">
             <Button
-              variant="outline" 
+              variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 2}
               className={`w-full sm:w-auto ${currentStep === 2 ? "invisible" : ""}`}
             >
               <ChevronLeft className="mr-2 h-4 w-4" />
-              {t('form.previous')}
+              {t("form.previous")}
             </Button>
           </div>
 
           {/* Mobile: Full width buttons at top, Desktop: Right aligned */}
           <div className="flex flex-col sm:flex-row gap-3 order-2 sm:order-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onClose}
               className="w-full sm:w-auto"
             >
-              {t('admin.cancel')}
+              {t("admin.cancel")}
             </Button>
             <Button
               onClick={handleNext}
@@ -963,11 +1048,11 @@ export default function FormModal({
               {currentStep === totalSteps + 1 ? (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  {t('form.submit')}
+                  {t("form.submit")}
                 </>
               ) : (
                 <>
-                  {t('form.next')}
+                  {t("form.next")}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </>
               )}

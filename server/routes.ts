@@ -2351,6 +2351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const isAdmin = req.user?.role === "admin";
@@ -2368,6 +2369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const isAdmin = req.user?.role === "admin";
@@ -2391,6 +2393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const validatedData = insertKanbanBoardSchema.parse({
@@ -2411,6 +2414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2428,6 +2432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2445,6 +2450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:boardId/columns",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const isAdmin = req.user?.role === "admin";
@@ -2464,6 +2470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/columns",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const validatedData = insertKanbanColumnSchema.parse(req.body);
@@ -2480,6 +2487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/columns/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2497,6 +2505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/columns/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2513,6 +2522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:boardId/columns/reorder",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { boardId } = req.params;
@@ -2531,6 +2541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:boardId/cards",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const isAdmin = req.user?.role === "admin";
@@ -2548,6 +2559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/columns/:columnId/cards",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const isAdmin = req.user?.role === "admin";
@@ -2565,6 +2577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/cards",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const validatedData = insertKanbanCardSchema.parse(req.body);
@@ -2581,6 +2594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/cards/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2601,6 +2615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/cards/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2617,6 +2632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/cards/:id/move",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2634,6 +2650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/columns/:columnId/cards/reorder",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { columnId } = req.params;
@@ -2652,6 +2669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:boardId/shares",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { boardId } = req.params;
@@ -2668,6 +2686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/boards/:boardId/shares",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { boardId } = req.params;
@@ -2688,6 +2707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     "/api/kanban/shares/:id",
     authenticateToken,
     enforceTenantIsolation,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
@@ -2704,6 +2724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/kanban/preferences",
     authenticateToken,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const userId = req.user.userId;
@@ -2719,6 +2740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/kanban/preferences/:boardId",
     authenticateToken,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const userId = req.user.userId;
@@ -2735,6 +2757,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/kanban/preferences",
     authenticateToken,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const userId = req.user.userId;
@@ -2754,6 +2777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/kanban/preferences/:boardId",
     authenticateToken,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const userId = req.user.userId;
@@ -2770,6 +2794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/kanban/preferences/:boardId",
     authenticateToken,
+    requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
         const userId = req.user.userId;

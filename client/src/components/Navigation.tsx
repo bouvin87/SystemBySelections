@@ -32,7 +32,9 @@ export default function Navigation() {
   const [userSectionOpen, setUserSectionOpen] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(null);
+  const [selectedChecklistId, setSelectedChecklistId] = useState<number | null>(
+    null,
+  );
   const [checklistSelectionOpen, setChecklistSelectionOpen] = useState(false);
 
   const openModal = (checklistId: number) => {
@@ -40,20 +42,36 @@ export default function Navigation() {
     setModalOpen(true);
   };
 
-  const { data: authData } = useQuery({ queryKey: ["/api/auth/me"], retry: false });
-  const hasChecklistsModule = authData?.tenant?.modules?.includes("checklists") ?? false;
-  const hasDeviationsModule = authData?.tenant?.modules?.includes("deviations") ?? false;
+  const { data: authData } = useQuery({
+    queryKey: ["/api/auth/me"],
+    retry: false,
+  });
+  const hasChecklistsModule =
+    authData?.tenant?.modules?.includes("checklists") ?? false;
+  const hasDeviationsModule =
+    authData?.tenant?.modules?.includes("deviations") ?? false;
   const tenant = authData?.tenant || { name: "System" };
-  const hasKanbanModule = authData?.tenant?.modules?.includes("kanban") ?? false;
+  const hasKanbanModule =
+    authData?.tenant?.modules?.includes("kanban") ?? false;
   const { firstName, lastName, email, role } = user || {};
-  const displayName = firstName && lastName ? `${firstName} ${lastName}` : email;
-  const initials = displayName?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  const displayName =
+    firstName && lastName ? `${firstName} ${lastName}` : email;
+  const initials = displayName
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   const navItems = [
     { href: "/", label: "Hem" },
-    ...(hasChecklistsModule ? [{ href: "/checklists", label: "Checklistor" }] : []),
-    ...(hasDeviationsModule ? [{ href: "/deviations", label: "Avvikelser" }] : []),
-    ...(hasChecklistsModule ? [{ href: "/kanban", label: "Kanban" }] : []),
+    ...(hasChecklistsModule
+      ? [{ href: "/checklists", label: "Checklistor" }]
+      : []),
+    ...(hasDeviationsModule
+      ? [{ href: "/deviations", label: "Avvikelser" }]
+      : []),
+    ...(hasKanbanModule ? [{ href: "/kanban", label: "Kanban" }] : []),
   ];
 
   return (
@@ -102,7 +120,11 @@ export default function Navigation() {
                 className="lg:hidden text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
@@ -141,14 +163,24 @@ export default function Navigation() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary">{initials}</span>
+                        <span className="text-sm font-medium text-primary">
+                          {initials}
+                        </span>
                       </div>
                       <div className="text-left">
-                        <div className="text-sm font-semibold text-foreground">{displayName}</div>
-                        <div className="text-xs text-muted-foreground">{email}</div>
+                        <div className="text-sm font-semibold text-foreground">
+                          {displayName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {email}
+                        </div>
                       </div>
                     </div>
-                    {userSectionOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {userSectionOpen ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
                   </button>
 
                   {userSectionOpen && (
@@ -163,8 +195,8 @@ export default function Navigation() {
                           {role === "superadmin"
                             ? "Super Admin"
                             : role === "admin"
-                            ? "Administrator"
-                            : "Användare"}
+                              ? "Administrator"
+                              : "Användare"}
                         </span>
                       </div>
                       <LanguageSelector />
