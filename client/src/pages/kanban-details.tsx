@@ -228,6 +228,12 @@ export default function KanbanDetails() {
     enabled: !!boardId,
   });
 
+  // Fetch user preferences for this board
+  const { data: userPreference } = useQuery({
+    queryKey: [`/api/kanban/preferences/${boardId}`],
+    enabled: !!boardId,
+  });
+
   // Group cards by column
   const cardsByColumn = useMemo(() => {
     const result: Record<string, KanbanCard[]> = {};
@@ -403,12 +409,15 @@ export default function KanbanDetails() {
       queryClient.invalidateQueries({
         queryKey: [`/api/kanban/boards/${boardId}`],
       }); // enskild tavla
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/preferences/${boardId}`],
+      }); // användarpreferenser
 
       setShowBoardModal(false);
       setEditingBoard(null);
       toast({
         title: "Tavla uppdaterad",
-        description: "Tavlan har uppdaterats framgångsrikt.",
+        description: "Tavlan och preferenserna har uppdaterats framgångsrikt.",
       });
     },
     onError: (error: any) => {
@@ -698,6 +707,7 @@ export default function KanbanDetails() {
           if (!open) setEditingBoard(null);
         }}
         board={editingBoard}
+        userPreference={userPreference}
         onSubmit={(data) => {
           if (editingBoard) {
             updateBoardMutation.mutate({ id: editingBoard.id, data });
