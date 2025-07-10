@@ -122,6 +122,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 10, 2025**: Implemented UserKanbanPreference system for QuickAccess functionality
+  - Added `user_kanban_preferences` table with UUID primary key, user/board foreign keys
+  - Unique constraint on (user_id, board_id) to prevent duplicate preferences per user-board combination
+  - Added storage layer methods with proper upsert functionality for preference management
+  - Created comprehensive API endpoints (/api/kanban/preferences) for CRUD operations
+  - Support for showInQuickAccess boolean and pinnedPosition integer for ordering
+  - All operations are user-scoped and properly authenticated via JWT token validation
+
 - **July 8, 2025**: Implemented proper dnd-kit sortable multiple containers pattern
   - Rebuilt Kanban details page using official dnd-kit multiple containers approach
   - Implemented proper SortableContext per column with verticalListSortingStrategy

@@ -4,7 +4,7 @@ import {
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
   systemAnnouncements, customFields, customFieldTypeMappings, customFieldValues,
   roles, userHasRoles, userHasDepartments,
-  kanbanBoards, kanbanColumns, kanbanCards, kanbanBoardShares,
+  kanbanBoards, kanbanColumns, kanbanCards, kanbanBoardShares, userKanbanPreferences,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -32,6 +32,7 @@ import {
   type KanbanColumn, type InsertKanbanColumn,
   type KanbanCard, type InsertKanbanCard,
   type KanbanBoardShare, type InsertKanbanBoardShare,
+  type UserKanbanPreference, type InsertUserKanbanPreference,
   KanbanBoardWithOwner
 } from "@shared/schema";
 import { db } from "./db";
@@ -274,6 +275,13 @@ export interface IStorage {
   getKanbanBoardShares(boardId: string, tenantId: number): Promise<KanbanBoardShare[]>;
   createKanbanBoardShare(share: InsertKanbanBoardShare): Promise<KanbanBoardShare>;
   deleteKanbanBoardShare(id: string, tenantId: number): Promise<void>;
+
+  // User Kanban Preferences
+  getUserKanbanPreferences(userId: number): Promise<UserKanbanPreference[]>;
+  getUserKanbanPreference(userId: number, boardId: string): Promise<UserKanbanPreference | undefined>;
+  setUserKanbanPreference(preference: InsertUserKanbanPreference): Promise<UserKanbanPreference>;
+  updateUserKanbanPreference(userId: number, boardId: string, updates: Partial<InsertUserKanbanPreference>): Promise<UserKanbanPreference>;
+  deleteUserKanbanPreference(userId: number, boardId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2128,6 +2136,67 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(kanbanBoardShares.id, id),
         sql`${kanbanBoardShares.boardId} IN (SELECT id FROM ${kanbanBoards} WHERE tenant_id = ${tenantId})`
+      ));
+  }
+
+  // User Kanban Preferences
+  async getUserKanbanPreferences(userId: number): Promise<UserKanbanPreference[]> {
+    return await db.select()
+      .from(userKanbanPreferences)
+      .where(eq(userKanbanPreferences.userId, userId))
+      .orderBy(asc(userKanbanPreferences.pinnedPosition));
+  }
+
+  async getUserKanbanPreference(userId: number, boardId: string): Promise<UserKanbanPreference | undefined> {
+    const [preference] = await db.select()
+      .from(userKanbanPreferences)
+      .where(and(
+        eq(userKanbanPreferences.userId, userId),
+        eq(userKanbanPreferences.boardId, boardId)
+      ));
+    return preference || undefined;
+  }
+
+  async setUserKanbanPreference(preference: InsertUserKanbanPreference): Promise<UserKanbanPreference> {
+    // Use upsert pattern - try to update first, then insert if not exists
+    const existing = await this.getUserKanbanPreference(preference.userId, preference.boardId);
+    
+    if (existing) {
+      const [updated] = await db.update(userKanbanPreferences)
+        .set({
+          showInQuickAccess: preference.showInQuickAccess,
+          pinnedPosition: preference.pinnedPosition,
+        })
+        .where(and(
+          eq(userKanbanPreferences.userId, preference.userId),
+          eq(userKanbanPreferences.boardId, preference.boardId)
+        ))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(userKanbanPreferences)
+        .values(preference)
+        .returning();
+      return created;
+    }
+  }
+
+  async updateUserKanbanPreference(userId: number, boardId: string, updates: Partial<InsertUserKanbanPreference>): Promise<UserKanbanPreference> {
+    const [updated] = await db.update(userKanbanPreferences)
+      .set(updates)
+      .where(and(
+        eq(userKanbanPreferences.userId, userId),
+        eq(userKanbanPreferences.boardId, boardId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async deleteUserKanbanPreference(userId: number, boardId: string): Promise<void> {
+    await db.delete(userKanbanPreferences)
+      .where(and(
+        eq(userKanbanPreferences.userId, userId),
+        eq(userKanbanPreferences.boardId, boardId)
       ));
   }
 }

@@ -122,7 +122,7 @@ export default function ChecklistDashboard({
 }: ChecklistDashboardProps) {
   const { t } = useTranslation();
   const [location] = useLocation();
-  const id = parseInt(checklistId);
+  const id = checklistId;
 
   const queryParams = new URLSearchParams(window.location.search);
   const hideStats = queryParams.get("hideStats") === "true";

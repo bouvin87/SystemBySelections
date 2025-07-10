@@ -32,6 +32,7 @@ import {
   insertKanbanColumnSchema,
   insertKanbanCardSchema,
   insertKanbanBoardShareSchema,
+  insertUserKanbanPreferenceSchema,
 } from "@shared/schema";
 import { uploadMultiple } from "./middleware/upload";
 import path from "path";
@@ -2694,6 +2695,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(204).send();
       } catch (error) {
         console.error("Error deleting kanban board share:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  // User Kanban Preferences
+  app.get(
+    "/api/kanban/preferences",
+    authenticateToken,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const userId = req.user.userId;
+        const preferences = await storage.getUserKanbanPreferences(userId);
+        res.json(preferences);
+      } catch (error) {
+        console.error("Error fetching user kanban preferences:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.get(
+    "/api/kanban/preferences/:boardId",
+    authenticateToken,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const userId = req.user.userId;
+        const { boardId } = req.params;
+        const preference = await storage.getUserKanbanPreference(userId, boardId);
+        res.json(preference || { showInQuickAccess: false, pinnedPosition: 0 });
+      } catch (error) {
+        console.error("Error fetching user kanban preference:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/preferences",
+    authenticateToken,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const userId = req.user.userId;
+        const validatedData = insertUserKanbanPreferenceSchema.parse({
+          ...req.body,
+          userId,
+        });
+        const preference = await storage.setUserKanbanPreference(validatedData);
+        res.status(201).json(preference);
+      } catch (error) {
+        console.error("Error setting user kanban preference:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/kanban/preferences/:boardId",
+    authenticateToken,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const userId = req.user.userId;
+        const { boardId } = req.params;
+        const preference = await storage.updateUserKanbanPreference(userId, boardId, req.body);
+        res.json(preference);
+      } catch (error) {
+        console.error("Error updating user kanban preference:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/preferences/:boardId",
+    authenticateToken,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const userId = req.user.userId;
+        const { boardId } = req.params;
+        await storage.deleteUserKanbanPreference(userId, boardId);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting user kanban preference:", error);
         res.status(500).json({ message: "Internal server error" });
       }
     },

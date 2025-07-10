@@ -741,6 +741,17 @@ export const kanbanBoardShares = pgTable("kanban_board_shares", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const userKanbanPreferences = pgTable("user_kanban_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  boardId: uuid("board_id").references(() => kanbanBoards.id, { onDelete: "cascade" }).notNull(),
+  showInQuickAccess: boolean("show_in_quick_access").default(false).notNull(),
+  pinnedPosition: integer("pinned_position").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserBoard: unique("unique_user_board").on(table.userId, table.boardId),
+}));
+
 // Kanban Relations
 export const kanbanBoardRelations = relations(kanbanBoards, ({ one, many }) => ({
   tenant: one(tenants, {
@@ -781,6 +792,17 @@ export const kanbanBoardShareRelations = relations(kanbanBoardShares, ({ one }) 
   }),
 }));
 
+export const userKanbanPreferenceRelations = relations(userKanbanPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userKanbanPreferences.userId],
+    references: [users.id],
+  }),
+  board: one(kanbanBoards, {
+    fields: [userKanbanPreferences.boardId],
+    references: [kanbanBoards.id],
+  }),
+}));
+
 // Kanban Types
 export type KanbanBoard = typeof kanbanBoards.$inferSelect;
 export type InsertKanbanBoard = z.infer<typeof insertKanbanBoardSchema>;
@@ -790,6 +812,8 @@ export type KanbanCard = typeof kanbanCards.$inferSelect;
 export type InsertKanbanCard = z.infer<typeof insertKanbanCardSchema>;
 export type KanbanBoardShare = typeof kanbanBoardShares.$inferSelect;
 export type InsertKanbanBoardShare = z.infer<typeof insertKanbanBoardShareSchema>;
+export type UserKanbanPreference = typeof userKanbanPreferences.$inferSelect;
+export type InsertUserKanbanPreference = z.infer<typeof insertUserKanbanPreferenceSchema>;
 
 // Kanban Schemas
 export const insertKanbanBoardSchema = createInsertSchema(kanbanBoards).omit({
@@ -811,6 +835,11 @@ export const insertKanbanCardSchema = createInsertSchema(kanbanCards).omit({
 });
 
 export const insertKanbanBoardShareSchema = createInsertSchema(kanbanBoardShares).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserKanbanPreferenceSchema = createInsertSchema(userKanbanPreferences).omit({
   id: true,
   createdAt: true,
 });
