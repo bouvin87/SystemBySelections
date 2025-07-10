@@ -121,18 +121,7 @@ export default function FormModal({
     (c) => c.id === formData.checklistId,
   );
 
-  // Debug logging to see checklist configuration
-  useEffect(() => {
-    if (currentChecklist) {
-      console.log("FormModal - Current checklist:", {
-        id: currentChecklist.id,
-        name: currentChecklist.name,
-        includeWorkTasks: currentChecklist.includeWorkTasks,
-        includeWorkStations: currentChecklist.includeWorkStations,
-        includeShifts: currentChecklist.includeShifts,
-      });
-    }
-  }, [currentChecklist]);
+
 
   // Hämta arbetsmoment kopplade till den valda checklistan
   const { data: checklistWorkTasks = [] } = useQuery({
