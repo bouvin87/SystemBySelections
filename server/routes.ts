@@ -2968,6 +2968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/kanban/cards/:cardId/comments",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
@@ -2984,6 +2985,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/kanban/cards/:cardId/comments",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
@@ -3006,6 +3008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch(
     "/api/kanban/cards/comments/:commentId",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
@@ -3024,6 +3027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/kanban/cards/comments/:commentId",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
@@ -3042,6 +3046,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get(
     "/api/kanban/cards/:cardId/attachments",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
@@ -3058,6 +3063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post(
     "/api/kanban/cards/:cardId/attachments",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     uploadMultiple,
     async (req: AuthenticatedRequest, res) => {
@@ -3095,6 +3101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete(
     "/api/kanban/cards/attachments/:attachmentId",
     authenticateToken,
+    enforceTenantIsolation,
     requireModule("kanban"),
     async (req: AuthenticatedRequest, res) => {
       try {
