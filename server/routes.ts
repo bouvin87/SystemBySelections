@@ -33,6 +33,8 @@ import {
   insertKanbanCardSchema,
   insertKanbanBoardShareSchema,
   insertUserKanbanPreferenceSchema,
+  insertKanbanCardCommentSchema,
+  insertKanbanCardAttachmentSchema,
 } from "@shared/schema";
 import { uploadMultiple } from "./middleware/upload";
 import path from "path";
@@ -88,6 +90,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     requireModule("checklists"),
     checklistRoutes,
   );
+
+  // === MODULE ACCESS CHECK ===
+  app.get("/api/access/:module", authenticateToken, async (req, res) => {
+    const moduleName = req.params.module;
+    const { user } = req;
+
+    if (!user) {
+      return res.status(401).json({
+        error: "NOT_AUTHENTICATED",
+        redirect: "/module-missing?module=unknown",
+      });
+    }
+
+    if (user.role === "superadmin") {
+      return res.json({ access: true });
+    }
+
+    try {
+      if (!user.tenantId) {
+        return res.status(403).json({ error: "NO_TENANT" });
+      }
+      const tenant = await storage.getTenant(user.tenantId);
+      if (!tenant || !tenant.modules.includes(moduleName)) {
+        return res.status(403).json({
+          error: "MODULE_ACCESS_DENIED",
+          redirect: `/module-missing?module=${encodeURIComponent(moduleName)}`,
+        });
+      }
+
+      return res.json({ access: true });
+    } catch (err) {
+      console.error("Access check failed:", err);
+      return res.status(500).json({
+        error: "MODULE_CHECK_FAILED",
+        redirect: "/module-missing?module=error",
+      });
+    }
+  });
+
 
   // ===== DEVIATION TYPES ROUTES (BEFORE MODULE ROUTES) =====
 
@@ -1679,12 +1720,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const checklistId = req.params.id;
         const workTaskId = parseInt(req.params.workTaskId);
-        
+
         if (isNaN(workTaskId)) {
           return res.status(400).json({ message: "Invalid work task ID" });
         }
-        
-        await storage.deleteChecklistWorkTask(checklistId, workTaskId, req.tenantId!);
+
+        await storage.deleteChecklistWorkTask(
+          checklistId,
+          workTaskId,
+          req.tenantId!,
+        );
         res.status(200).json({ message: "Work task removed from checklist" });
       } catch (error) {
         console.error("Delete checklist work task error:", error);
@@ -1723,13 +1768,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!checklistId) {
           return res.status(400).json({ message: "checklistId is required" });
         }
-        
+
         // Validate UUID format
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(checklistId)) {
-          return res.status(400).json({ message: "Invalid checklistId format" });
+          return res
+            .status(400)
+            .json({ message: "Invalid checklistId format" });
         }
-        
+
         const categories = await storage.getCategories(
           checklistId,
           req.tenantId!,
@@ -1751,12 +1799,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!req.body.checklistId) {
           return res.status(400).json({ message: "checklistId is required" });
         }
-        
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(req.body.checklistId)) {
-          return res.status(400).json({ message: "Invalid checklistId format" });
+          return res
+            .status(400)
+            .json({ message: "Invalid checklistId format" });
         }
-        
+
         const { tenantId, ...validatedData } = insertCategorySchema.parse({
           ...req.body,
           tenantId: req.tenantId!,
@@ -1768,10 +1819,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(201).json(category);
       } catch (error) {
         console.error("Create category error:", error);
-        if (error.name === 'ZodError') {
-          res.status(400).json({ 
-            message: "Invalid category data", 
-            details: error.errors 
+        if (error.name === "ZodError") {
+          res.status(400).json({
+            message: "Invalid category data",
+            details: error.errors,
           });
         } else {
           res.status(400).json({ message: "Invalid category data" });
@@ -2113,13 +2164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!checklistId) {
           return res.status(400).json({ message: "checklistId is required" });
         }
-        
+
         // Validate UUID format
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(checklistId)) {
-          return res.status(400).json({ message: "Invalid checklistId format" });
+          return res
+            .status(400)
+            .json({ message: "Invalid checklistId format" });
         }
-        
+
         const questions = await storage.getDashboardQuestions(
           checklistId,
           req.tenantId!,
@@ -2386,7 +2440,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const isAdmin = req.user?.role === "admin";
 
-        const boards = await storage.getKanbanBoards(req.tenantId!, req.user.userId, isAdmin);
+        const boards = await storage.getKanbanBoards(
+          req.tenantId!,
+          req.user.userId,
+          isAdmin,
+        );
         res.json(boards);
       } catch (error) {
         console.error("Error fetching kanban boards:", error);
@@ -2405,9 +2463,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const isAdmin = req.user?.role === "admin";
 
         const { id } = req.params;
-        console.log(`Fetching board ${id} for tenant ${req.tenantId}, user ${req.user.userId}`);
-        const board = await storage.getKanbanBoard(id, req.tenantId!, req.user.userId, isAdmin);
-        console.log(`Found board:`, board ? {id: board.id, name: board.name, description: board.description} : null);
+        console.log(
+          `Fetching board ${id} for tenant ${req.tenantId}, user ${req.user.userId}`,
+        );
+        const board = await storage.getKanbanBoard(
+          id,
+          req.tenantId!,
+          req.user.userId,
+          isAdmin,
+        );
+        console.log(
+          `Found board:`,
+          board
+            ? { id: board.id, name: board.name, description: board.description }
+            : null,
+        );
         if (!board) {
           return res.status(404).json({ message: "Board not found" });
         }
@@ -2449,7 +2519,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { id } = req.params;
         const validatedData = insertKanbanBoardSchema.partial().parse(req.body);
-        const board = await storage.updateKanbanBoard(id, validatedData, req.tenantId!);
+        const board = await storage.updateKanbanBoard(
+          id,
+          validatedData,
+          req.tenantId!,
+        );
         res.json(board);
       } catch (error) {
         console.error("Error updating kanban board:", error);
@@ -2485,9 +2559,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const isAdmin = req.user?.role === "admin";
         const { boardId } = req.params;
-        console.log(`Fetching columns for board ${boardId}, tenant ${req.tenantId}, user ${req.user.userId}`);
-        const columns = await storage.getKanbanColumns(boardId, req.tenantId!, req.user.userId, isAdmin);
-        console.log(`Found ${columns.length} columns:`, columns.map(c => ({id: c.id, title: c.title, position: c.position})));
+        console.log(
+          `Fetching columns for board ${boardId}, tenant ${req.tenantId}, user ${req.user.userId}`,
+        );
+        const columns = await storage.getKanbanColumns(
+          boardId,
+          req.tenantId!,
+          req.user.userId,
+          isAdmin,
+        );
+        console.log(
+          `Found ${columns.length} columns:`,
+          columns.map((c) => ({
+            id: c.id,
+            title: c.title,
+            position: c.position,
+          })),
+        );
         res.json(columns);
       } catch (error) {
         console.error("Error fetching kanban columns:", error);
@@ -2521,8 +2609,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { id } = req.params;
-        const validatedData = insertKanbanColumnSchema.partial().parse(req.body);
-        const column = await storage.updateKanbanColumn(id, validatedData, req.tenantId!);
+        const validatedData = insertKanbanColumnSchema
+          .partial()
+          .parse(req.body);
+        const column = await storage.updateKanbanColumn(
+          id,
+          validatedData,
+          req.tenantId!,
+        );
         res.json(column);
       } catch (error) {
         console.error("Error updating kanban column:", error);
@@ -2557,7 +2651,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { boardId } = req.params;
         const { columnOrders } = req.body;
-        await storage.reorderKanbanColumns(boardId, columnOrders, req.tenantId!);
+        await storage.reorderKanbanColumns(
+          boardId,
+          columnOrders,
+          req.tenantId!,
+        );
         res.status(204).send();
       } catch (error) {
         console.error("Error reordering kanban columns:", error);
@@ -2576,7 +2674,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const isAdmin = req.user?.role === "admin";
         const { boardId } = req.params;
-        const cards = await storage.getKanbanCardsByBoard(boardId, req.tenantId!, req.user.userId, isAdmin);
+        const cards = await storage.getKanbanCardsByBoard(
+          boardId,
+          req.tenantId!,
+          req.user.userId,
+          isAdmin,
+        );
         res.json(cards);
       } catch (error) {
         console.error("Error fetching kanban cards for board:", error);
@@ -2594,7 +2697,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const isAdmin = req.user?.role === "admin";
         const { columnId } = req.params;
-        const cards = await storage.getKanbanCards(columnId, req.tenantId!, isAdmin);
+        const cards = await storage.getKanbanCards(
+          columnId,
+          req.tenantId!,
+          isAdmin,
+        );
         res.json(cards);
       } catch (error) {
         console.error("Error fetching kanban cards:", error);
@@ -2631,7 +2738,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Updating kanban card:", id, "with data:", req.body);
         const validatedData = insertKanbanCardSchema.partial().parse(req.body);
         console.log("Validated data:", validatedData);
-        const card = await storage.updateKanbanCard(id, validatedData, req.tenantId!);
+        const card = await storage.updateKanbanCard(
+          id,
+          validatedData,
+          req.tenantId!,
+        );
         console.log("Updated card:", card);
         res.json(card);
       } catch (error) {
@@ -2667,7 +2778,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { id } = req.params;
         const { columnId, position } = req.body;
-        const card = await storage.moveKanbanCard(id, columnId, position, req.tenantId!);
+        const card = await storage.moveKanbanCard(
+          id,
+          columnId,
+          position,
+          req.tenantId!,
+        );
         res.json(card);
       } catch (error) {
         console.error("Error moving kanban card:", error);
@@ -2703,7 +2819,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req: AuthenticatedRequest, res) => {
       try {
         const { boardId } = req.params;
-        const shares = await storage.getKanbanBoardShares(boardId, req.tenantId!);
+        const shares = await storage.getKanbanBoardShares(
+          boardId,
+          req.tenantId!,
+        );
         res.json(shares);
       } catch (error) {
         console.error("Error fetching kanban board shares:", error);
@@ -2775,7 +2894,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = req.user.userId;
         const { boardId } = req.params;
-        const preference = await storage.getUserKanbanPreference(userId, boardId);
+        const preference = await storage.getUserKanbanPreference(
+          userId,
+          boardId,
+        );
         res.json(preference || { showInQuickAccess: false, pinnedPosition: 0 });
       } catch (error) {
         console.error("Error fetching user kanban preference:", error);
@@ -2812,7 +2934,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const userId = req.user.userId;
         const { boardId } = req.params;
-        const preference = await storage.updateUserKanbanPreference(userId, boardId, req.body);
+        const preference = await storage.updateUserKanbanPreference(
+          userId,
+          boardId,
+          req.body,
+        );
         res.json(preference);
       } catch (error) {
         console.error("Error updating user kanban preference:", error);
@@ -2838,7 +2964,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   );
 
+  // === KANBAN CARD COMMENTS ===
+  app.get(
+    "/api/kanban/cards/:cardId/comments",
+    authenticateToken,
+    requireModule("kanban"),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { cardId } = req.params;
+        const comments = await storage.getKanbanCardComments(cardId);
+        res.json(comments);
+      } catch (error) {
+        console.error("Error fetching kanban card comments:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/cards/:cardId/comments",
+    authenticateToken,
+    requireModule("kanban"),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { cardId } = req.params;
+        const userId = req.user.userId;
+        const validatedData = insertKanbanCardCommentSchema.parse({
+          ...req.body,
+          cardId,
+          userId,
+        });
+        const comment = await storage.createKanbanCardComment(validatedData);
+        res.status(201).json(comment);
+      } catch (error) {
+        console.error("Error creating kanban card comment:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.patch(
+    "/api/kanban/cards/comments/:commentId",
+    authenticateToken,
+    requireModule("kanban"),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { commentId } = req.params;
+        const userId = req.user.userId;
+        const validatedData = insertKanbanCardCommentSchema.partial().parse(req.body);
+        const comment = await storage.updateKanbanCardComment(commentId, validatedData, userId);
+        res.json(comment);
+      } catch (error) {
+        console.error("Error updating kanban card comment:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/cards/comments/:commentId",
+    authenticateToken,
+    requireModule("kanban"),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { commentId } = req.params;
+        const userId = req.user.userId;
+        await storage.deleteKanbanCardComment(commentId, userId);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting kanban card comment:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  // === KANBAN CARD ATTACHMENTS ===
+  app.get(
+    "/api/kanban/cards/:cardId/attachments",
+    authenticateToken,
+    requireModule("kanban"),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { cardId } = req.params;
+        const attachments = await storage.getKanbanCardAttachments(cardId);
+        res.json(attachments);
+      } catch (error) {
+        console.error("Error fetching kanban card attachments:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.post(
+    "/api/kanban/cards/:cardId/attachments",
+    authenticateToken,
+    requireModule("kanban"),
+    uploadMultiple,
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { cardId } = req.params;
+        const userId = req.user.userId;
+        const files = req.files as Express.Multer.File[];
+
+        if (!files || files.length === 0) {
+          return res.status(400).json({ message: "No files uploaded" });
+        }
+
+        const attachments = [];
+        for (const file of files) {
+          const validatedData = insertKanbanCardAttachmentSchema.parse({
+            cardId,
+            userId,
+            fileName: file.originalname,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+            filePath: file.path,
+          });
+          const attachment = await storage.createKanbanCardAttachment(validatedData);
+          attachments.push(attachment);
+        }
+
+        res.status(201).json(attachments);
+      } catch (error) {
+        console.error("Error uploading kanban card attachments:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
+  app.delete(
+    "/api/kanban/cards/attachments/:attachmentId",
+    authenticateToken,
+    requireModule("kanban"),
+    async (req: AuthenticatedRequest, res) => {
+      try {
+        const { attachmentId } = req.params;
+        const userId = req.user.userId;
+        await storage.deleteKanbanCardAttachment(attachmentId, userId);
+        res.status(204).send();
+      } catch (error) {
+        console.error("Error deleting kanban card attachment:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
+
   // Serve uploaded files (no authentication required for file access)
+  app.get("/api/files/:type/:filename", (req: Request, res: Response) => {
+    const { type, filename } = req.params;
+    
+    // Validate file type directory
+    if (!['deviations', 'kanban'].includes(type)) {
+      return res.status(400).json({ message: "Invalid file type" });
+    }
+    
+    const filePath = path.join(
+      process.cwd(),
+      "uploads",
+      type,
+      filename,
+    );
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    // Set appropriate headers for file serving
+    const ext = path.extname(filename).toLowerCase();
+    if (ext === ".pdf") {
+      res.setHeader("Content-Type", "application/pdf");
+    } else if ([".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(ext)) {
+      res.setHeader("Content-Type", `image/${ext.slice(1)}`);
+    }
+
+    res.sendFile(filePath);
+  });
+
+  // Backwards compatibility for existing deviation files
   app.get("/api/files/:filename", (req: Request, res: Response) => {
     const filename = req.params.filename;
     const filePath = path.join(

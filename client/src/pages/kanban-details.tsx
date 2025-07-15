@@ -26,7 +26,18 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Settings, Trash2, GripVertical } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Settings,
+  Trash2,
+  GripVertical,
+  MessageSquare,
+  Eye,
+  MessageSquarePlus,
+  Pencil,
+  Paperclip,
+} from "lucide-react";
 import * as Icons from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { KanbanBoard, KanbanColumn, KanbanCard } from "@shared/schema";
@@ -36,13 +47,21 @@ import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { KanbanBoardModal } from "@/components/Kanban/KanbanBoardModal";
+import ContextMenu, { ContextMenuEntry } from "@/components/Kanban/ContextMenu";
 
 interface KanbanCardComponentProps {
   card: KanbanCard;
   onEdit: (card: KanbanCard) => void;
+  onContextMenu?: (e: React.MouseEvent, cardId: string) => void;
+  isOwner?: boolean;
 }
 
-function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
+function KanbanCardComponent({
+  card,
+  onEdit,
+  onContextMenu,
+  isOwner 
+}: KanbanCardComponentProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: card.id });
 
@@ -59,26 +78,47 @@ function KanbanCardComponent({ card, onEdit }: KanbanCardComponentProps) {
   return (
     <Card
       ref={setNodeRef}
-      style={style}
-      className="bg-card rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
-      onClick={() => onEdit(card)}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onContextMenu) onContextMenu(e, card.id);
+      }}
+      className="relative bg-card rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-1">
+          {/* Ikon + titel */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             {getIcon(card.icon || "FileText")}
-            <span className="text-sm font-medium">{card.title}</span>
+            <span className="text-sm font-medium truncate">{card.title}</span>
           </div>
-          <div
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing p-2 hover:bg-muted rounded"
-            onClick={(e) => e.stopPropagation()}
-            style={{ touchAction: "none" }}
-          >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+
+          {/* Åtgärder */}
+          <div className="flex items-center gap-1">
+            {isOwner && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(card);
+                }}
+                className="p-1 hover:bg-muted rounded"
+              >
+                <Pencil className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+            <div
+              {...attributes}
+              {...listeners}
+              onClick={(e) => e.stopPropagation()}
+              className="p-1 cursor-grab active:cursor-grabbing hover:bg-muted rounded"
+              style={{ touchAction: "none" }}
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
         </div>
+
+        {/* Beskrivning */}
         {card.description && (
           <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
             {card.description}
@@ -107,7 +147,10 @@ function KanbanColumnComponent({
   onDeleteColumn,
   onEditCard,
   board,
-}: KanbanColumnComponentProps) {
+  onCardContextMenu,
+}: KanbanColumnComponentProps & {
+  onCardContextMenu?: (e: React.MouseEvent, cardId: string) => void; // 👈 extra prop om du vill skicka in
+}) {
   const queryClient = useQueryClient();
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
@@ -117,11 +160,13 @@ function KanbanColumnComponent({
     const Icon = (Icons as any)[iconName] || Icons.List;
     return <Icon className="h-4 w-4" />;
   };
+
   const { user } = useAuth();
   const isOwner =
     user?.id === board.ownerUserId ||
     user?.role === "admin" ||
     user?.role === "superadmin";
+
   return (
     <Card
       ref={setNodeRef}
@@ -161,6 +206,7 @@ function KanbanColumnComponent({
           </p>
         )}
       </CardHeader>
+
       <CardContent className="space-y-2 min-h-[300px] p-4">
         <SortableContext
           items={items.map((item) => item.id)}
@@ -171,6 +217,15 @@ function KanbanColumnComponent({
               key={card.id}
               card={card}
               onEdit={onEditCard}
+              isOwner={isOwner}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // 👇 Du måste ha denna funktion i din överordnade komponent
+                if (typeof onCardContextMenu === "function") {
+                  onCardContextMenu(e, card.id);
+                }
+              }}
             />
           ))}
         </SortableContext>
@@ -200,7 +255,13 @@ export default function KanbanDetails() {
   const boardId = location.split("/")[2];
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
+  const [menuCardId, setMenuCardId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
@@ -209,6 +270,7 @@ export default function KanbanDetails() {
   const [selectedColumnId, setSelectedColumnId] = useState<string | null>(null);
   const [editingBoard, setEditingBoard] = useState<KanbanBoard | null>(null);
   const [showBoardModal, setShowBoardModal] = useState(false);
+  const [defaultCardTab, setDefaultCardTab] = useState<"details" | "comments" | "attachments">("details");
 
   // Fetch board details
   const { data: board, isLoading: boardLoading } = useQuery({
@@ -493,6 +555,7 @@ export default function KanbanDetails() {
   const handleEditCard = (card: KanbanCard) => {
     setSelectedColumnId(card.columnId);
     setEditingCard(card);
+    setDefaultCardTab("details");
     setShowCardModal(true);
   };
   const handleEditBoard = (board: KanbanBoard) => {
@@ -524,12 +587,75 @@ export default function KanbanDetails() {
       </div>
     );
   }
-  const { user } = useAuth();
+
   const isOwner =
     user?.id === board.ownerUserId ||
     user?.role === "admin" ||
     user?.role === "superadmin";
 
+  // Menu
+
+  const handleCardMenuOpen = (e: React.MouseEvent, cardId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Alltid nollställ meny först (för att trigga re-render)
+    setMenuCardId(null);
+    setMenuPosition(null);
+
+    // Vänta ett "tick" innan vi sätter nytt, så React får stänga gamla först
+    setTimeout(() => {
+      setMenuCardId(cardId);
+      setMenuPosition({ x: e.clientX, y: e.clientY });
+    }, 0);
+  };
+
+  const handleMenuClose = () => {
+    setMenuCardId(null);
+    setMenuPosition(null);
+  };
+
+  const getCardMenuEntries = (): ContextMenuEntry[] => [
+    {
+      id: "comments",
+      label: "Kommentarer",
+      icon: <MessageSquare className="w-4 h-4" />,
+      onClick: () => {
+        const card = allCards.find((c) => c.id === menuCardId);
+        if (card) {
+          setEditingCard(card);
+          setDefaultCardTab("comments");
+          setShowCardModal(true);
+        }
+      },
+    },
+    {
+      id: "attachments",
+      label: "Bilagor",
+      icon: <Paperclip className="w-4 h-4" />,
+      onClick: () => {
+        const card = allCards.find((c) => c.id === menuCardId);
+        if (card) {
+          setEditingCard(card);
+          setDefaultCardTab("attachments");
+          setShowCardModal(true);
+        }
+      },
+    },
+    {
+      id: "divider-1",
+      type: "divider",
+    },
+    {
+      id: "edit",
+      label: "Redigera kort",
+      icon: <Pencil className="w-4 h-4" />,
+      onClick: () => {
+        const card = allCards.find((c) => c.id === menuCardId);
+        if (card) handleEditCard(card);
+      },
+    },
+  ];
   return (
     <div
       className="min-h-screen bg-background text-foreground"
@@ -609,6 +735,8 @@ export default function KanbanDetails() {
                   onDeleteColumn={handleDeleteColumn}
                   onEditCard={handleEditCard}
                   board={board}
+                  onCardContextMenu={handleCardMenuOpen} 
+                  isOwner={isOwner}
                 />
               ))}
             </div>
@@ -616,10 +744,26 @@ export default function KanbanDetails() {
 
           <DragOverlay>
             {activeCard ? (
-              <KanbanCardComponent card={activeCard} onEdit={() => {}} />
+              <KanbanCardComponent
+                card={activeCard}
+                onEdit={() => {}}
+                isOwner={isOwner}
+                
+              />
             ) : null}
           </DragOverlay>
         </DndContext>
+        {menuPosition && menuCardId && (
+          <>
+            {console.log("✅ ContextMenu ska visas:", menuPosition, menuCardId)}
+            <ContextMenu
+              x={menuPosition.x}
+              y={menuPosition.y}
+              entries={getCardMenuEntries()}
+              onClose={handleMenuClose}
+            />
+          </>
+        )}
       </main>
       {/* Modals */}
       <KanbanColumnModal
@@ -667,6 +811,7 @@ export default function KanbanDetails() {
         columnId={selectedColumnId || ""}
         board={board}
         card={editingCard}
+        defaultTab={defaultCardTab}
         onSubmit={async (data) => {
           try {
             if (editingCard) {

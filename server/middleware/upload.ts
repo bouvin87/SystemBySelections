@@ -2,15 +2,22 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(process.cwd(), 'uploads', 'deviations');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Create uploads directories if they don't exist
+const deviationsDir = path.join(process.cwd(), 'uploads', 'deviations');
+const kanbanDir = path.join(process.cwd(), 'uploads', 'kanban');
+
+if (!fs.existsSync(deviationsDir)) {
+  fs.mkdirSync(deviationsDir, { recursive: true });
+}
+if (!fs.existsSync(kanbanDir)) {
+  fs.mkdirSync(kanbanDir, { recursive: true });
 }
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // Determine upload directory based on request path
+    const uploadsDir = req.path.includes('kanban') ? kanbanDir : deviationsDir;
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {

@@ -908,30 +908,34 @@ export default function Admin() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex space-x-2 self-end sm:self-center">
-                              <Link href={`/checklist-editor/${checklist.id}`}>
-                                <Button variant="outline" size="sm">
+                            <div className="w-full flex justify-between items-center flex-wrap gap-2 mt-4">
+                              {/* Vänster: Hantera kategorier */}
+                              <Button asChild variant="outline" size="sm">
+                                <Link href={`/checklist-editor/${checklist.id}`}>
                                   <Settings className="mr-1 h-3 w-3" />
-                                  Hantera kategorier
+                                  Kategorier
+                                </Link>
+                              </Button>
+
+                              {/* Höger: Redigera + Ta bort */}
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDialog(checklist)}
+                                >
+                                  <Edit className="h-4 w-4" />
                                 </Button>
-                              </Link>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openDialog(checklist)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleDelete("/api/checklists", checklist.id)
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete("/api/checklists", checklist.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
+
                           </div>
                         </CardContent>
                       </Card>

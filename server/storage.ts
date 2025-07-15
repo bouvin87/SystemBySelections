@@ -4,7 +4,7 @@ import {
   deviationTypes, deviationPriorities, deviationStatuses, deviations, deviationComments, deviationLogs, deviationSettings, deviationAttachments,
   systemAnnouncements, customFields, customFieldTypeMappings, customFieldValues,
   roles, userHasRoles, userHasDepartments,
-  kanbanBoards, kanbanColumns, kanbanCards, kanbanBoardShares, userKanbanPreferences,
+  kanbanBoards, kanbanColumns, kanbanCards, kanbanBoardShares, userKanbanPreferences, kanbanCardComments, kanbanCardAttachments,
   type Tenant, type InsertTenant, type User, type InsertUser,
   type WorkTask, type InsertWorkTask, type WorkStation, type InsertWorkStation,
   type Shift, type InsertShift, type Department, type InsertDepartment, type Category, type InsertCategory,
@@ -33,6 +33,8 @@ import {
   type KanbanCard, type InsertKanbanCard,
   type KanbanBoardShare, type InsertKanbanBoardShare,
   type UserKanbanPreference, type InsertUserKanbanPreference,
+  type KanbanCardComment, type InsertKanbanCardComment,
+  type KanbanCardAttachment, type InsertKanbanCardAttachment,
   KanbanBoardWithOwner
 } from "@shared/schema";
 import { db } from "./db";
@@ -282,6 +284,17 @@ export interface IStorage {
   setUserKanbanPreference(preference: InsertUserKanbanPreference): Promise<UserKanbanPreference>;
   updateUserKanbanPreference(userId: number, boardId: string, updates: Partial<InsertUserKanbanPreference>): Promise<UserKanbanPreference>;
   deleteUserKanbanPreference(userId: number, boardId: string): Promise<void>;
+
+  // Kanban Card Comments
+  getKanbanCardComments(cardId: string): Promise<KanbanCardComment[]>;
+  createKanbanCardComment(comment: InsertKanbanCardComment): Promise<KanbanCardComment>;
+  updateKanbanCardComment(id: string, comment: Partial<InsertKanbanCardComment>, userId: number): Promise<KanbanCardComment>;
+  deleteKanbanCardComment(id: string, userId: number): Promise<void>;
+
+  // Kanban Card Attachments
+  getKanbanCardAttachments(cardId: string): Promise<KanbanCardAttachment[]>;
+  createKanbanCardAttachment(attachment: InsertKanbanCardAttachment): Promise<KanbanCardAttachment>;
+  deleteKanbanCardAttachment(id: string, userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2217,6 +2230,165 @@ export class DatabaseStorage implements IStorage {
         eq(userKanbanPreferences.userId, userId),
         eq(userKanbanPreferences.boardId, boardId)
       ));
+  }
+
+  // === KANBAN CARD COMMENTS ===
+  async getKanbanCardComments(cardId: string): Promise<KanbanCardComment[]> {
+    const result = await db.select({
+      id: kanbanCardComments.id,
+      cardId: kanbanCardComments.cardId,
+      userId: kanbanCardComments.userId,
+      content: kanbanCardComments.content,
+      createdAt: kanbanCardComments.createdAt,
+      updatedAt: kanbanCardComments.updatedAt,
+      userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName'),
+      userEmail: users.email,
+    })
+    .from(kanbanCardComments)
+    .innerJoin(users, eq(kanbanCardComments.userId, users.id))
+    .where(eq(kanbanCardComments.cardId, cardId))
+    .orderBy(desc(kanbanCardComments.createdAt));
+    
+    return result.map(row => ({
+      id: row.id,
+      cardId: row.cardId,
+      userId: row.userId,
+      content: row.content,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      userName: row.userName,
+      userEmail: row.userEmail,
+    })) as KanbanCardComment[];
+  }
+
+  async createKanbanCardComment(comment: InsertKanbanCardComment): Promise<KanbanCardComment> {
+    const [created] = await db.insert(kanbanCardComments)
+      .values(comment)
+      .returning();
+    
+    // Get user info for the response
+    const [user] = await db.select({
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+    })
+    .from(users)
+    .where(eq(users.id, comment.userId));
+    
+    return {
+      ...created,
+      userName: `${user.firstName} ${user.lastName}`,
+      userEmail: user.email,
+    } as KanbanCardComment;
+  }
+
+  async updateKanbanCardComment(id: string, comment: Partial<InsertKanbanCardComment>, userId: number): Promise<KanbanCardComment> {
+    const [updated] = await db.update(kanbanCardComments)
+      .set({
+        ...comment,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(kanbanCardComments.id, id),
+        eq(kanbanCardComments.userId, userId) // Only allow user to update their own comments
+      ))
+      .returning();
+    
+    // Get user info for the response
+    const [user] = await db.select({
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+    })
+    .from(users)
+    .where(eq(users.id, userId));
+    
+    return {
+      ...updated,
+      userName: `${user.firstName} ${user.lastName}`,
+      userEmail: user.email,
+    } as KanbanCardComment;
+  }
+
+  async deleteKanbanCardComment(id: string, userId: number): Promise<void> {
+    await db.delete(kanbanCardComments)
+      .where(and(
+        eq(kanbanCardComments.id, id),
+        eq(kanbanCardComments.userId, userId) // Only allow user to delete their own comments
+      ));
+  }
+
+  // === KANBAN CARD ATTACHMENTS ===
+  async getKanbanCardAttachments(cardId: string): Promise<KanbanCardAttachment[]> {
+    const result = await db.select({
+      id: kanbanCardAttachments.id,
+      cardId: kanbanCardAttachments.cardId,
+      userId: kanbanCardAttachments.userId,
+      fileName: kanbanCardAttachments.fileName,
+      fileSize: kanbanCardAttachments.fileSize,
+      mimeType: kanbanCardAttachments.mimeType,
+      filePath: kanbanCardAttachments.filePath,
+      createdAt: kanbanCardAttachments.createdAt,
+      userName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName'),
+      userEmail: users.email,
+    })
+    .from(kanbanCardAttachments)
+    .innerJoin(users, eq(kanbanCardAttachments.userId, users.id))
+    .where(eq(kanbanCardAttachments.cardId, cardId))
+    .orderBy(desc(kanbanCardAttachments.createdAt));
+    
+    return result.map(row => ({
+      id: row.id,
+      cardId: row.cardId,
+      userId: row.userId,
+      fileName: row.fileName,
+      fileSize: row.fileSize,
+      mimeType: row.mimeType,
+      filePath: row.filePath,
+      createdAt: row.createdAt,
+      userName: row.userName,
+      userEmail: row.userEmail,
+    })) as KanbanCardAttachment[];
+  }
+
+  async createKanbanCardAttachment(attachment: InsertKanbanCardAttachment): Promise<KanbanCardAttachment> {
+    const [created] = await db.insert(kanbanCardAttachments)
+      .values(attachment)
+      .returning();
+    
+    // Get user info for the response
+    const [user] = await db.select({
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+    })
+    .from(users)
+    .where(eq(users.id, attachment.userId));
+    
+    return {
+      ...created,
+      userName: `${user.firstName} ${user.lastName}`,
+      userEmail: user.email,
+    } as KanbanCardAttachment;
+  }
+
+  async deleteKanbanCardAttachment(id: string, userId: number): Promise<void> {
+    // Get the attachment to check file path for cleanup
+    const [attachment] = await db.select()
+      .from(kanbanCardAttachments)
+      .where(and(
+        eq(kanbanCardAttachments.id, id),
+        eq(kanbanCardAttachments.userId, userId) // Only allow user to delete their own attachments
+      ));
+    
+    if (attachment) {
+      // Delete from database
+      await db.delete(kanbanCardAttachments)
+        .where(eq(kanbanCardAttachments.id, id));
+      
+      // TODO: Delete physical file from filesystem
+      // fs.unlinkSync(attachment.filePath);
+    }
   }
 }
 

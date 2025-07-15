@@ -752,6 +752,28 @@ export const userKanbanPreferences = pgTable("user_kanban_preferences", {
   uniqueUserBoard: unique("unique_user_board").on(table.userId, table.boardId),
 }));
 
+// Kanban Card Comments
+export const kanbanCardComments = pgTable("kanban_card_comments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cardId: uuid("card_id").references(() => kanbanCards.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Kanban Card Attachments
+export const kanbanCardAttachments = pgTable("kanban_card_attachments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cardId: uuid("card_id").references(() => kanbanCards.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  filePath: text("file_path").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Kanban Relations
 export const kanbanBoardRelations = relations(kanbanBoards, ({ one, many }) => ({
   tenant: one(tenants, {
@@ -774,13 +796,37 @@ export const kanbanColumnRelations = relations(kanbanColumns, ({ one, many }) =>
   cards: many(kanbanCards),
 }));
 
-export const kanbanCardRelations = relations(kanbanCards, ({ one }) => ({
+export const kanbanCardRelations = relations(kanbanCards, ({ one, many }) => ({
   column: one(kanbanColumns, {
     fields: [kanbanCards.columnId],
     references: [kanbanColumns.id],
   }),
   assignedUser: one(users, {
     fields: [kanbanCards.assignedUserId],
+    references: [users.id],
+  }),
+  comments: many(kanbanCardComments),
+  attachments: many(kanbanCardAttachments),
+}));
+
+export const kanbanCardCommentRelations = relations(kanbanCardComments, ({ one }) => ({
+  card: one(kanbanCards, {
+    fields: [kanbanCardComments.cardId],
+    references: [kanbanCards.id],
+  }),
+  user: one(users, {
+    fields: [kanbanCardComments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const kanbanCardAttachmentRelations = relations(kanbanCardAttachments, ({ one }) => ({
+  card: one(kanbanCards, {
+    fields: [kanbanCardAttachments.cardId],
+    references: [kanbanCards.id],
+  }),
+  user: one(users, {
+    fields: [kanbanCardAttachments.userId],
     references: [users.id],
   }),
 }));
@@ -814,6 +860,10 @@ export type KanbanBoardShare = typeof kanbanBoardShares.$inferSelect;
 export type InsertKanbanBoardShare = z.infer<typeof insertKanbanBoardShareSchema>;
 export type UserKanbanPreference = typeof userKanbanPreferences.$inferSelect;
 export type InsertUserKanbanPreference = z.infer<typeof insertUserKanbanPreferenceSchema>;
+export type KanbanCardComment = typeof kanbanCardComments.$inferSelect;
+export type InsertKanbanCardComment = z.infer<typeof insertKanbanCardCommentSchema>;
+export type KanbanCardAttachment = typeof kanbanCardAttachments.$inferSelect;
+export type InsertKanbanCardAttachment = z.infer<typeof insertKanbanCardAttachmentSchema>;
 
 // Kanban Schemas
 export const insertKanbanBoardSchema = createInsertSchema(kanbanBoards).omit({
@@ -840,6 +890,17 @@ export const insertKanbanBoardShareSchema = createInsertSchema(kanbanBoardShares
 });
 
 export const insertUserKanbanPreferenceSchema = createInsertSchema(userKanbanPreferences).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertKanbanCardCommentSchema = createInsertSchema(kanbanCardComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKanbanCardAttachmentSchema = createInsertSchema(kanbanCardAttachments).omit({
   id: true,
   createdAt: true,
 });

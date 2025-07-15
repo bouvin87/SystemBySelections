@@ -7,13 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trash2, X, FileText, MessageSquare, Paperclip } from "lucide-react";
 import * as Icons from "lucide-react";
 import { KanbanCard } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { KanbanCardComments } from "./KanbanCardComments";
+import { KanbanCardAttachments } from "./KanbanCardAttachments";
 interface KanbanCardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,6 +24,7 @@ interface KanbanCardModalProps {
   columnId?: string | null;
   onSubmit: (data: any) => void;
   board: any;
+  defaultTab?: "details" | "comments" | "attachments";
 }
 
 const CARD_ICONS = [
@@ -41,7 +45,8 @@ export function KanbanCardModal({
   card, 
   columnId,
   onSubmit,
-  board
+  board,
+  defaultTab = "details"
 }: KanbanCardModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -143,14 +148,31 @@ export function KanbanCardModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {card ? "Redigera Kort" : "Skapa Nytt Kort"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="details" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Detaljer
+            </TabsTrigger>
+            <TabsTrigger value="comments" className="flex items-center gap-2" disabled={!card}>
+              <MessageSquare className="h-4 w-4" />
+              Kommentarer
+            </TabsTrigger>
+            <TabsTrigger value="attachments" className="flex items-center gap-2" disabled={!card}>
+              <Paperclip className="h-4 w-4" />
+              Bilagor
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details">
+            <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Titel *</Label>
             <Input
@@ -286,34 +308,47 @@ export function KanbanCardModal({
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-4">
-            {/* Vänstersida: Soptunna */}
-            <div>
-              {isOwner && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="text-red-500 hover:text-red-700"
-                  onClick={handleDelete}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Ta bort
-                </Button>
-              )}
-            </div>
+              <div className="flex justify-between items-center pt-4">
+                {/* Vänstersida: Soptunna */}
+                <div>
+                  {isOwner && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={handleDelete}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Ta bort
+                    </Button>
+                  )}
+                </div>
 
-            {/* Högersida: Avbryt & Spara */}
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Avbryt
-              </Button>
-              <Button type="submit" disabled={!title.trim()}>
-                {card ? "Uppdatera" : "Skapa"}
-              </Button>
-            </div>
-          </div>
+                {/* Högersida: Avbryt & Spara */}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Avbryt
+                  </Button>
+                  <Button type="submit" disabled={!title.trim()}>
+                    {card ? "Uppdatera" : "Skapa"}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </TabsContent>
 
-        </form>
+          <TabsContent value="comments" className="mt-4">
+            {card && user && (
+              <KanbanCardComments cardId={card.id} currentUserId={user.id} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="attachments" className="mt-4">
+            {card && user && (
+              <KanbanCardAttachments cardId={card.id} currentUserId={user.id} />
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

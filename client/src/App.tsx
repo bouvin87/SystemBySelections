@@ -22,6 +22,8 @@ import MobileDeviationPage from "@/pages/mobile-deviation";
 import KanbanOverview from "@/pages/kanban-overview";
 import KanbanDetails from "@/pages/kanban-details";
 import { useState, useEffect } from "react";
+import { ModuleGuard } from "./pages/moduleguard";
+import ModuleMissing from "./pages/modulemissing";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -96,20 +98,66 @@ function Router() {
       
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/checklists" component={Checklists} />
+       
         <Route path="/admin" component={Admin} />
-        <Route path="/kanban" component={KanbanOverview} />
-        <Route path="/kanban/:boardId" component={KanbanDetails} />
-        <Route path="/checklist-editor/:id" component={ChecklistEditor} />
-        <Route path="/checklist/:id/start" component={ChecklistStart} />
-        <Route path="/checklist/:id/dashboard">
-          {(params) => <ChecklistDashboard checklistId={params.id} />}
-        </Route>
+        <Route path="/module-missing" component={ModuleMissing} />
         <Route path="/faq" component={FAQ} />
-        <Route path="/deviations/:id" component={DeviationDetail} />
-        <Route path="/deviations" component={Deviations} />
-        <Route path="/mobile/checklist" component={MobileChecklistPage} />
-        <Route path="/mobile/deviation" component={MobileDeviationPage} />
+        
+        
+        {/* Kanban routes */}
+        <Route path="/kanban" component={() => (
+          <ModuleGuard module="kanban">
+            <KanbanOverview />
+          </ModuleGuard>
+        )} />
+        <Route path="/kanban/:boardId" component={(params) => (
+          <ModuleGuard module="kanban">
+            <KanbanDetails />
+          </ModuleGuard>
+        )} />
+        
+        {/* Checklist routes */}
+        <Route path="/checklists" component={(params) => (
+          <ModuleGuard module="checklists">
+            <Checklists />
+          </ModuleGuard>
+        )} />
+        <Route path="/checklist-editor/:id" component={(params) => (
+          <ModuleGuard module="checklists">
+            <ChecklistEditor />
+          </ModuleGuard>
+        )} />
+        <Route path="/checklist/:id/start" component={(params) => (
+          <ModuleGuard module="checklists">
+            <ChecklistStart />
+          </ModuleGuard>
+        )} />
+        <Route path="/checklist/:id/dashboard">
+          {(params: { id: string }) => (
+            <ModuleGuard module="checklists">
+              <ChecklistDashboard checklistId={params.id} />
+            </ModuleGuard>
+          )}
+        </Route>
+
+        {/* Deviations routes */}
+        <Route path="/deviations/:id">
+          {(params: { id: string }) => (
+            <ModuleGuard module="deviations">
+              <DeviationDetail />
+            </ModuleGuard>
+          )}
+        </Route>
+
+        <Route path="/deviations">
+          {() => (
+            <ModuleGuard module="deviations">
+              <Deviations />
+            </ModuleGuard>
+          )}
+        </Route>
+
+        
         <Route component={NotFound} />
       </Switch>
     </>
