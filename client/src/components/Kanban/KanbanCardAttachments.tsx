@@ -47,16 +47,7 @@ export function KanbanCardAttachments({ cardId, currentUserId }: KanbanCardAttac
 
   // Fetch attachments
   const { data: attachments = [], isLoading } = useQuery<KanbanCardAttachment[]>({
-    queryKey: ["kanban", "cards", cardId, "attachments"],
-    queryFn: async () => {
-      const response = await fetch(`/api/kanban/cards/${cardId}/attachments`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch attachments");
-      return response.json();
-    },
+    queryKey: [`/api/kanban/cards/${cardId}/attachments`],
   });
 
   // Upload attachment mutation
@@ -70,10 +61,11 @@ export function KanbanCardAttachments({ cardId, currentUserId }: KanbanCardAttac
       setIsUploading(true);
       setUploadProgress(0);
 
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`/api/kanban/cards/${cardId}/attachments`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -85,7 +77,7 @@ export function KanbanCardAttachments({ cardId, currentUserId }: KanbanCardAttac
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kanban", "cards", cardId, "attachments"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/kanban/cards/${cardId}/attachments`] });
       setIsUploading(false);
       setUploadProgress(0);
       if (fileInputRef.current) {
@@ -110,12 +102,10 @@ export function KanbanCardAttachments({ cardId, currentUserId }: KanbanCardAttac
   // Delete attachment mutation
   const deleteAttachmentMutation = useMutation({
     mutationFn: async (attachmentId: string) => {
-      return apiRequest(`/api/kanban/cards/attachments/${attachmentId}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/kanban/cards/attachments/${attachmentId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kanban", "cards", cardId, "attachments"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/kanban/cards/${cardId}/attachments`] });
       toast({
         title: "Bilaga borttagen",
         description: "Filen har tagits bort.",

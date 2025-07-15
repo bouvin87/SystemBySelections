@@ -35,28 +35,16 @@ export function KanbanCardComments({ cardId, currentUserId }: KanbanCardComments
 
   // Fetch comments
   const { data: comments = [], isLoading } = useQuery<KanbanCardComment[]>({
-    queryKey: ["kanban", "cards", cardId, "comments"],
-    queryFn: async () => {
-      const response = await fetch(`/api/kanban/cards/${cardId}/comments`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch comments");
-      return response.json();
-    },
+    queryKey: [`/api/kanban/cards/${cardId}/comments`],
   });
 
   // Create comment mutation
   const createCommentMutation = useMutation({
     mutationFn: async (content: string) => {
-      return apiRequest(`/api/kanban/cards/${cardId}/comments`, {
-        method: "POST",
-        body: { content },
-      });
+      return apiRequest("POST", `/api/kanban/cards/${cardId}/comments`, { content });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kanban", "cards", cardId, "comments"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/kanban/cards/${cardId}/comments`] });
       setNewComment("");
       toast({
         title: "Kommentar tillagd",
@@ -75,13 +63,10 @@ export function KanbanCardComments({ cardId, currentUserId }: KanbanCardComments
   // Update comment mutation
   const updateCommentMutation = useMutation({
     mutationFn: async ({ commentId, content }: { commentId: string; content: string }) => {
-      return apiRequest(`/api/kanban/cards/comments/${commentId}`, {
-        method: "PATCH",
-        body: { content },
-      });
+      return apiRequest("PATCH", `/api/kanban/cards/comments/${commentId}`, { content });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kanban", "cards", cardId, "comments"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/kanban/cards/${cardId}/comments`] });
       setEditingCommentId(null);
       setEditContent("");
       toast({
@@ -101,12 +86,10 @@ export function KanbanCardComments({ cardId, currentUserId }: KanbanCardComments
   // Delete comment mutation
   const deleteCommentMutation = useMutation({
     mutationFn: async (commentId: string) => {
-      return apiRequest(`/api/kanban/cards/comments/${commentId}`, {
-        method: "DELETE",
-      });
+      return apiRequest("DELETE", `/api/kanban/cards/comments/${commentId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["kanban", "cards", cardId, "comments"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/kanban/cards/${cardId}/comments`] });
       toast({
         title: "Kommentar borttagen",
         description: "Kommentaren har tagits bort.",
