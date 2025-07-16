@@ -309,7 +309,7 @@ export default function DeviationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-[theme(spacing.20)]">
+    <div className="min-h-screen bg-background text-foreground pb-20">
       <Navigation />
       {/* Header Row likt ChecklistDashboard */}
       <div className="bg-background">

@@ -122,6 +122,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 16, 2025**: Fixed Tailwind CSS 4 compatibility issues
+  - Updated from Tailwind CSS 3.4.17 to 4.1.11 for better performance and features
+  - Installed @tailwindcss/postcss package for proper PostCSS integration
+  - Updated postcss.config.js to use @tailwindcss/postcss instead of tailwindcss
+  - Converted @apply-based CSS classes to vanilla CSS for better compatibility
+  - Removed unsupported @theme directive and cleaned up configuration
+  - Application now runs without CSS compilation errors
+
 - **July 10, 2025**: Completed transition from boolean flags to relational data in FormModal
   - Updated FormModal logic to use `workTasks.length > 0` instead of `currentChecklist?.includeWorkTasks`
   - Updated validation and submission logic to check data availability rather than configuration flags

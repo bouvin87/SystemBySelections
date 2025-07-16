@@ -268,9 +268,9 @@ export default function FAQ() {
                             {item.question}
                           </h3>
                           {isOpen ? (
-                            <ChevronUp className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                            <ChevronUp className="h-5 w-5 text-gray-500 shrink-0" />
                           ) : (
-                            <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                            <ChevronDown className="h-5 w-5 text-gray-500 shrink-0" />
                           )}
                         </CollapsibleTrigger>
                         <CollapsibleContent className="px-4 pb-4">

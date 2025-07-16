@@ -237,7 +237,7 @@ export function KanbanCardAttachments({ cardId, currentUserId }: KanbanCardAttac
                 key={attachment.id}
                 className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
               >
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   {getFileIcon(attachment.mimeType)}
                 </div>
                 

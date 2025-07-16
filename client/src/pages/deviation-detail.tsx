@@ -404,7 +404,7 @@ export default function DeviationDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-[theme(spacing.20)]">
+    <div className="min-h-screen bg-background pb-20">
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex items-center gap-4 mb-10">

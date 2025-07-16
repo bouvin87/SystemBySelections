@@ -17,7 +17,7 @@ export function StatusCard({ icon, title, text, subtitle, color = "gray" }: Stat
   }[color];
 
   return (
-    <Card className={`bg-gradient-to-br ${base} border-0`}>
+    <Card className={`bg-linear-to-br ${base} border-0`}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">{icon} {title}</CardTitle>
       </CardHeader>

@@ -70,7 +70,7 @@ export default function AnimatedMenu() {
             <div key={index} className="relative flex flex-col items-center">
               {/* Undermeny */}
               {openSubmenu === index && hasSubmenu && (
-                <div className="absolute bottom-[4.5rem] flex gap-3 bg-white shadow-lg p-3 rounded-xl z-10">
+                <div className="absolute bottom-18 flex gap-3 bg-white shadow-lg p-3 rounded-xl z-10">
                   {item.submenu.map((SubIcon, i) => (
                     <button
                       key={i}

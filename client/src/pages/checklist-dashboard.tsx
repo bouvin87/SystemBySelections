@@ -305,7 +305,7 @@ export default function ChecklistDashboard({
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar with filters */}
           {showFilters && (
-            <div className="w-full lg:w-80 flex-shrink-0">
+            <div className="w-full lg:w-80 shrink-0">
               <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
