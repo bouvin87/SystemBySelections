@@ -107,7 +107,8 @@
 
 /* Modern card styling inspired by financial app design */
 .modern-card {
-  @apply bg-card border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+  background-color: hsl(var(--card));
+  @apply border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
 }
 
 .modern-card-grid {
