@@ -1,6 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+}
 
 /* Mobile fullscreen modal styles */
 @media screen and (max-width: 768px) {
@@ -108,29 +130,75 @@
 /* Modern card styling inspired by financial app design */
 .modern-card {
   background-color: hsl(var(--card));
-  @apply border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+}
+
+.modern-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 .modern-card-grid {
-  @apply grid grid-cols-2 gap-4;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 .modern-action-card {
-  @apply modern-card p-6 cursor-pointer hover:scale-[1.02] active:scale-[0.98];
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+  padding: 1.5rem;
+  cursor: pointer;
+}
+
+.modern-action-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transform: scale(1.02);
+}
+
+.modern-action-card:active {
+  transform: scale(0.98);
 }
 
 .modern-stats-card {
-  @apply modern-card p-6;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s;
+  padding: 1.5rem;
+}
+
+.modern-stats-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 /* Enhanced button styling */
 .modern-button {
-  @apply rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+}
+
+.modern-button:hover {
+  transform: scale(1.02);
+}
+
+.modern-button:active {
+  transform: scale(0.98);
 }
 
 /* Smooth navigation bar styling */
 .modern-nav {
-  @apply bg-white/80 backdrop-blur-md border-t border-border/30 rounded-t-3xl;
+  background-color: rgb(255 255 255 / 0.8);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid hsl(var(--border) / 0.3);
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
 }
 
 
