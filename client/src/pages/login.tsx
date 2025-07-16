@@ -261,7 +261,7 @@ export default function Login() {
 
         {/* Testimonial card */}
         <div className="relative z-10 flex items-center justify-center p-12 w-full h-full">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 max-w-md">
+          <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl p-8 max-w-md">
             <blockquote className="text-white text-lg leading-relaxed mb-6">
               {t("common.applicationName")} is a modular platform for
               production-driven teams who need structure, clarity, and control.

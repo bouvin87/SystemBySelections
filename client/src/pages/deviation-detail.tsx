@@ -427,7 +427,7 @@ export default function DeviationDetailPage() {
 
         <div className="grid grid-cols-1 xl:grid-cols-[3fr_2fr] gap-6 items-start">
           <div className="space-y-6">
-            <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+            <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
@@ -535,7 +535,7 @@ export default function DeviationDetailPage() {
             </Card>
 
             {customFieldValues.length > 0 && (
-              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle className="text-sm text-muted-foreground">Extrafält</CardTitle>
                 </CardHeader>
@@ -559,7 +559,7 @@ export default function DeviationDetailPage() {
 
             <AttachmentList deviationId={deviation.id} canUpload={canEdit()} />
 
-            <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+            <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />

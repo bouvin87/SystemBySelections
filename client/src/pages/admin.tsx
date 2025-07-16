@@ -868,7 +868,7 @@ export default function Admin() {
                     {checklists.map((checklist) => (
                       <Card
                         key={checklist.id}
-                        className="bg-card border border-border shadow rounded-2xl"
+                        className="bg-card border border-border shadow-sm rounded-2xl"
                       >
                         <CardContent className="p-4">
                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -989,7 +989,7 @@ export default function Admin() {
                       {workTasks.map((task) => (
                         <Card
                           key={task.id}
-                          className="bg-card border border-border shadow rounded-2xl"
+                          className="bg-card border border-border shadow-sm rounded-2xl"
                         >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1059,7 +1059,7 @@ export default function Admin() {
                       {workStations.map((station) => (
                         <Card
                           key={station.id}
-                          className="bg-card border border-border shadow rounded-2xl"
+                          className="bg-card border border-border shadow-sm rounded-2xl"
                         >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1130,7 +1130,7 @@ export default function Admin() {
                       {shifts.map((shift) => (
                         <Card
                           key={shift.id}
-                          className="bg-card border border-border shadow rounded-2xl"
+                          className="bg-card border border-border shadow-sm rounded-2xl"
                         >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1205,7 +1205,7 @@ export default function Admin() {
                       {departments.map((department) => (
                         <Card
                           key={department.id}
-                          className="bg-card border border-border shadow rounded-2xl"
+                          className="bg-card border border-border shadow-sm rounded-2xl"
                         >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1321,7 +1321,7 @@ export default function Admin() {
                       {roles.map((role) => (
                         <Card
                           key={role.id}
-                          className="bg-card text-foreground border border-border rounded-2xl shadow-sm transition hover:shadow-md"
+                          className="bg-card text-foreground border border-border rounded-2xl shadow-xs transition hover:shadow-md"
                         >
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -1365,7 +1365,7 @@ export default function Admin() {
                       ))}
 
                       {roles.length === 0 && (
-                        <Card className="bg-card text-muted-foreground border border-border rounded-2xl shadow-sm text-center">
+                        <Card className="bg-card text-muted-foreground border border-border rounded-2xl shadow-xs text-center">
                           <CardContent className="p-8">
                             <p>Inga roller skapade än.</p>
                             <p className="text-sm mt-1">
@@ -1519,7 +1519,7 @@ export default function Admin() {
                           {deviationTypes.map((type: any) => (
                             <Card
                               key={type.id}
-                              className="bg-card border border-border shadow rounded-2xl"
+                              className="bg-card border border-border shadow-sm rounded-2xl"
                             >
                               <CardContent className="p-4">
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1860,7 +1860,7 @@ function DeviationPrioritiesManagement() {
         {priorities.map((priority: any) => (
           <Card
             key={priority.id}
-            className="bg-card border border-border shadow rounded-2xl"
+            className="bg-card border border-border shadow-sm rounded-2xl"
           >
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -2291,7 +2291,7 @@ function DeviationStatusesManagement() {
         {statuses.map((status: any) => (
           <Card
             key={status.id}
-            className="bg-card border border-border shadow rounded-2xl"
+            className="bg-card border border-border shadow-sm rounded-2xl"
           >
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

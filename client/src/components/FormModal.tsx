@@ -784,7 +784,7 @@ export default function FormModal({
                               },
                             }));
                           }}
-                          className={`transition-colors hover:text-yellow-400 focus:outline-none ${isActive ? "text-yellow-500" : "text-gray-400"}`}
+                          className={`transition-colors hover:text-yellow-400 focus:outline-hidden ${isActive ? "text-yellow-500" : "text-gray-400"}`}
                         >
                           <Star
                             className="h-8 w-8"
@@ -991,13 +991,13 @@ export default function FormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg mobile-fullscreen">
-        <DialogHeader className="pt-2">
+      <DialogContent className="max-h-screen overflow-y-auto mobile-fullscreen">
+        <DialogHeader>
           <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
 
         {/* Progress Bar */}
-        <div className="p-2  border-b border-border">
+        <div className="border-b border-border ">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-foreground">
               {t("form.step")} {currentStep - 1} {t("form.of")} {totalSteps}
@@ -1010,20 +1010,20 @@ export default function FormModal({
         </div>
 
         {/* Modal Content */}
-        <div className="p-2 sm:overflow-y-auto sm:max-h-96 ">
+        <div className="">
           {renderStep()}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:justify-between p-2">
+        <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
           {/* Mobile: Stack buttons vertically, Desktop: Previous on left */}
           <div className="order-1 sm:order-1">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 2}
-              className={`w-full sm:w-auto ${currentStep === 2 ? "invisible" : ""}`}
+              className={`w-full ${currentStep === 2 ? "invisible" : ""}`}
             >
-              <ChevronLeft className="mr-2 h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
               {t("form.previous")}
             </Button>
           </div>
@@ -1033,14 +1033,14 @@ export default function FormModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="w-full sm:w-auto"
+              className="w-full"
             >
               {t("admin.cancel")}
             </Button>
             <Button
               onClick={handleNext}
               disabled={submitMutation.isPending}
-              className="w-full sm:w-auto"
+              className="w-full"
             >
               {currentStep === totalSteps + 1 ? (
                 <>

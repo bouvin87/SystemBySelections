@@ -339,7 +339,7 @@ export default function DeviationsPage() {
               </Button>
               <Button
                 onClick={() => setShowFilters(!showFilters)}
-                variant={showFilters ? "default" : "outline"}
+                variant={showFilters ? "default" : "outline-solid"}
               >
                 <Filter className="mr-2 h-4 w-4" />
                 Filter
@@ -354,7 +354,7 @@ export default function DeviationsPage() {
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Filters */}
         {showFilters && (
-        <Card className="bg-card text-foreground rounded-xl shadow">
+        <Card className="bg-card text-foreground rounded-xl shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />

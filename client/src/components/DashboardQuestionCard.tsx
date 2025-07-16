@@ -104,7 +104,7 @@ export default function DashboardQuestionCard({
     };
 
     return (
-      <Card className="bg-card text-foreground border border-border shadow-sm">
+      <Card className="bg-card text-foreground border border-border shadow-xs">
         <CardHeader className="flex justify-between pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -138,7 +138,7 @@ export default function DashboardQuestionCard({
     if (chartData.length === 0) return null;
 
     return (
-      <Card className="bg-card text-foreground border border-border shadow-sm col-span-2">
+      <Card className="bg-card text-foreground border border-border shadow-xs col-span-2">
         <CardHeader className="flex justify-between pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -169,7 +169,7 @@ export default function DashboardQuestionCard({
     const percentage = (average / max) * 100;
 
     return (
-      <Card className="bg-card text-foreground border border-border shadow-sm">
+      <Card className="bg-card text-foreground border border-border shadow-xs">
         <CardHeader className="flex justify-between pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
@@ -198,7 +198,7 @@ export default function DashboardQuestionCard({
     }
 
     return (
-      <Card className="bg-card text-foreground border border-border shadow-sm">
+      <Card className="bg-card text-foreground border border-border shadow-xs">
         <CardHeader className="flex justify-between pb-2">
           <CardTitle className="text-sm font-medium">{question.text}</CardTitle>
           <Hash className="h-4 w-4 text-muted-foreground" />

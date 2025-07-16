@@ -54,9 +54,9 @@ export function FloatingInput({
     bg-transparent placeholder-transparent
     border border-slate-400 rounded-md
     transition duration-300 ease
-    focus:outline-none focus:border-slate-600
+    focus:outline-hidden focus:border-slate-600
     hover:border-slate-500
-    shadow-sm focus:shadow ${className ?? ""}`}
+    shadow-xs focus:shadow-sm ${className ?? ""}`}
       />
       <label
         htmlFor={id}

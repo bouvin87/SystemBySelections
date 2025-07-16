@@ -174,7 +174,7 @@ function KanbanColumnComponent({
   return (
     <Card
       ref={setNodeRef}
-      className={`min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-sm ${
+      className={`min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-xs ${
         isOver ? "ring-2 ring-primary/50 bg-primary/5" : ""
       }`}
     >

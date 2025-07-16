@@ -49,7 +49,7 @@ export function FloatingTextarea({
         rows={rows}
         onChange={handleChange}
         placeholder=""
-        className={`peer w-full bg-transparent placeholder-transparent peer-focus:placeholder-opacity-0 border border-slate-400 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-slate-600 hover:border-slate-300 shadow-sm focus:shadow  ${className ?? ""}`}
+        className={`peer w-full bg-transparent placeholder-transparent peer-focus:placeholder-opacity-0 border border-slate-400 rounded-md px-4 py-3 transition duration-300 ease focus:outline-hidden focus:border-slate-600 hover:border-slate-300 shadow-xs focus:shadow-sm  ${className ?? ""}`}
       />
       <label
         htmlFor={id}

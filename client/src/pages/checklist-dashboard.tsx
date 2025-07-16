@@ -246,7 +246,7 @@ export default function ChecklistDashboard({
 
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+          <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
             <CardContent>
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
                 {t("dashboard.dashboardNotEnabled")}
@@ -292,7 +292,7 @@ export default function ChecklistDashboard({
             </div>
             <Button
               onClick={() => setShowFilters(!showFilters)}
-              variant={showFilters ? "default" : "outline"}
+              variant={showFilters ? "default" : "outline-solid"}
             >
               <Filter className="mr-2 h-4 w-4" />
               {t("common.filter")}
@@ -306,7 +306,7 @@ export default function ChecklistDashboard({
           {/* Sidebar with filters */}
           {showFilters && (
             <div className="w-full lg:w-80 shrink-0">
-              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Filter className="h-5 w-5" />
@@ -547,7 +547,7 @@ export default function ChecklistDashboard({
 
             {/* Dashboard Question Cards */}
             {!hideCards && ( dashboardQuestions.length > 0 ? (
-              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-blue-600" />
@@ -571,7 +571,7 @@ export default function ChecklistDashboard({
                 </CardContent>
               </Card>
             ) : (
-              <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+              <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
                 <CardContent className="py-12 text-center">
                   <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-muted-foreground">
@@ -583,7 +583,7 @@ export default function ChecklistDashboard({
             )}
 
             {/* Recent Responses Table */}
-            <Card className="bg-card text-foreground border border-border rounded-xl shadow-sm">
+            <Card className="bg-card text-foreground border border-border rounded-xl shadow-xs">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-green-600" />

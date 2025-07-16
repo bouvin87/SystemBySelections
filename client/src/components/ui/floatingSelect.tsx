@@ -56,7 +56,7 @@ export function FloatingSelect({
       >
         <SelectTrigger
           id={id}
-          className="peer w-full h-12 px-4 py-3 border border-slate-400 rounded-md transition duration-300 ease-in-out hover:border-slate-500 focus:outline-none focus:border-slate-600 shadow-sm focus:shadow"
+          className="peer w-full h-12 px-4 py-3 border border-slate-400 rounded-md transition duration-300 ease-in-out hover:border-slate-500 focus:outline-hidden focus:border-slate-600 shadow-xs focus:shadow-sm"
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

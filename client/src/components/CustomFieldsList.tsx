@@ -115,7 +115,7 @@ export function CustomFieldsList({ className }: CustomFieldsListProps) {
               {(Array.isArray(customFields) ? customFields : [])
                 .sort((a, b) => a.order - b.order)
                 .map((field) => (
-                  <Card key={field.id} className="bg-card border border-border shadow-sm rounded-xl">
+                  <Card key={field.id} className="bg-card border border-border shadow-xs rounded-xl">
                     <CardContent className="p-4">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         {/* Vänster sida: Information */}
