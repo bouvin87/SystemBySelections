@@ -1,14 +1,11 @@
-import type { Config } from "tailwindcss";
+import { type Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
 import typography from "@tailwindcss/typography";
 import scrollbar from "tailwind-scrollbar";
 
 const config: Config = {
   darkMode: ["class"],
-  content: [
-    "./index.html",
-    "./src/**/*.{ts,tsx,js,jsx}",
-  ],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -44,6 +41,7 @@ const config: Config = {
         warning: "hsl(var(--warning) / <alpha-value>)",
       },
 
+
       borderRadius: {
         DEFAULT: "var(--radius)",
         lg: "16px",
@@ -76,7 +74,6 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         underlineSlide: "underlineSlide 0.3s ease-out forwards",
       },
-
       transitionProperty: {
         width: "width",
       },
