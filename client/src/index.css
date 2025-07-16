@@ -308,3 +308,4 @@ body {
 .mood-rating:hover {
   transform: scale(1.1);
 }
+@plugin 'tailwind-scrollbar';
