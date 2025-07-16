@@ -65,7 +65,7 @@ export default function Checklists() {
             ))}
           </div>
         ) : (
-          <div className="bg-card rounded-2xl p-10 text-center border border-border">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-10 text-center border border-border">
             <BarChart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">
               {t("dashboard.noDashboardsAvailable")}

@@ -87,7 +87,7 @@ function KanbanCardComponent({
         // Alternativt: tryck-ikon istället för hela kortet
         if (onContextMenu) onContextMenu(e, card.id);
       }}
-      className="relative bg-card rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
+      className="relative bg-white dark:bg-gray-800 rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">

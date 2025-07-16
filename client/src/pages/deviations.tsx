@@ -354,7 +354,7 @@ export default function DeviationsPage() {
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Filters */}
         {showFilters && (
-        <Card className="bg-card text-foreground rounded-xl shadow">
+        <Card className="bg-white dark:bg-gray-800 text-foreground rounded-xl shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
