@@ -86,7 +86,9 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       const result = await fetch("/api/kanban/preferences", { headers });
       if (!result.ok)
         throw new Error(`Failed to fetch kanban: ${result.status}`);
-      return (await result.json()).filter((k: any) => k.boardId && k.showInQuickAccess);
+      return (await result.json()).filter(
+        (k: any) => k.boardId && k.showInQuickAccess,
+      );
     },
   });
 
@@ -109,7 +111,10 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       id: "deviations",
       icon: <Plus className="h-6 w-6" />,
       label: "Avvikelser",
-      onClick: () => setOpenSubmenuId((prev) => (prev === "deviations" ? null : "deviations")),
+      onClick: () =>
+        setOpenSubmenuId((prev) =>
+          prev === "deviations" ? null : "deviations",
+        ),
       submenu: [
         {
           id: "deviation-dashboard",
@@ -170,7 +175,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
             onChecklistSelect(checklist.id);
             setOpenSubmenuId(null);
           },
-        }))
+        })),
       );
     }
 
@@ -178,7 +183,10 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       id: "checklists",
       icon: <ClipboardList className="h-6 w-6" />,
       label: "Checklistor",
-      onClick: () => setOpenSubmenuId((prev) => (prev === "checklists" ? null : "checklists")),
+      onClick: () =>
+        setOpenSubmenuId((prev) =>
+          prev === "checklists" ? null : "checklists",
+        ),
       submenu,
     });
   }
@@ -211,7 +219,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
             setLocation(`/kanban/${kanban.boardId}`);
             setOpenSubmenuId(null);
           },
-        }))
+        })),
       );
     }
 
@@ -219,7 +227,8 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       id: "kanban",
       icon: <ClipboardList className="h-6 w-6" />,
       label: "Kanban",
-      onClick: () => setOpenSubmenuId((prev) => (prev === "kanban" ? null : "kanban")),
+      onClick: () =>
+        setOpenSubmenuId((prev) => (prev === "kanban" ? null : "kanban")),
       submenu,
     });
   }
@@ -227,9 +236,9 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
   return (
     <div
       ref={menuRef}
-      className="fixed bottom-0 left-0 right-0 z-10 modern-nav safe-area-inset-bottom bg-white border-t"
+      className="fixed bottom-0 left-0 right-0 z-10  safe-area-inset-bottom bg-background"
     >
-      <div className="max-w-md mx-auto px-4 py-3 relative">
+      <div className="max-w-md mx-auto px-4 py-3 relative ">
         <div className="flex justify-around items-end relative">
           {allButtons.map((button) => (
             <div key={button.id} className="flex flex-col items-center">
@@ -237,7 +246,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
                 onClick={button.onClick}
                 className={clsx(
                   "flex flex-col items-center justify-center py-2 px-2 modern-button min-w-[50px]",
-                  "text-muted-foreground hover:text-foreground"
+                  "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <div className="mb-1">{button.icon}</div>
@@ -256,7 +265,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
             button.submenu && (
               <div
                 key={`${button.id}-submenu`}
-                className="absolute bottom-16 left-1/2 -translate-x-1/2 mb-2 flex flex-col md:flex-row gap-2 bg-white shadow-xl px-4 py-3 rounded-xl z-20 max-h-[80vh] overflow-y-auto"
+                className="absolute bottom-16 left-1/2 -translate-x-1/2 mb-2 flex flex-col md:flex-row gap-2 bg-background dark:border shadow-xl px-4 py-3 rounded-xl z-20 max-h-[80vh] overflow-y-auto "
               >
                 {button.submenu.map((sub) =>
                   sub.type === "divider" ? (
@@ -268,19 +277,28 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
                     <button
                       key={sub.id}
                       onClick={sub.onClick}
-                      className="flex flex-row md:flex-col items-center gap-2 w-full md:w-16"
+                      className="group flex flex-row md:flex-col items-center gap-2 w-full md:w-16 text-muted-foreground hover:text-foreground transition"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
-                        {sub.icon}
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center 
+                                   bg-secondary group-hover:bg-primary 
+                                   transition-colors"
+                      >
+                        <div className="text-primary group-hover:text-primary-foreground">
+                          {sub.icon}
+                        </div>
                       </div>
-                      <span className="text-xs text-gray-800 text-left md:text-center leading-tight truncate md:w-16">
+
+                      <span className="text-xs text-left md:text-center leading-tight truncate md:w-16">
                         {sub.label}
                       </span>
                     </button>
-                  )
+
+
+                  ),
                 )}
               </div>
-            )
+            ),
         )}
       </div>
 

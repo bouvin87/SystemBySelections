@@ -259,13 +259,13 @@ export default function DeviationsPage() {
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
       if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { month: monthKey, total: 0 };
+        monthlyData[monthKey] = { month: monthKey, Total: 0 };
         deviationTypes.forEach((type) => {
           monthlyData[monthKey][type.name] = 0;
         });
       }
 
-      monthlyData[monthKey].total += 1;
+      monthlyData[monthKey].Total += 1;
       const type = deviationTypes.find(
         (t) => t.id === deviation.deviationTypeId,
       );
@@ -665,12 +665,32 @@ export default function DeviationsPage() {
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
+                      stroke=""
                     >
                       {getDepartmentChartData().map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--popover))",
+                        color: "hsl(var(--popover-foreground))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "var(--radius)", // använder exakt din tokens
+                        padding: "0.5rem 0.75rem",
+                        fontSize: "0.875rem", // text-sm enligt Tailwind
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)", // matchar .shadow
+                      }}
+                      itemStyle={{
+                        color: "hsl(var(--foreground))",
+                        marginBottom: "0.25rem",
+                      }}
+                      labelStyle={{
+                        color: "hsl(var(--muted-foreground))",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -715,12 +735,32 @@ export default function DeviationsPage() {
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
+                      stroke=""
                     >
                       {getTypeChartData().map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--popover))",
+                        color: "hsl(var(--popover-foreground))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "var(--radius)",
+                        padding: "0.5rem 0.75rem",
+                        fontSize: "0.875rem", 
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      }}
+                      itemStyle={{
+                        color: "hsl(var(--foreground))",
+                        marginBottom: "0.25rem",
+                      }}
+                      labelStyle={{
+                        color: "hsl(var(--muted-foreground))",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    />
 
                   </PieChart>
                 </ResponsiveContainer>
@@ -766,12 +806,32 @@ export default function DeviationsPage() {
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="value"
+                      stroke=""
                     >
                       {getStatusChartData().map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--popover))",
+                        color: "hsl(var(--popover-foreground))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "var(--radius)",
+                        padding: "0.5rem 0.75rem",
+                        fontSize: "0.875rem", 
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      }}
+                      itemStyle={{
+                        color: "hsl(var(--foreground))",
+                        marginBottom: "0.25rem",
+                      }}
+                      labelStyle={{
+                        color: "hsl(var(--muted-foreground))",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -812,11 +872,30 @@ export default function DeviationsPage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--popover))",
+                        color: "hsl(var(--popover-foreground))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "var(--radius)",
+                        padding: "0.5rem 0.75rem",
+                        fontSize: "0.875rem", 
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      }}
+                      itemStyle={{
+                        color: "hsl(var(--foreground))",
+                        marginBottom: "0.25rem",
+                      }}
+                      labelStyle={{
+                        color: "hsl(var(--muted-foreground))",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    />
                     <Legend />
                     <Line
                       type="monotone"
-                      dataKey="total"
+                      dataKey="Total"
                       stroke="#2563eb"
                       strokeWidth={3}
                     />
@@ -862,7 +941,7 @@ export default function DeviationsPage() {
                       key={deviation.id}
                       href={`/deviations/${deviation.id}`}
                     >
-                      <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                      <div className="border rounded-lg mb-2 p-4 bg-background/50 hover:bg-background/80 cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">

@@ -1,7 +1,7 @@
-import { Card } from "@/components/ui/card";
 import { AlertTriangle, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as LucideIcons from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Icon = ({ name, className }: { name: string; className?: string }) => {
   const LucideIcon = (LucideIcons as any)[name] || LucideIcons["File"];
@@ -39,13 +39,13 @@ export function HomeScreenDeviationModule({ deviations, onNewDeviation, onDeviat
     <div className="space-y-6">
       {/* Statuskort */}
       <div className="modern-card-grid">
-        <div className="modern-stats-card bg-pastel-yellow">
+        <div className="modern-stats-card">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-2xl font-bold text-foreground">{openDeviations}</p>
               <p className="text-sm text-muted-foreground">Öppna avvikelser</p>
             </div>
-            <AlertTriangle className="h-8 w-8 text-accent-foreground" />
+            <AlertTriangle className="h-8 w-8 text--accent" />
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@ export function HomeScreenDeviationModule({ deviations, onNewDeviation, onDeviat
       <div className="modern-card-grid">
         <button 
           onClick={onNewDeviation}
-          className="modern-action-card bg-pastel-yellow text-left"
+          className="modern-action-card text-left"
         >
           <AlertTriangle className="h-5 w-5 mb-2 text-accent" />
           <p className="font-medium text-sm">Rapportera avvikelse</p>
@@ -63,7 +63,7 @@ export function HomeScreenDeviationModule({ deviations, onNewDeviation, onDeviat
 
         <button 
           onClick={onDeviationClick}
-          className="rounded-xl bg-pastel-purple p-4 text-left hover:bg-purple-100 transition-colors"
+          className="modern-action-card text-left"
         >
           <BarChart3 className="h-5 w-5 mb-2 text-primary" />
           <p className="font-medium text-sm">Visa avvikelser</p>
@@ -104,7 +104,7 @@ export function HomeScreenChecklistModule({ activeChecklists, responses, checkli
     <div className="space-y-6">
       {/* Statuskort */}
       <div className="modern-card-grid">
-        <div className="modern-stats-card bg-pastel-purple">
+        <div className="modern-stats-card">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-2xl font-bold text-foreground">{activeChecklists.length}</p>
@@ -119,7 +119,7 @@ export function HomeScreenChecklistModule({ activeChecklists, responses, checkli
       <div className="modern-card-grid">
         <button 
           onClick={onNewChecklist}
-          className="modern-action-card bg-pastel-green text-left"
+          className="modern-action-card text-left"
         >
           <Plus className="h-5 w-5 mb-2 text-success" />
           <p className="font-medium text-sm">Ny kontroll</p>
@@ -128,7 +128,7 @@ export function HomeScreenChecklistModule({ activeChecklists, responses, checkli
 
         <button 
           onClick={onChecklistClick}
-          className="rounded-xl bg-pastel-gray p-4 text-left hover:bg-surface transition-colors"
+          className="modern-action-card text-left"
         >
           <ClipboardList className="h-5 w-5 mb-2 text-primary" />
           <p className="font-medium text-sm">Checklistor</p>
@@ -137,45 +137,53 @@ export function HomeScreenChecklistModule({ activeChecklists, responses, checkli
       </div>
 
       {/* Senaste aktivitet */}
-      <div className="space-y-3">
-        <p className="text-sm font-medium">Senaste aktivitet</p>
-        <div className="space-y-2">
-          {recentResponses.map((response, index) => {
-            const checklist = getChecklistById(response.checklistId, checklists);
-            const IconComponent = checklist?.icon ? getLucideIcon(checklist.icon) : null;
 
-            return (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-surface-subtle rounded-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  {IconComponent ? (
-                    <IconComponent className="h-5 w-5 text-success" />
-                  ) : (
-                    <div className="h-2 w-2 bg-success rounded-full" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">{checklist?.name || "Okänd checklista"}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(response.createdAt).toLocaleTimeString("sv-SE")}
-                    </p>
+
+      <Card className="modern-card">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Senaste aktivitet
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-2 divide-y divide-border ">
+          {recentResponses.length > 0 ? (
+            recentResponses.map((response, index) => {
+              const checklist = getChecklistById(response.checklistId, checklists);
+              const IconComponent = checklist?.icon ? getLucideIcon(checklist.icon) : null;
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-card"
+                >
+                  <div className="flex items-center space-x-3">
+                    {IconComponent ? (
+                      <IconComponent className="h-5 w-5 text-success" />
+                    ) : (
+                      <div className="h-2 w-2 bg-success rounded-full" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{checklist?.name || "Okänd checklista"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(response.createdAt).toLocaleTimeString("sv-SE")}
+                      </p>
+                    </div>
                   </div>
+                  <TrendingUp className="h-4 w-4 text-success" />
                 </div>
-                <TrendingUp className="h-4 w-4 text-success" />
-              </div>
-            );
-          })}
-
-          {recentResponses.length === 0 && (
+              );
+            })
+          ) : (
             <div className="text-center py-6 text-muted-foreground">
               <ClipboardList className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p className="text-sm">Inga kontroller registrerade idag</p>
               <p className="text-xs">Börja genom att skapa en ny kontroll</p>
             </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
+
 
     </div>
   );

@@ -56,7 +56,7 @@ export function FloatingDatePicker({
         value={currentValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="peer w-full h-12 px-4 py-3 text-base border border-slate-400 rounded-md text-slate-700 bg-transparent transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
+        className="peer w-full h-12 px-4 py-3 text-base border border-slate-400 rounded-md bg-transparent transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-300 shadow-sm focus:shadow"
       />
     </div>
   );

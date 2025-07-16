@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import logoDark from "@/lib/SystemBySelections_light.svg";
 import {
   Card,
   CardContent,
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import logoSvg from "@/lib/logo.svg?url";
+import logoSvg from "@/lib/SystemBySelections.svg?url";
 import backgroundPng from "@/lib/background.png?url";
 import { useTranslation } from "react-i18next";
 
@@ -91,28 +92,33 @@ export default function Login() {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Login form */}
-      <div className="flex-1 flex items-center justify-center bg-white p-8">
+      <div className="flex-1 flex items-center justify-center bg-background p-8">
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <img
               src={logoSvg}
               alt={t("common.applicationName")}
-              className="w-12 h-12"
+              className="h-12 dark:hidden"
+            />
+            <img
+              src={logoDark}
+              alt={t("common.applicationName")}
+              className="h-12 hidden dark:block"
             />
             <h1 className="ml-3 text-xl font-semibold text-gray-900">
-              {t("common.applicationName")}
+               {/*t("common.applicationName") */}
             </h1>
           </div>
 
           {/* Form */}
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold mb-2">
               {showTenantSelection
                 ? "Välj organisation"
                 : `Logga in på ${t("common.applicationName")}`}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {showTenantSelection
                 ? "Välj vilken organisation du vill logga in på"
                 : "Logga in för att komma åt dina moduler"}
@@ -131,7 +137,7 @@ export default function Login() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm"
                   >
                     E-postadress
                   </Label>
@@ -143,14 +149,14 @@ export default function Login() {
                     placeholder="din@email.se"
                     required
                     disabled={isLoading}
-                    className="h-11"
+                    className="h-11 text-foreground"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label
                     htmlFor="password"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm font-medium"
                   >
                     Lösenord
                   </Label>
@@ -161,7 +167,8 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="h-11"
+                    placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;"
+                    className="h-11 text-foreground"
                   />
                 </div>
               </>
@@ -170,7 +177,7 @@ export default function Login() {
             {showTenantSelection && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium">
                     E-post: {email}
                   </Label>
                 </div>
@@ -178,7 +185,7 @@ export default function Login() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="tenant"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-sm font-medium"
                   >
                     Välj organisation
                   </Label>
@@ -206,7 +213,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="w-full h-11 font-medium text-foreground"
               disabled={isLoading || (showTenantSelection && !selectedTenantId)}
             >
               {isLoading ? (
@@ -224,7 +231,7 @@ export default function Login() {
             {showTenantSelection && (
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 className="w-full h-11"
                 onClick={() => {
                   setShowTenantSelection(false);

@@ -42,7 +42,7 @@ export default function ContextMenu({ x, y, entries, onClose }: Props) {
   return (
     <div
       ref={ref}
-      className="fixed z-50 bg-white border border-border rounded-xl shadow-xl p-2"
+      className="fixed z-50 bg-background border border-border rounded-xl shadow-xl p-2"
       style={{ top: y, left: x }}
     >
       {entries.map((entry) => {
@@ -54,7 +54,7 @@ export default function ContextMenu({ x, y, entries, onClose }: Props) {
           <div key={entry.id} className="group relative">
             <button
               className={clsx(
-                "flex w-full text-left px-3 py-2 items-center justify-between rounded-md hover:bg-muted transition-colors"
+                "flex w-full text-left px-3 py-2 items-center justify-between rounded-md hover:bg-accent transition-colors"
               )}
               onClick={() => {
                 entry.onClick?.();

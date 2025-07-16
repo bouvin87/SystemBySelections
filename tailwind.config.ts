@@ -6,72 +6,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // 60% — neutral bakgrund
-        background: "#FFFFFF",
-        foreground: "#0F172A",
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
 
-        // 30% — kort och ytor (pasteller)
-        surface: {
-          DEFAULT: "#F9FAFB",
-          subtle: "#F3F4F6",
-        },
-        popover: {
-          DEFAULT: "#F9FAFB",
-          foreground: "#1E293B",
-          background: "#ffffff", 
-        },
-        card: {
-          DEFAULT: "#FFFFFF",
-          foreground: "#0F172A",
-        },
-        menu: {
-          DEFAULT: "#ffffff", // fallback
-          foreground: "#1E293B",
-        },
-        dropdown: {
-          DEFAULT: "#ffffff",
-          foreground: "#1E293B",
-        },
+        card: "hsl(var(--card) / <alpha-value>)",
+        "card-foreground": "hsl(var(--card-foreground) / <alpha-value>)",
 
-        pastel: {
-          purple: "#EEF2FF", // Ex: "Pay someone"
-          green: "#DCFCE7", // Ex: "Request money"
-          yellow: "#FEF9C3", // Ex: "Buy airtime"
-          gray: "#F3F4F6", // Ex: "Pay bill"
-        },
+        popover: "hsl(var(--popover) / <alpha-value>)",
+        "popover-foreground": "hsl(var(--popover-foreground) / <alpha-value>)",
 
-        // 10% — actions och accenter
-        primary: {
-          DEFAULT: "#276388", // Accentfärg för knappar, ikoner
-          foreground: "#FFFFFF",
-        },
+        primary: "hsl(var(--primary) / <alpha-value>)",
+        "primary-foreground": "hsl(var(--primary-foreground) / <alpha-value>)",
 
-        accent: {
-          DEFAULT: "#FACC15", // Alternativ accentfärg (gul)
-          foreground: "#1E293B",
-        },
+        secondary: "hsl(var(--secondary) / <alpha-value>)",
+        "secondary-foreground": "hsl(var(--secondary-foreground) / <alpha-value>)",
 
-        success: {
-          DEFAULT: "#16A34A",
-          foreground: "#FFFFFF",
-        },
+        muted: "hsl(var(--muted) / <alpha-value>)",
+        "muted-foreground": "hsl(var(--muted-foreground) / <alpha-value>)",
 
-        muted: {
-          DEFAULT: "#E5E7EB",
-          foreground: "#6B7280",
-        },
-        destructive: "#ef4444", "destructive-foreground": "#fff", 
+        accent: "hsl(var(--accent) / <alpha-value>)",
+        "accent-foreground": "hsl(var(--accent-foreground) / <alpha-value>)",
 
-        border: "#E5E7EB",
-        input: "#E5E7EB",
-        ring: "#276388",
+        destructive: "hsl(var(--destructive) / <alpha-value>)",
+        "destructive-foreground": "hsl(var(--destructive-foreground) / <alpha-value>)",
+
+        border: "hsl(var(--border) / <alpha-value>)",
+        input: "hsl(var(--input) / <alpha-value>)",
+        ring: "hsl(var(--ring) / <alpha-value>)",
+
+        success: "hsl(var(--success) / <alpha-value>)",
+        warning: "hsl(var(--warning) / <alpha-value>)",
       },
 
+
       borderRadius: {
+        DEFAULT: "var(--radius)",
         lg: "16px",
         md: "12px",
         sm: "8px",
-        full: "9999px", // för avatars eller cirkulära knappar
+        full: "9999px",
       },
 
       fontFamily: {

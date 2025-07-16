@@ -595,17 +595,17 @@ export default function ChecklistDashboard({
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-medium text-muted text-sm">
+                        <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground text-sm">
                             Operatör
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-muted text-sm">
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground  text-sm">
                             Datum & Tid
                           </th>
-                          <th className="text-left py-3 px-4 font-medium text-muted text-sm">
+                          <th className="text-left py-3 px-4 font-medium text-muted-foreground  text-sm">
                             Detaljer
                           </th>
-                          <th className="text-right py-3 px-4 font-medium text-muted text-sm">
+                          <th className="text-right py-3 px-4 font-medium text-muted-foreground  text-sm">
                             Åtgärd
                           </th>
                         </tr>
@@ -614,7 +614,7 @@ export default function ChecklistDashboard({
                         {responses.slice(0, 8).map((response, index) => (
                           <tr
                             key={response.id}
-                            className="border-b border-gray-100 hover:bg-gray-50"
+                            className="border-b hover:bg-background/90"
                           >
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-3">
@@ -693,7 +693,7 @@ export default function ChecklistDashboard({
                                   setSelectedResponseId(response.id);
                                   setViewModalOpen(true);
                                 }}
-                                className="text-blue-600 hover:text-blue-700"
+                                className=" "
                               >
                                 <Eye className="h-4 w-4 mr-1" />
                                 Visa

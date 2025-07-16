@@ -83,6 +83,10 @@ function KanbanCardComponent({
         e.stopPropagation();
         if (onContextMenu) onContextMenu(e, card.id);
       }}
+      onClick={(e) => {
+        // Alternativt: tryck-ikon istället för hela kortet
+        if (onContextMenu) onContextMenu(e, card.id);
+      }}
       className="relative bg-card rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
     >
       <CardContent className="p-4">
@@ -723,8 +727,8 @@ export default function KanbanDetails() {
           onDragEnd={handleDragEnd}
           autoScroll={true}
         >
-          <div className="overflow-x-auto pb-6">
-            <div className="flex justify-center gap-6 w-full min-w-max">
+          <div className="overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+            <div className="flex gap-4 w-max px-4">
               {sortedColumns.map((column: KanbanColumn) => (
                 <KanbanColumnComponent
                   key={column.id}

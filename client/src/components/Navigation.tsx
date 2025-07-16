@@ -20,9 +20,11 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
-import logoSvg from "@/lib/logo.svg?url";
+import logoSvg from "@/lib/SystemBySelections.svg";
+import logoDark from "@/lib/SystemBySelections_light.svg";
 import { AnimatePresence, motion } from "framer-motion";
 import LanguageSelector from "@/components/LanguageSelector";
+import { ThemeToggle } from "./ui/themetoggle";
 
 export default function Navigation() {
   const { t } = useTranslation();
@@ -82,9 +84,10 @@ export default function Navigation() {
             {/* Left */}
             <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2">
-                <img src={logoSvg} alt="Logo" className="h-8 w-8" />
+                <img src={logoSvg} alt="Logo" className="h-8 dark:hidden" />
+                <img src={logoDark} alt="Logo" className="h-8 hidden dark:block" />
                 <span className="text-lg font-semibold text-foreground">
-                  {t("common.applicationName")}
+                  {/*t("common.applicationName") */}
                 </span>
               </Link>
 
@@ -113,6 +116,7 @@ export default function Navigation() {
               >
                 <HelpCircle className="h-5 w-5" />
               </Link>
+              <ThemeToggle />
               <div className="hidden lg:block">
                 <UserMenu />
               </div>
@@ -199,6 +203,7 @@ export default function Navigation() {
                               : "Användare"}
                         </span>
                       </div>
+                      
                       <LanguageSelector />
                       {role === "admin" && (
                         <Link

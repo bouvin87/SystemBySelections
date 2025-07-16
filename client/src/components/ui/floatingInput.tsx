@@ -52,7 +52,6 @@ export function FloatingInput({
         placeholder=""
         className={`peer w-full h-12 px-4
     bg-transparent placeholder-transparent
-    text-slate-700 text-base
     border border-slate-400 rounded-md
     transition duration-300 ease
     focus:outline-none focus:border-slate-600

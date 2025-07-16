@@ -312,7 +312,7 @@ export default function ChecklistEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navigation />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
@@ -328,7 +328,7 @@ export default function ChecklistEditor() {
           <CardHeader>
             <CardTitle>Redigera checklista: {checklist.name}</CardTitle>
             {checklist.description && (
-              <p className="text-sm text-gray-600">{checklist.description}</p>
+              <p className="text-sm">{checklist.description}</p>
             )}
           </CardHeader>
           <CardContent>
@@ -413,18 +413,18 @@ export default function ChecklistEditor() {
               </Dialog>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 ">
               {categories.map((category) => {
                 const categoryQuestions = getCategoryQuestions(category.id);
                 const isExpanded = expandedCategories.has(category.id);
 
                 return (
-                  <Card key={category.id}>
+                  <Card key={category.id} className="bg-background/50 hover:bg-background/90">
                     <CardContent className="p-0">
                       <Collapsible>
                         <CollapsibleTrigger asChild>
                           <div
-                            className="p-4 cursor-pointer hover:bg-gray-50"
+                            className="p-4 cursor-pointer "
                             onClick={() => toggleCategory(category.id)}
                           >
                             <div className="flex items-center justify-between">
@@ -436,12 +436,12 @@ export default function ChecklistEditor() {
                                 )}
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    {renderIcon(category.icon, "h-4 w-4 text-gray-600")}
-                                    <h4 className="text-sm font-medium text-gray-900">{category.name}</h4>
+                                    {renderIcon(category.icon, "h-4 w-4")}
+                                    <h4 className="text-sm font-medium">{category.name}</h4>
                                   </div>
 
                                   {category.description && (
-                                    <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                                    <p className="text-sm mt-1">{category.description}</p>
                                   )}
                                   <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
                                     <Badge variant={category.isActive ? "default" : "secondary"}>
@@ -480,8 +480,8 @@ export default function ChecklistEditor() {
                         
                         {isExpanded && (
                           <CollapsibleContent>
-                            <div className="border-t bg-gray-50 p-4">
-                              <div className="flex justify-between items-center mb-4">
+                            <div className="border-t  p-4">
+                              <div className="flex  justify-between items-center mb-4">
                                 <h5 className="text-sm font-medium">Frågor för {category.name}</h5>
                                 <Button
                                   size="sm"
@@ -494,7 +494,7 @@ export default function ChecklistEditor() {
                               
                               <div className="space-y-2">
                                 {categoryQuestions.map((question) => (
-                                  <Card key={question.id} className="bg-white">
+                                  <Card key={question.id} className="bg-background/50">
                                     <CardContent className="p-3">
                                       <div className="flex items-center justify-between">
                                         <div className="flex-1">
