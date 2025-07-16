@@ -155,7 +155,7 @@ export function HomeScreenChecklistModule({ activeChecklists, responses, checkli
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-800"
+                  className="flex items-center justify-between p-3 bg-card"
                 >
                   <div className="flex items-center space-x-3">
                     {IconComponent ? (

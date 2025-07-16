@@ -1,7 +1,4 @@
-import { type Config } from "tailwindcss";
-import animate from "tailwindcss-animate";
-import typography from "@tailwindcss/typography";
-import scrollbar from "tailwind-scrollbar";
+import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: ["class"],
@@ -9,8 +6,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        
-        
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
 
@@ -81,7 +76,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [animate, typography, scrollbar],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
 
 export default config;

@@ -55,7 +55,7 @@ function BoardCard({ board, onEdit, onDelete, onView }: BoardCardProps) {
   return (
     <Link
       href={`/kanban/${board.id}`}
-      className="block bg-white dark:bg-gray-800 rounded-2xl p-6 border border-border hover:shadow-lg transition-all group"
+      className="block bg-card rounded-2xl p-6 border border-border hover:shadow-lg transition-all group"
     >
       {/* Översta raden med ikon och namn */}
       <div className="flex items-start justify-between">
