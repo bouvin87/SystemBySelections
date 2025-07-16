@@ -93,12 +93,18 @@
     bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    height: 100dvh !important; /* Dynamic viewport height for better mobile support */
+    height: 100dvh !important;
     max-height: none !important;
+    max-width: none !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 16px !important;
     border-radius: 0 !important;
     transform: none !important;
+    translate: none !important;
+    inset: 0 !important;
+    z-index: 50 !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   /* Force fullscreen on mobile when modal is open */
