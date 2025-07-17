@@ -16,6 +16,12 @@ import {
   Filter,
   Calendar,
   Search,
+  Kanban,
+  FileText,
+  AlertTriangle,
+  BarChart3,
+  Settings,
+  Smartphone,
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,6 +44,161 @@ export default function FAQ() {
   };
 
   const faqData: FAQItem[] = [
+    // Kanban System
+    {
+      question: "Vad är Kanban-systemet och hur fungerar det?",
+      answer:
+        "Kanban-systemet är en visuell projekthanteringstjänst där du kan organisera uppgifter i kort och flytta dem mellan olika kolumner (faser). Varje kort representerar en uppgift med titel, beskrivning, status och ansvarig person.",
+      category: "Kanban",
+      examples: [
+        "Skapa nya kort genom att klicka 'Lägg till kort'",
+        "Dra och släpp kort mellan kolumner",
+        "Klicka på kort för att se detaljer och kommentera",
+        "Markera kort som viktiga för snabb åtkomst",
+      ],
+    },
+    {
+      question: "Hur lägger jag till bilder i Kanban-kort?",
+      answer:
+        "Du kan ladda upp bilder till Kanban-kort för att visualisera uppgifter eller dokumentera framsteg. Systemet stöder JPEG, PNG, GIF och WebP-format.",
+      category: "Kanban",
+      examples: [
+        "Öppna kort-detaljvyn",
+        "Klicka på 'Ladda upp fil'",
+        "Välj bild från din enhet",
+        "Bilden visas i kortets detaljer",
+      ],
+    },
+    {
+      question: "Vad betyder 'Visa i snabbåtkomst' för Kanban-tavlor?",
+      answer:
+        "Snabbåtkomst låter dig markera viktiga Kanban-tavlor som visas på startsidan för enkel navigation. Du kan också ange en sorteringsordning.",
+      category: "Kanban",
+      examples: [
+        "Gå till Kanban-översikten",
+        "Klicka på stjärnan bredvid tavlans namn",
+        "Tavlan visas nu på startsidan",
+        "Ändra sorteringsordning genom att dra och släppa",
+      ],
+    },
+
+    // Checklists och Formulär
+    {
+      question: "Hur skapar jag en ny checklista?",
+      answer:
+        "Checklister skapas genom att definiera kategorier, frågor och arbetsmoment. Du kan konfigurera olika frågetyper och kopplingar till specifika arbetsmoment.",
+      category: "Checklister",
+      examples: [
+        "Gå till Administration → Checklister",
+        "Klicka 'Ny checklista'",
+        "Fyll i namn och beskrivning",
+        "Lägg till kategorier och frågor",
+        "Konfigurera arbetsmoment-kopplingar",
+      ],
+    },
+    {
+      question: "Vilka frågetyper finns tillgängliga?",
+      answer: "Systemet stöder många olika frågetyper för att samla in olika typer av data:",
+      category: "Checklister",
+      examples: [
+        "Text - Fri text och kommentarer",
+        "Nummer - Numeriska värden med validering",
+        "Ja/Nej - Binära svar",
+        "Check - Kryssrutor för verifiering",
+        "Stjärnor - Betygsättning 1-5 stjärnor",
+        "Humör - Emoji-baserad känslobetygsättning",
+        "Datum - Datumväljare",
+        "Fil - Filuppladdning med förhandsgranskning",
+        "Dropdown - Flervalsmeny med förinställda alternativ",
+      ],
+    },
+    {
+      question: "Hur kopplar jag frågor till specifika arbetsmoment?",
+      answer:
+        "I checklist-editorn kan du redigera varje fråga och välja vilka arbetsmoment som frågan ska visas för. Frågor utan kopplingar visas för alla arbetsmoment.",
+      category: "Checklister",
+      examples: [
+        "Klicka på 'Redigera' vid frågan",
+        "Välj 'Arbetsmoment för denna fråga'",
+        "Markera relevanta arbetsmoment",
+        "Spara ändringar",
+      ],
+    },
+    {
+      question: "Hur fungerar formulärnavigering?",
+      answer:
+        "Formuläret är uppdelat i steg där operatören först fyller i identifikation, sedan besvarar frågor kategori för kategori. Bara kategorier med relevanta frågor visas.",
+      category: "Formulär",
+      examples: [
+        "Steg 1: Välj checklista",
+        "Steg 2: Fyll i operatör, arbetsmoment, station och skift",
+        "Steg 3+: Besvara frågor per kategori",
+        "Sista steget: Granska och skicka",
+      ],
+    },
+
+    // Avvikelser (Deviations)
+    {
+      question: "Vad är avvikelser och hur hanteras de?",
+      answer:
+        "Avvikelser är problem eller incidenter som rapporteras och följs upp systematiskt. De kan prioriteras, tilldelas ansvariga personer och kommenteras för uppföljning.",
+      category: "Avvikelser",
+      examples: [
+        "Rapportera avvikelse via formulär eller snabbknapp",
+        "Tilldela prioritet och ansvarig person",
+        "Följ status från 'Ny' till 'Löst'",
+        "Kommentera för kommunikation",
+        "Ladda upp bilder som dokumentation",
+      ],
+    },
+    {
+      question: "Vilka statusar kan avvikelser ha?",
+      answer:
+        "Avvikelser följer en definierad arbetsflödesprocess med olika statusar som kan konfigureras per organisation.",
+      category: "Avvikelser",
+      examples: [
+        "Ny - Nyligen rapporterad avvikelse",
+        "Under utredning - Aktivt arbete pågår",
+        "Väntar - Väntar på externa faktorer",
+        "Löst - Avvikelse är åtgärdad",
+        "Stängd - Slutgiltigt avslutad",
+      ],
+    },
+    {
+      question: "Hur fungerar e-postnotiser för avvikelser?",
+      answer:
+        "Systemet skickar automatiska e-postnotiser när viktiga händelser inträffar med avvikelser för att hålla alla informerade.",
+      category: "Avvikelser",
+      examples: [
+        "Ny avvikelse skapad",
+        "Avvikelse tilldelad till mig",
+        "Status ändrad på avvikelse jag följer",
+        "Kommentar tillagd",
+        "Avvikelse uppdaterad",
+      ],
+    },
+    {
+      question: "Vad är 'dölj' funktionen för avvikelser?",
+      answer:
+        "Administratörer kan dölja känsliga avvikelser så de bara syns för berörda parter: skapare, tilldelade, avdelningschefer och administratörer.",
+      category: "Avvikelser",
+    },
+    {
+      question: "Vilka extrafält kan jag lägga till för avvikelser?",
+      answer:
+        "Administratörer kan skapa anpassade fält för att samla in specifik information baserat på avvikelsetyp.",
+      category: "Avvikelser",
+      examples: [
+        "Text - Fritext för beskrivningar",
+        "Nummer - Numeriska värden",
+        "Kryssruta - Ja/nej alternativ",
+        "Datum - Datumval",
+        "Dropdown - Förinställda alternativ",
+        "Koppla fält till specifika avvikelsetyper",
+      ],
+    },
+
+    // Dashboard och Rapporter
     {
       question: "Hur fungerar URL-filtrering i dashboard?",
       answer:
@@ -77,34 +238,16 @@ export default function FAQ() {
       ],
     },
     {
-      question: "Hur kopplar jag frågor till specifika arbetsmoment?",
+      question: "Hur fungerar dashboard-statistik?",
       answer:
-        "I checklist-editorn kan du redigera varje fråga och välja vilka arbetsmoment som frågan ska visas för. Frågor utan kopplingar visas för alla arbetsmoment.",
-      category: "Frågor",
+        "Dashboard visar sammanfattande statistik baserat på dina filter. Statistiken uppdateras automatiskt när du ändrar filter.",
+      category: "Dashboard",
       examples: [
-        "Klicka på 'Redigera' vid frågan",
-        "Välj 'Arbetsmoment för denna fråga'",
-        "Markera relevanta arbetsmoment",
-        "Spara ändringar",
-      ],
-    },
-    {
-      question:
-        "Vad händer om jag inte väljer några arbetsmoment för en fråga?",
-      answer:
-        "Frågor utan specifika arbetsmoment-kopplingar visas alltid, oavsett vilket arbetsmoment operatören väljer i formuläret.",
-      category: "Frågor",
-    },
-    {
-      question: "Hur fungerar formulärnavigering?",
-      answer:
-        "Formuläret är uppdelat i steg där operatören först fyller i identifikation, sedan besvarar frågor kategori för kategori. Bara kategorier med relevanta frågor visas.",
-      category: "Formulär",
-      examples: [
-        "Steg 1: Välj checklista",
-        "Steg 2: Fyll i operatör, arbetsmoment, station och skift",
-        "Steg 3+: Besvara frågor per kategori",
-        "Sista steget: Granska och skicka",
+        "Totalt antal svar",
+        "Senaste svar",
+        "Frågestatistik per typ",
+        "Trender över tid",
+        "Genomsnittsvärden för numeriska frågor",
       ],
     },
     {
@@ -113,30 +256,54 @@ export default function FAQ() {
         "Ja, URL:en uppdateras automatiskt när du ändrar filter. Du kan kopiera URL:en och dela med andra eller skapa bokmärken för vanliga filtervyer.",
       category: "Dashboard",
     },
+
+    // Administration och Användarhantering
     {
-      question: "Vad är skillnaden mellan olika frågetyper?",
-      answer: "Systemet stöder flera frågetyper för olika typer av data:",
-      category: "Frågor",
+      question: "Vilka användarroller finns i systemet?",
+      answer:
+        "Systemet har rollbaserad åtkomstkontroll med olika behörighetsnivåer för att säkerställa rätt personer har rätt tillgång.",
+      category: "Administration",
       examples: [
-        "Text - Fri text och kommentarer",
-        "Tal - Numeriska värden",
-        "Ja/Nej - Binära svar",
-        "Check - Kryssrutor för verifiering",
-        "Stjärnor - Betygsättning 1-5",
-        "Datum - Datumväljare",
-        "Fil - Filuppladdning",
+        "Superadmin - Full systemåtkomst, hanterar tenants",
+        "Admin - Full åtkomst inom organisation",
+        "Underadmin - Begränsad administrativ åtkomst",
+        "User - Grundläggande användaråtkomst",
       ],
     },
     {
-      question: "Hur fungerar dashboard-statistik?",
+      question: "Hur hanteras användargrupper och avdelningar?",
       answer:
-        "Dashboard visar sammanfattande statistik baserat på dina filter. Statistiken uppdateras automatiskt när du ändrar filter.",
-      category: "Dashboard",
+        "Användare kan tillhöra flera avdelningar och roller för flexibel organisationsstruktur och behörighetshantering.",
+      category: "Administration",
       examples: [
-        "Totalt antal svar",
-        "Senaste svar",
-        "Frågestatistik",
-        "Trender över tid",
+        "Skapa avdelningar i admin-panelen",
+        "Tilldela användare till avdelningar",
+        "Konfigurera roller per avdelning",
+        "Hantera åtkomstbehörigheter",
+      ],
+    },
+    {
+      question: "Vad är systemmeddelanden?",
+      answer:
+        "Superadmins kan skapa globala meddelanden som visas för alla användare när de loggar in. Bara ett aktivt meddelande kan finnas åt gången.",
+      category: "Administration",
+      examples: [
+        "Planerat systemunderhåll",
+        "Nya funktioner",
+        "Viktiga systemändringar",
+        "Policypåminnelser",
+      ],
+    },
+    {
+      question: "Hur fungerar modulhanteringen?",
+      answer:
+        "Systemet använder modulbaserad arkitektur där tenants kan aktivera specifika funktioner baserat på sina behov.",
+      category: "Administration",
+      examples: [
+        "Checklister-modul för produktionsloggning",
+        "Avvikelser-modul för problemhantering",
+        "Kanban-modul för projekthantering",
+        "Dashboard-modul för rapportering",
       ],
     },
     {
@@ -144,6 +311,57 @@ export default function FAQ() {
       answer:
         "Befintliga svar påverkas inte av ändringar i checklistan. Nya svar kommer att använda den uppdaterade versionen av checklistan.",
       category: "Administration",
+    },
+
+    // Mobilanvändning och Teknik
+    {
+      question: "Fungerar systemet på mobila enheter?",
+      answer:
+        "Ja, systemet är fullt responsivt och optimerat för mobila enheter med touch-vänlig navigation och fullskärmsläge för formulär.",
+      category: "Teknik",
+      examples: [
+        "Automatisk anpassning till skärmstorlek",
+        "Touch-optimerade knappar och gester",
+        "Fullskärmsformulär på mobil",
+        "Snabb laddning och offline-stöd",
+      ],
+    },
+    {
+      question: "Vilka webbläsare stöds?",
+      answer:
+        "Systemet fungerar i alla moderna webbläsare och kräver JavaScript för full funktionalitet.",
+      category: "Teknik",
+      examples: [
+        "Chrome (senaste versioner)",
+        "Firefox (senaste versioner)",
+        "Safari (senaste versioner)",
+        "Edge (senaste versioner)",
+      ],
+    },
+    {
+      question: "Hur hanteras filuppladdningar?",
+      answer:
+        "Systemet stöder säker filuppladdning med automatisk validering, förhandsgranskning och komprimering.",
+      category: "Teknik",
+      examples: [
+        "Bilder: JPEG, PNG, GIF, WebP",
+        "Dokument: PDF",
+        "Maxstorlek: 10MB per fil",
+        "Automatisk komprimering för snabbare laddning",
+      ],
+    },
+    {
+      question: "Hur säkert är systemet?",
+      answer:
+        "Systemet använder moderna säkerhetsstandarder för att skydda data och användare.",
+      category: "Teknik",
+      examples: [
+        "JWT-baserad autentisering",
+        "Krypterad dataöverföring (HTTPS)",
+        "Rollbaserad åtkomstkontroll",
+        "Tenant-isolering för multi-tenant säkerhet",
+        "Regelbundna säkerhetsuppdateringar",
+      ],
     },
   ];
 
@@ -235,17 +453,26 @@ export default function FAQ() {
           <Card key={category} className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {category === "Dashboard" && (
-                  <Filter className="h-5 w-5 text-green-600" />
+                {category === "Kanban" && (
+                  <Kanban className="h-5 w-5 text-purple-600" />
                 )}
-                {category === "Frågor" && (
-                  <HelpCircle className="h-5 w-5 text-blue-600" />
+                {category === "Checklister" && (
+                  <FileText className="h-5 w-5 text-blue-600" />
                 )}
                 {category === "Formulär" && (
-                  <Search className="h-5 w-5 text-purple-600" />
+                  <Search className="h-5 w-5 text-indigo-600" />
+                )}
+                {category === "Avvikelser" && (
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                )}
+                {category === "Dashboard" && (
+                  <BarChart3 className="h-5 w-5 text-green-600" />
                 )}
                 {category === "Administration" && (
-                  <Calendar className="h-5 w-5 text-orange-600" />
+                  <Settings className="h-5 w-5 text-orange-600" />
+                )}
+                {category === "Teknik" && (
+                  <Smartphone className="h-5 w-5 text-gray-600" />
                 )}
                 {category}
               </CardTitle>

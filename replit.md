@@ -122,6 +122,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+- **July 17, 2025**: Comprehensive FAQ update and mobile CSS fix
+  - Updated FAQ with complete coverage of all system features
+  - Added new categories: Kanban, Checklister, Avvikelser, Teknik 
+  - Enhanced mobile-fullscreen CSS with proper positioning and padding
+  - Fixed FormModal mobile display issues with inset: 0 and translate: none
+  - Added colorful category icons for better visual organization
+
 - **July 16, 2025**: Fixed Tailwind CSS 4 compatibility issues
   - Updated from Tailwind CSS 3.4.17 to 4.1.11 for better performance and features
   - Installed @tailwindcss/postcss package for proper PostCSS integration

@@ -207,7 +207,7 @@ function DeviationSettingsTab() {
             Använd prioritet
           </Label>
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className="text-sm text-muted-foreground">
           När aktiverad visas en snabbknapp för att skapa avvikelser direkt från
           huvudmenyn.
         </p>
@@ -829,7 +829,7 @@ export default function Admin() {
                         <TableRow>
                           <TableCell
                             colSpan={5}
-                            className="text-center text-gray-500"
+                            className="text-center text-muted-foreground"
                           >
                             Inga användare hittades
                           </TableCell>
@@ -876,18 +876,18 @@ export default function Admin() {
                               <div className="flex items-center gap-2">
                                 {renderIcon(
                                   checklist.icon,
-                                  "h-4 w-4 text-gray-600",
+                                  "h-4 w-4 text-foreground",
                                 )}
-                                <h4 className="text-sm font-medium text-gray-900">
+                                <h4 className="text-sm font-medium text-foreground">
                                   {checklist.name}
                                 </h4>
                               </div>
                               {checklist.description && (
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-muted-foreground">
                                   {checklist.description}
                                 </p>
                               )}
-                              <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                              <div className="mt-2 flex items-center space-x-4 text-xs text-muted-foreground">
                                 <Badge
                                   variant={
                                     checklist.isActive ? "default" : "secondary"
@@ -994,10 +994,10 @@ export default function Admin() {
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
-                                <h4 className="text-sm font-medium text-gray-900">
+                                <h4 className="text-sm font-medium text-foreground">
                                   {task.name}
                                 </h4>
-                                <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                                <div className="mt-2 flex items-center space-x-4 text-xs text-muted-foreground">
                                   {task.hasStations && (
                                     <Badge variant="outline">
                                       {t("admin.hasStations")}
@@ -1064,10 +1064,10 @@ export default function Admin() {
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
-                                <h4 className="text-sm font-medium text-gray-900">
+                                <h4 className="text-sm font-medium text-foreground">
                                   {station.name}
                                 </h4>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-foreground">
                                   {t("admin.workTask")}:{" "}
                                   {workTasks.find(
                                     (t) => t.id === station.workTaskId,
@@ -1135,10 +1135,10 @@ export default function Admin() {
                           <CardContent className="p-4">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                               <div className="flex-1">
-                                <h4 className="text-sm font-medium text-gray-900">
+                                <h4 className="text-sm font-medium text-foreground">
                                   {shift.name}
                                 </h4>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-muted-foreground">
                                   {shift.startTime} - {shift.endTime}
                                 </p>
                                 <div className="mt-2">
@@ -1215,11 +1215,11 @@ export default function Admin() {
                                   style={{ backgroundColor: department.color }}
                                 />
                                 <div className="flex-1">
-                                  <h4 className="text-sm font-medium text-gray-900">
+                                  <h4 className="text-sm font-medium text-foreground">
                                     {department.name}
                                   </h4>
                                   {department.description && (
-                                    <p className="text-sm text-gray-600 mt-1">
+                                    <p className="text-sm text-muted-foreground mt-1">
                                       {department.description}
                                     </p>
                                   )}
@@ -1236,7 +1236,7 @@ export default function Admin() {
                                         : "Inaktiv"}
                                     </Badge>
                                     {department.responsibleUserId && (
-                                      <p className="text-xs text-gray-500">
+                                      <p className="text-xs text-muted-foreground">
                                         Ansvarig:{" "}
                                         {
                                           users.find(
@@ -1284,7 +1284,7 @@ export default function Admin() {
                       ))}
                       {departments.length === 0 && (
                         <Card>
-                          <CardContent className="p-8 text-center text-gray-500">
+                          <CardContent className="p-8 text-center text-muted-foreground">
                             <p>Inga avdelningar skapade än.</p>
                             <p className="text-sm mt-1">
                               Klicka på "Lägg till avdelning" för att komma
@@ -1404,10 +1404,10 @@ export default function Admin() {
                       </TabsContent>
 
                       <TabsContent value="types" className="space-y-6">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Avvikelsetyper
-                          </h3>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <h3 className="text-lg font-semibold text-foreground">
+                              Avvikelsetyper
+                            </h3>
                           <div></div>
                           <Dialog
                             open={dialogOpen && activeTab === "deviations"}
@@ -1564,7 +1564,7 @@ export default function Admin() {
                           ))}
                           {deviationTypes.length === 0 && (
                             <Card>
-                              <CardContent className="p-8 text-center text-gray-500">
+                              <CardContent className="p-8 text-center text-muted-foreground">
                                 <p>Inga avvikelsetyper skapade än.</p>
                                 <p className="text-sm mt-1">
                                   Klicka på "Lägg till avvikelsetyp" för att
@@ -1748,8 +1748,8 @@ function DeviationPrioritiesManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Avvikelseprioriteter</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h3 className="text-lg font-semibold text-foreground">Avvikelseprioriteter</h3>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -2136,8 +2136,8 @@ function DeviationStatusesManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Avvikelsestatus</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h3 className="text-lg font-semibold text-foreground">Avvikelsestatus</h3>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
