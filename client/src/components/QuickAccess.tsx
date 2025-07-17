@@ -144,7 +144,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       {
         id: "checklist-link",
         icon: <LayoutDashboard className="h-5 w-5" />,
-        label: "Dashboards",
+        label: "Alla",
         onClick: () => {
           setLocation("/checklists");
           setOpenSubmenuId(null);
@@ -197,7 +197,7 @@ function QuickAccess({ onChecklistSelect }: QuickAccessProps) {
       {
         id: "kanban-link",
         icon: <LayoutDashboard className="h-5 w-5" />,
-        label: "Dashboards",
+        label: "Alla",
         onClick: () => {
           setLocation("/kanban");
           setOpenSubmenuId(null);

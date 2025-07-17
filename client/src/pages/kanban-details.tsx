@@ -811,43 +811,17 @@ export default function KanbanDetails() {
 
       <KanbanCardModal
         open={showCardModal}
-        onOpenChange={setShowCardModal}
+        onOpenChange={(open) => {
+          setShowCardModal(open);
+          if (!open) {
+            setEditingCard(null);
+            setSelectedColumnId(null);
+          }
+        }}
         columnId={selectedColumnId || ""}
         board={board}
         card={editingCard}
         defaultTab={defaultCardTab}
-        onSubmit={async (data) => {
-          try {
-            if (editingCard) {
-              await apiRequest(
-                "PATCH",
-                `/api/kanban/cards/${editingCard.id}`,
-                data,
-              );
-            } else {
-              await apiRequest("POST", `/api/kanban/cards`, {
-                ...data,
-                columnId: selectedColumnId,
-              });
-            }
-            setShowCardModal(false);
-            setEditingCard(null);
-            setSelectedColumnId(null);
-            queryClient.invalidateQueries({
-              queryKey: [`/api/kanban/boards/${boardId}/cards`],
-            });
-            toast({
-              title: "Kort sparat",
-              description: "Kortet har sparats framgångsrikt.",
-            });
-          } catch (error: any) {
-            toast({
-              title: "Fel",
-              description: error.message || "Kunde inte spara kortet.",
-              variant: "destructive",
-            });
-          }
-        }}
       />
       <KanbanBoardModal
         open={showBoardModal}

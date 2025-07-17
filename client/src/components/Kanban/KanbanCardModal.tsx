@@ -13,7 +13,7 @@ import * as Icons from "lucide-react";
 import { KanbanCard } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { KanbanCardComments } from "./KanbanCardComments";
 import { KanbanCardAttachments } from "./KanbanCardAttachments";
@@ -22,7 +22,6 @@ interface KanbanCardModalProps {
   onOpenChange: (open: boolean) => void;
   card?: KanbanCard | null;
   columnId?: string | null;
-  onSubmit: (data: any) => void;
   board: any;
   defaultTab?: "details" | "comments" | "attachments";
 }
@@ -44,7 +43,6 @@ export function KanbanCardModal({
   onOpenChange, 
   card, 
   columnId,
-  onSubmit,
   board,
   defaultTab = "details"
 }: KanbanCardModalProps) {
@@ -63,6 +61,57 @@ export function KanbanCardModal({
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const { user } = useAuth();
   const isOwner = user?.id === board.ownerUserId || user?.role === "admin";
+
+  // Create card mutation
+  const createCardMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", "/api/kanban/cards", {
+        ...data,
+        columnId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/boards/${board.id}/cards`],
+      });
+      onOpenChange(false);
+      toast({
+        title: "Kort skapat",
+        description: "Kortet har skapats framgångsrikt.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte skapa kortet.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update card mutation
+  const updateCardMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("PATCH", `/api/kanban/cards/${card?.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/kanban/boards/${board.id}/cards`],
+      });
+      onOpenChange(false);
+      toast({
+        title: "Kort uppdaterat",
+        description: "Kortet har uppdaterats framgångsrikt.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Fel",
+        description: error.message || "Kunde inte uppdatera kortet.",
+        variant: "destructive",
+      });
+    },
+  });
   
   useEffect(() => {
     if (card) {
@@ -91,9 +140,20 @@ export function KanbanCardModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    
+    // Validate required fields
+    if (!title.trim()) {
+      toast({
+        title: "Titel saknas",
+        description: "Du måste ange en titel för kortet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = {
       columnId,
-      title,
+      title: title.trim(),
       description,
       icon,
       position,
@@ -102,8 +162,17 @@ export function KanbanCardModal({
       commentsEnabled,
       labels,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
-    });
+    };
+
+    if (card) {
+      updateCardMutation.mutate(data);
+    } else {
+      createCardMutation.mutate(data);
+    }
   };
+
+  // Check if form is submitting
+  const isSubmitting = createCardMutation.isPending || updateCardMutation.isPending;
 
   const handleAddLabel = () => {
     if (newLabel.trim() && !labels.includes(newLabel.trim())) {
@@ -148,6 +217,18 @@ export function KanbanCardModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* Overlay when submitting */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-sm font-medium">
+              {card ? "Uppdaterar kort..." : "Skapar kort..."}
+            </span>
+          </div>
+        </div>
+      )}
+      
       <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -326,11 +407,17 @@ export function KanbanCardModal({
 
                 {/* Högersida: Avbryt & Spara */}
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                     Avbryt
                   </Button>
-                  <Button type="submit" disabled={!title.trim()}>
-                    {card ? "Uppdatera" : "Skapa"}
+                  <Button type="submit" disabled={!title.trim() || isSubmitting}>
+                    {isSubmitting
+                      ? card 
+                        ? "Uppdaterar..."
+                        : "Skapar..."
+                      : card 
+                        ? "Uppdatera"
+                        : "Skapa"}
                   </Button>
                 </div>
               </div>
