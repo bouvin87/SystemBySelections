@@ -217,10 +217,10 @@ export function KanbanCardModal({
 
   return (
     <Dialog open={open} onOpenChange={!isSubmitting ? onOpenChange : undefined}>
-      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto relative">
         {/* Overlay when submitting */}
         {isSubmitting && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center rounded-lg">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <p className="text-sm text-muted-foreground">
