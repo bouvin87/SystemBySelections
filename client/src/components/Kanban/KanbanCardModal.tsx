@@ -216,20 +216,19 @@ export function KanbanCardModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Overlay when submitting */}
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex items-center gap-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="text-sm font-medium">
-              {card ? "Uppdaterar kort..." : "Skapar kort..."}
-            </span>
-          </div>
-        </div>
-      )}
-      
+    <Dialog open={open} onOpenChange={!isSubmitting ? onOpenChange : undefined}>
       <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
+        {/* Overlay when submitting */}
+        {isSubmitting && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="text-sm text-muted-foreground">
+                {card ? "Uppdaterar kort..." : "Skapar kort..."}
+              </p>
+            </div>
+          </div>
+        )}
         <DialogHeader>
           <DialogTitle>
             {card ? "Redigera Kort" : "Skapa Nytt Kort"}
