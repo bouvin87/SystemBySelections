@@ -220,10 +220,10 @@ export function KanbanCardModal({
       <DialogContent className="max-w-4xl max-h-screen overflow-y-auto relative">
         {/* Overlay when submitting */}
         {isSubmitting && (
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center rounded-lg">
-            <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="text-sm text-muted-foreground">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-9999 flex items-center justify-center rounded-lg">
+            <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3 shadow-xl border">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <p className="text-sm font-medium text-gray-700">
                 {card ? "Uppdaterar kort..." : "Skapar kort..."}
               </p>
             </div>
