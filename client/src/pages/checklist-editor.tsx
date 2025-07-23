@@ -548,7 +548,7 @@ export default function ChecklistEditor() {
 
             {/* Question Dialog */}
             <Dialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen}>
-              <DialogContent className="max-h-screen overflow-y-auto">
+              <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg mobile-fullscreen scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                 <DialogHeader>
                   <DialogTitle>
                     {editingQuestion ? "Redigera fråga" : "Ny fråga"}

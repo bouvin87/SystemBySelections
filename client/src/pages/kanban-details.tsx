@@ -87,7 +87,7 @@ function KanbanCardComponent({
         // Alternativt: tryck-ikon istället för hela kortet
         if (onContextMenu) onContextMenu(e, card.id);
       }}
-      className="relative bg-card rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
+      className="relative bg-background/80 rounded-2xl border border-border cursor-pointer hover:shadow-md transition-shadow touch-manipulation select-none"
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2">
@@ -174,7 +174,7 @@ function KanbanColumnComponent({
   return (
     <Card
       ref={setNodeRef}
-      className={`min-w-[300px] max-w-[300px] bg-surface border border-border rounded-2xl shadow-xs ${
+      className={`min-w-[300px] max-w-[300px] bg-card border border-border rounded-2xl shadow-xs ${
         isOver ? "ring-2 ring-primary/50 bg-primary/5" : ""
       }`}
     >
@@ -621,6 +621,19 @@ export default function KanbanDetails() {
 
   const getCardMenuEntries = (): ContextMenuEntry[] => [
     {
+      id: "edit",
+      label: "Redigera kort",
+      icon: <Pencil className="w-4 h-4" />,
+      onClick: () => {
+        const card = allCards.find((c) => c.id === menuCardId);
+        if (card) handleEditCard(card);
+      },
+    },
+    {
+      id: "divider-1",
+      type: "divider",
+    },
+    {
       id: "comments",
       label: "Kommentarer",
       icon: <MessageSquare className="w-4 h-4" />,
@@ -646,19 +659,7 @@ export default function KanbanDetails() {
         }
       },
     },
-    {
-      id: "divider-1",
-      type: "divider",
-    },
-    {
-      id: "edit",
-      label: "Redigera kort",
-      icon: <Pencil className="w-4 h-4" />,
-      onClick: () => {
-        const card = allCards.find((c) => c.id === menuCardId);
-        if (card) handleEditCard(card);
-      },
-    },
+
   ];
   return (
     <div

@@ -191,7 +191,7 @@ export function KanbanBoardModal({
 
           <div className="flex justify-between pt-4">
             <div>
-              {isOwner && (
+              {isOwner && board && (
                 <Button
                   type="button"
                   variant="destructive"

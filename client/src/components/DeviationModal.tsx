@@ -28,6 +28,7 @@ import { FloatingInput } from "./ui/floatingInput";
 import { FloatingTextarea } from "./ui/floatingTextarea";
 import { FloatingSelect } from "./ui/floatingSelect";
 import { FloatingDatePicker } from "./ui/floatingDatePicker";
+import { useIsMobile } from "@/hooks/use-mobile";
 interface DeviationType {
   id: number;
   tenantId: number;
@@ -567,50 +568,14 @@ else {
   const isSubmitting =
     createDeviationMutation.isPending || updateDeviationMutation.isPending;
 
-  // Auto-hide URL bar on mobile when modal opens
-  useEffect(() => {
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isOpen && isMobile) {
-      // Set body to fullscreen mode
-      const originalBodyStyle = {
-        height: document.body.style.height,
-        overflow: document.body.style.overflow,
-        position: document.body.style.position,
-      };
+  const isMobile = useIsMobile();
 
-      // Apply fullscreen styles
-      document.body.style.height = '100vh';
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
-      document.body.style.top = '0';
-
-      // Force minimal-ui viewport
-      const viewport = document.querySelector('meta[name="viewport"]');
-      const originalViewport = viewport?.getAttribute('content');
-      if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, minimal-ui');
-      }
-
-      // Cleanup on modal close
-      return () => {
-        document.body.style.height = originalBodyStyle.height;
-        document.body.style.overflow = originalBodyStyle.overflow;
-        document.body.style.position = originalBodyStyle.position;
-        document.body.style.width = '';
-        document.body.style.top = '';
-        
-        if (viewport && originalViewport) {
-          viewport.setAttribute('content', originalViewport);
-        }
-      };
-    }
-  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={!isSubmitting ? onClose : undefined}>
-      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg mobile-fullscreen scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+      <DialogContent className={`w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent ${
+          isMobile ? "mobile-fullscreen" : ""
+        }`}>
         {isSubmitting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center">
             <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">

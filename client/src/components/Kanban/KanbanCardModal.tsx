@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +28,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { KanbanCardComments } from "./KanbanCardComments";
 import { KanbanCardAttachments } from "./KanbanCardAttachments";
+import { useIsMobile } from "@/hooks/use-mobile";
 interface KanbanCardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,24 +39,35 @@ interface KanbanCardModalProps {
 }
 
 const CARD_ICONS = [
-  "FileText", "CheckSquare", "AlertCircle", "Star", "Flag", "Bookmark",
-  "Tag", "Calendar", "Clock", "User", "Users", "MessageSquare", "Paperclip"
+  "FileText",
+  "CheckSquare",
+  "AlertCircle",
+  "Star",
+  "Flag",
+  "Bookmark",
+  "Tag",
+  "Calendar",
+  "Clock",
+  "User",
+  "Users",
+  "MessageSquare",
+  "Paperclip",
 ];
 
 const PRIORITY_LEVELS = [
   { value: "low", label: "Låg", color: "bg-green-100 text-green-800" },
   { value: "medium", label: "Medium", color: "bg-yellow-100 text-yellow-800" },
   { value: "high", label: "Hög", color: "bg-orange-100 text-orange-800" },
-  { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800" }
+  { value: "urgent", label: "Urgent", color: "bg-red-100 text-red-800" },
 ];
 
-export function KanbanCardModal({ 
-  open, 
-  onOpenChange, 
-  card, 
+export function KanbanCardModal({
+  open,
+  onOpenChange,
+  card,
   columnId,
   board,
-  defaultTab = "details"
+  defaultTab = "details",
 }: KanbanCardModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -112,7 +135,7 @@ export function KanbanCardModal({
       });
     },
   });
-  
+
   useEffect(() => {
     if (card) {
       setTitle(card.title);
@@ -123,7 +146,9 @@ export function KanbanCardModal({
       setCompleted(card.completed || false);
       setCommentsEnabled(card.commentsEnabled !== false);
       setLabels(card.labels || []);
-      setDueDate(card.dueDate ? new Date(card.dueDate).toISOString().split('T')[0] : "");
+      setDueDate(
+        card.dueDate ? new Date(card.dueDate).toISOString().split("T")[0] : "",
+      );
     } else {
       setTitle("");
       setDescription("");
@@ -140,7 +165,7 @@ export function KanbanCardModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!title.trim()) {
       toast({
@@ -172,7 +197,8 @@ export function KanbanCardModal({
   };
 
   // Check if form is submitting
-  const isSubmitting = createCardMutation.isPending || updateCardMutation.isPending;
+  const isSubmitting =
+    createCardMutation.isPending || updateCardMutation.isPending;
 
   const handleAddLabel = () => {
     if (newLabel.trim() && !labels.includes(newLabel.trim())) {
@@ -182,11 +208,11 @@ export function KanbanCardModal({
   };
 
   const handleRemoveLabel = (labelToRemove: string) => {
-    setLabels(labels.filter(label => label !== labelToRemove));
+    setLabels(labels.filter((label) => label !== labelToRemove));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleAddLabel();
     }
@@ -214,21 +240,26 @@ export function KanbanCardModal({
     const Icon = (Icons as any)[iconName] || Icons.FileText;
     return <Icon className="h-4 w-4" />;
   };
-
+  const isMobile = useIsMobile();
   return (
     <Dialog open={open} onOpenChange={!isSubmitting ? onOpenChange : undefined}>
-      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto">
-        {/* Overlay when submitting */}
-        {isSubmitting && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <p className="text-sm text-muted-foreground">
-                {card ? "Uppdaterar kort..." : "Skapar kort..."}
-              </p>
-            </div>
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-9999 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 flex flex-col items-center gap-3 shadow-lg">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-sm text-muted-foreground">
+              {card ? "Uppdaterar kort..." : "Skapar kort..."}
+            </p>
           </div>
-        )}
+        </div>
+      )}
+      <DialogContent
+        className={`w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent ${
+          isMobile ? "mobile-fullscreen" : ""
+        }`}
+      >
+        {/* Overlay when submitting */}
+
         <DialogHeader>
           <DialogTitle>
             {card ? "Redigera Kort" : "Skapa Nytt Kort"}
@@ -241,11 +272,19 @@ export function KanbanCardModal({
               <FileText className="h-4 w-4" />
               Detaljer
             </TabsTrigger>
-            <TabsTrigger value="comments" className="flex items-center gap-2" disabled={!card}>
+            <TabsTrigger
+              value="comments"
+              className="flex items-center gap-2"
+              disabled={!card}
+            >
               <MessageSquare className="h-4 w-4" />
               Kommentarer
             </TabsTrigger>
-            <TabsTrigger value="attachments" className="flex items-center gap-2" disabled={!card}>
+            <TabsTrigger
+              value="attachments"
+              className="flex items-center gap-2"
+              disabled={!card}
+            >
               <Paperclip className="h-4 w-4" />
               Bilagor
             </TabsTrigger>
@@ -253,140 +292,151 @@ export function KanbanCardModal({
 
           <TabsContent value="details">
             <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Titel *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Kortets titel"
-              required
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Titel *</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Kortets titel"
+                  required
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Beskrivning</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Beskrivning av kortet"
-              rows={4}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Beskrivning</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Beskrivning av kortet"
+                  rows={4}
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="icon">Ikon</Label>
-              <Select value={icon} onValueChange={setIcon}>
-                <SelectTrigger>
-                  <SelectValue>
-                    <div className="flex items-center gap-2">
-                      {getIcon(icon)}
-                      <span className="truncate">{icon}</span>
-                    </div>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {CARD_ICONS.map((iconName) => (
-                    <SelectItem key={iconName} value={iconName}>
-                      <div className="flex items-center gap-2">
-                        {getIcon(iconName)}
-                        <span>{iconName}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="icon">Ikon</Label>
+                  <Select value={icon} onValueChange={setIcon}>
+                    <SelectTrigger>
+                      <SelectValue>
+                        <div className="flex items-center gap-2">
+                          {getIcon(icon)}
+                          <span className="truncate">{icon}</span>
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CARD_ICONS.map((iconName) => (
+                        <SelectItem key={iconName} value={iconName}>
+                          <div className="flex items-center gap-2">
+                            {getIcon(iconName)}
+                            <span>{iconName}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                type="number"
-                value={position}
-                onChange={(e) => setPosition(parseInt(e.target.value) || 0)}
-                placeholder="Position"
-                min="0"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="priorityLevel">Prioritetsnivå</Label>
-            <Select value={priorityLevel} onValueChange={setPriorityLevel}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PRIORITY_LEVELS.map((priority) => (
-                  <SelectItem key={priority.value} value={priority.value}>
-                    <span className={`px-2 py-1 rounded text-xs ${priority.color}`}>
-                      {priority.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">Förfallodatum</Label>
-            <Input
-              id="dueDate"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Etiketter</Label>
-            <div className="flex gap-2 mb-2">
-              <Input
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Lägg till etikett"
-                className="flex-1"
-              />
-              <Button type="button" onClick={handleAddLabel} variant="outline">
-                Lägg till
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {labels.map((label) => (
-                <Badge key={label} variant="secondary" className="flex items-center gap-1">
-                  {label}
-                  <X 
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => handleRemoveLabel(label)}
+                <div className="space-y-2">
+                  <Label htmlFor="position">Position</Label>
+                  <Input
+                    id="position"
+                    type="number"
+                    value={position}
+                    onChange={(e) => setPosition(parseInt(e.target.value) || 0)}
+                    placeholder="Position"
+                    min="0"
                   />
-                </Badge>
-              ))}
-            </div>
-          </div>
+                </div>
+              </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="completed"
-                checked={completed}
-                onCheckedChange={setCompleted}
-              />
-              <Label htmlFor="completed">Markera som slutförd</Label>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="priorityLevel">Prioritetsnivå</Label>
+                <Select value={priorityLevel} onValueChange={setPriorityLevel}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_LEVELS.map((priority) => (
+                      <SelectItem key={priority.value} value={priority.value}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs ${priority.color}`}
+                        >
+                          {priority.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="commentsEnabled"
-                checked={commentsEnabled}
-                onCheckedChange={setCommentsEnabled}
-              />
-              <Label htmlFor="commentsEnabled">Aktivera kommentarer</Label>
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="dueDate">Förfallodatum</Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+              </div>
+
+              {/* <div className="space-y-2">
+                <Label>Etiketter</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Lägg till etikett"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleAddLabel}
+                    variant="outline"
+                  >
+                    Lägg till
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {labels.map((label) => (
+                    <Badge
+                      key={label}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {label}
+                      <X
+                        className="h-3 w-3 cursor-pointer"
+                        onClick={() => handleRemoveLabel(label)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              </div> */}
+
+              {/*<div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="completed"
+                    checked={completed}
+                    onCheckedChange={setCompleted}
+                  />
+                  <Label htmlFor="completed">Markera som slutförd</Label>
+                </div> 
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="commentsEnabled"
+                    checked={commentsEnabled}
+                    onCheckedChange={setCommentsEnabled}
+                  />
+                  <Label htmlFor="commentsEnabled">Aktivera kommentarer</Label>
+                </div>
+              </div>
+              */}
 
               <div className="flex justify-between items-center pt-4">
                 {/* Vänstersida: Soptunna */}
@@ -394,8 +444,8 @@ export function KanbanCardModal({
                   {isOwner && (
                     <Button
                       type="button"
-                      variant="ghost"
-                      className="text-red-500 hover:text-red-700"
+                      variant="destructive"
+                      className=""
                       onClick={handleDelete}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -406,15 +456,23 @@ export function KanbanCardModal({
 
                 {/* Högersida: Avbryt & Spara */}
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    disabled={isSubmitting}
+                  >
                     Avbryt
                   </Button>
-                  <Button type="submit" disabled={!title.trim() || isSubmitting}>
+                  <Button
+                    type="submit"
+                    disabled={!title.trim() || isSubmitting}
+                  >
                     {isSubmitting
-                      ? card 
+                      ? card
                         ? "Uppdaterar..."
                         : "Skapar..."
-                      : card 
+                      : card
                         ? "Uppdatera"
                         : "Skapa"}
                   </Button>

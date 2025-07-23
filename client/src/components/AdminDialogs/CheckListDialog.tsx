@@ -9,7 +9,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +34,6 @@ interface ChecklistDialogProps {
   setSelectedWorkTaskIds: (ids: number[]) => void;
   workTasks: WorkTask[];
   handleSubmit: (formData: FormData) => void;
-
 }
 
 export default function ChecklistDialog({
@@ -41,13 +46,12 @@ export default function ChecklistDialog({
   setSelectedWorkTaskIds,
   workTasks,
   handleSubmit,
-
 }: ChecklistDialogProps) {
   const { t } = useTranslation();
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-h-screen overflow-y-auto">
+      <DialogContent className="w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg mobile-fullscreen scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
         <DialogHeader>
           <DialogTitle>
             {editingItem
@@ -99,9 +103,7 @@ export default function ChecklistDialog({
 
           {/* Arbetsmoment */}
           <div>
-            <Label className="text-base font-medium">
-              Välj arbetsmoment
-            </Label>
+            <Label className="text-base font-medium">Välj arbetsmoment</Label>
             <div className="mt-2">
               <Select
                 value=""
@@ -120,9 +122,14 @@ export default function ChecklistDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {workTasks
-                    .filter((workTask) => !selectedWorkTaskIds.includes(workTask.id))
+                    .filter(
+                      (workTask) => !selectedWorkTaskIds.includes(workTask.id),
+                    )
                     .map((workTask) => (
-                      <SelectItem key={workTask.id} value={workTask.id.toString()}>
+                      <SelectItem
+                        key={workTask.id}
+                        value={workTask.id.toString()}
+                      >
                         {workTask.name}
                       </SelectItem>
                     ))}
@@ -138,13 +145,19 @@ export default function ChecklistDialog({
                     {selectedWorkTaskIds.map((workTaskId) => {
                       const task = workTasks.find((t) => t.id === workTaskId);
                       return task ? (
-                        <Badge key={workTaskId} variant="secondary" className="flex items-center gap-1 px-2 py-1">
+                        <Badge
+                          key={workTaskId}
+                          variant="secondary"
+                          className="flex items-center gap-1 px-2 py-1"
+                        >
                           {task.name}
                           <button
                             type="button"
                             onClick={() =>
                               setSelectedWorkTaskIds(
-                                selectedWorkTaskIds.filter((id) => id !== workTaskId),
+                                selectedWorkTaskIds.filter(
+                                  (id) => id !== workTaskId,
+                                ),
                               )
                             }
                             className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
@@ -162,11 +175,31 @@ export default function ChecklistDialog({
 
           {/* Switchar */}
           {[
-            { id: "includeWorkStations", label: t("admin.includeWorkStations"), defaultChecked: editingItem?.includeWorkStations ?? true },
-            { id: "includeShifts", label: t("admin.includeShifts"), defaultChecked: editingItem?.includeShifts ?? true },
-            { id: "isActive", label: t("admin.active"), defaultChecked: editingItem?.isActive ?? true },
-            { id: "showInMenu", label: t("admin.showInMenu"), defaultChecked: editingItem?.showInMenu ?? false },
-            { id: "hasDashboard", label: t("admin.hasDashboard"), defaultChecked: editingItem?.hasDashboard ?? false },
+            {
+              id: "includeWorkStations",
+              label: t("admin.includeWorkStations"),
+              defaultChecked: editingItem?.includeWorkStations ?? true,
+            },
+            {
+              id: "includeShifts",
+              label: t("admin.includeShifts"),
+              defaultChecked: editingItem?.includeShifts ?? true,
+            },
+            {
+              id: "isActive",
+              label: t("admin.active"),
+              defaultChecked: editingItem?.isActive ?? true,
+            },
+            {
+              id: "showInMenu",
+              label: t("admin.showInMenu"),
+              defaultChecked: editingItem?.showInMenu ?? false,
+            },
+            {
+              id: "hasDashboard",
+              label: t("admin.hasDashboard"),
+              defaultChecked: editingItem?.hasDashboard ?? false,
+            },
           ].map(({ id, label, defaultChecked }) => (
             <div className="flex items-center space-x-2" key={id}>
               <Switch id={id} name={id} defaultChecked={defaultChecked} />
@@ -183,6 +216,3 @@ export default function ChecklistDialog({
     </Dialog>
   );
 }
-
-
-

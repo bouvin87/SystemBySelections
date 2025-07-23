@@ -49,6 +49,7 @@ import { FloatingInput } from "./ui/floatingInput";
 import { FloatingSelect } from "./ui/floatingSelect";
 import { FloatingDatePicker } from "./ui/floatingDatePicker";
 import { FloatingTextarea } from "./ui/floatingTextarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FormModalProps {
   isOpen: boolean;
@@ -934,52 +935,7 @@ export default function FormModal({
     return true;
   };
 
-  // Auto-hide URL bar on mobile when modal opens
-  useEffect(() => {
-    const isMobile =
-      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent,
-      );
-
-    if (isOpen && isMobile) {
-      // Set body to fullscreen mode
-      const originalBodyStyle = {
-        height: document.body.style.height,
-        overflow: document.body.style.overflow,
-        position: document.body.style.position,
-      };
-
-      // Apply fullscreen styles
-      document.body.style.height = "100vh";
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      document.body.style.top = "0";
-
-      // Force minimal-ui viewport
-      const viewport = document.querySelector('meta[name="viewport"]');
-      const originalViewport = viewport?.getAttribute("content");
-      if (viewport) {
-        viewport.setAttribute(
-          "content",
-          "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, minimal-ui",
-        );
-      }
-
-      // Cleanup on modal close
-      return () => {
-        document.body.style.height = originalBodyStyle.height;
-        document.body.style.overflow = originalBodyStyle.overflow;
-        document.body.style.position = originalBodyStyle.position;
-        document.body.style.width = "";
-        document.body.style.top = "";
-
-        if (viewport && originalViewport) {
-          viewport.setAttribute("content", originalViewport);
-        }
-      };
-    }
-  }, [isOpen]);
+  const isMobile = useIsMobile();
 
   // Get the selected checklist name for the title
   const selectedChecklist = checklists.find(
@@ -991,7 +947,9 @@ export default function FormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-screen overflow-y-auto mobile-fullscreen">
+      <DialogContent  className={`w-full max-h-screen overflow-y-auto max-w-none rounded-none sm:max-w-3xl sm:rounded-lg scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent ${
+          isMobile ? "mobile-fullscreen" : ""
+        }`}>
         <DialogHeader>
           <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>

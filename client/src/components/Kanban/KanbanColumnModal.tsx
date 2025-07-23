@@ -165,11 +165,11 @@ export function KanbanColumnModal({
           <div className="flex justify-between items-center pt-4">
             {/* Vänstersida: Soptunna */}
             <div>
-              {isOwner && (
+              {isOwner && column && (
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="text-red-500 hover:text-red-700"
+                  variant="destructive"
+                  className=""
                   onClick={handleDelete}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
