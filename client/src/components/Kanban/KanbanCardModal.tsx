@@ -441,7 +441,7 @@ export function KanbanCardModal({
               <div className="flex justify-between items-center pt-4">
                 {/* Vänstersida: Soptunna */}
                 <div>
-                  {isOwner && (
+                  {isOwner && card && (
                     <Button
                       type="button"
                       variant="destructive"

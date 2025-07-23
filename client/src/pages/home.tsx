@@ -75,10 +75,7 @@ export default function Home() {
 
     
       <main className="max-w-7xl mx-auto px-4 pt-6 pb-32 space-y-6">
-        {/* Header */}
-        <div className="space-y-1 ">
-          <h1 className="text-3xl font-bold">Hej {displayName}</h1>
-        </div>
+
 
         
         <div className="flex flex-col md:flex-row justify-center gap-8">
